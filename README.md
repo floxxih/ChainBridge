@@ -207,9 +207,183 @@ cd ../frontend
 npm install
 npm run dev
 
-# Setup Backend
-cd ../backend
+# Setup Backend (using Docker)
+cd ..
 docker-compose up -d
+```
+
+---
+
+## Docker Development Environment
+
+ChainBridge uses Docker for consistent development environments. All backend services (PostgreSQL, Redis, and the FastAPI backend) run in containers.
+
+### Quick Start with Docker
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+### Development Mode
+
+For development with hot-reloading and optional database admin UI:
+
+```bash
+# Start development environment
+docker-compose -f docker-compose.dev.yml up -d
+
+# Start with Adminer (database admin UI)
+docker-compose -f docker-compose.dev.yml --profile admin up -d
+
+# Access Adminer at http://localhost:8080
+```
+
+### Services Overview
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **Backend API** | 8000 | FastAPI REST API |
+| **PostgreSQL** | 5432 | Primary database |
+| **Redis** | 6379 | Cache and message broker |
+| **Adminer** | 8080 | Database admin UI (dev only) |
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and customize:
+
+```bash
+cp .env.example .env
+```
+
+Key environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_USER` | chainbridge | PostgreSQL username |
+| `POSTGRES_PASSWORD` | chainbridge_dev | PostgreSQL password |
+| `POSTGRES_DB` | chainbridge | Database name |
+| `REDIS_PASSWORD` | chainbridge_redis_dev | Redis password |
+| `DEBUG` | true | Enable debug mode |
+| `CORS_ORIGINS` | http://localhost:3000 | Allowed CORS origins |
+
+### Docker Commands Reference
+
+```bash
+# Build images
+docker-compose build
+
+# Start services in background
+docker-compose up -d
+
+# View running containers
+docker-compose ps
+
+# View logs for specific service
+docker-compose logs -f backend
+docker-compose logs -f postgres
+docker-compose logs -f redis
+
+# Execute command in container
+docker-compose exec backend bash
+docker-compose exec postgres psql -U chainbridge -d chainbridge
+
+# Restart specific service
+docker-compose restart backend
+
+# Check service health
+docker-compose ps
+docker inspect --format='{{.State.Health.Status}}' chainbridge-backend
+
+# Stop all services
+docker-compose down
+
+# Remove volumes (WARNING: deletes all data)
+docker-compose down -v
+```
+
+### Database Management
+
+```bash
+# Connect to PostgreSQL
+docker-compose exec postgres psql -U chainbridge -d chainbridge
+
+# Run database migrations (when implemented)
+docker-compose exec backend alembic upgrade head
+
+# Create a new migration
+docker-compose exec backend alembic revision --autogenerate -m "description"
+
+# Reset database
+docker-compose down -v
+docker-compose up -d
+```
+
+### Redis Management
+
+```bash
+# Connect to Redis CLI
+docker-compose exec redis redis-cli
+
+# Monitor Redis commands
+docker-compose exec redis redis-cli MONITOR
+
+# Check Redis info
+docker-compose exec redis redis-cli INFO
+```
+
+### Troubleshooting
+
+#### Container won't start
+```bash
+# Check logs
+docker-compose logs backend
+
+# Rebuild container
+docker-compose build --no-cache backend
+docker-compose up -d backend
+```
+
+#### Database connection issues
+```bash
+# Verify PostgreSQL is running
+docker-compose ps postgres
+
+# Check PostgreSQL logs
+docker-compose logs postgres
+
+# Test connection
+docker-compose exec backend python -c "from sqlalchemy import create_engine; engine = create_engine('postgresql://chainbridge:chainbridge_dev@postgres:5432/chainbridge'); conn = engine.connect(); print('Connected!')"
+```
+
+#### Port conflicts
+If ports are already in use, modify the port mappings in `.env`:
+```bash
+POSTGRES_PORT=5433
+REDIS_PORT=6380
+BACKEND_PORT=8001
+```
+
+### Health Checks
+
+All services include health checks:
+
+- **PostgreSQL**: `pg_isready` command
+- **Redis**: `redis-cli ping`
+- **Backend**: HTTP request to `/health` endpoint
+
+Check health status:
+```bash
+docker-compose ps
 ```
 
 ---
