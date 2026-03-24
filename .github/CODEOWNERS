@@ -1,0 +1,26 @@
+# Code owners for ChainBridge
+
+# Default owners
+* @ChaoLing140
+
+# Smart contracts
+smartcontract/ @ChaoLing140
+
+# Relayer
+relayer/ @ChaoLing140
+
+# Frontend
+frontend/ @ChaoLing140
+
+# Backend
+backend/ @ChaoLing140
+
+# Tests
+tests/ @ChaoLing140
+
+# CI/CD
+.github/ @ChaoLing140
+
+# Documentation
+docs/ @ChaoLing140
+*.md @ChaoLing140

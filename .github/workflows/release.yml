@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+        body: |
+          ## ChainBridge Release ${{ github.ref }}
+          
+          ### Changes
+          See [commit history](https://github.com/floxxih/ChainBridge/commits/${{ github.ref }}) for details.
+          
+          ### Assets
+          - Smart contract WASM
+          - Relayer binaries
+          - Frontend build
+
+  build-wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    needs: create-release
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        
+    - name: Install wasm32 target
+      run: rustup target add wasm32-unknown-unknown
+      
+    - name: Build WASM
+      run: |
+        cd smartcontract
+        cargo build --target wasm32-unknown-unknown --release
+        
+    - name: Upload WASM Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./smartcontract/target/wasm32-unknown-unknown/release/chainbridge.wasm
+        asset_name: chainbridge.wasm
+        asset_content_type: application/wasm
+
+  build-relayer:
+    name: Build Relayer (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    needs: create-release
+    
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            suffix: ''
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            suffix: ''
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            suffix: '.exe'
+            
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
+        
+    - name: Build relayer
+      run: |
+        cd relayer
+        cargo build --release --target ${{ matrix.target }}
+        
+    - name: Package binary
+      run: |
+        cd relayer/target/${{ matrix.target }}/release
+        tar -czf chainbridge-relayer-${{ matrix.target }}.tar.gz chainbridge-relayer${{ matrix.suffix }}
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./relayer/target/${{ matrix.target }}/release/chainbridge-relayer-${{ matrix.target }}.tar.gz
+        asset_name: chainbridge-relayer-${{ matrix.target }}.tar.gz
+        asset_content_type: application/gzip
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: create-release
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Package frontend
+      run: |
+        cd frontend
+        tar -czf ../frontend-build.tar.gz .next/
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./frontend-build.tar.gz
+        asset_name: frontend-build.tar.gz
+        asset_content_type: application/gzip
