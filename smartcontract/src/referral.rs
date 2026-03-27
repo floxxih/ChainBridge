@@ -3,11 +3,7 @@ use crate::storage;
 use crate::types::ReferralRecord;
 use soroban_sdk::{Address, Env, String};
 
-pub fn register_referral_code(
-    env: &Env,
-    owner: &Address,
-    code: String,
-) -> Result<(), Error> {
+pub fn register_referral_code(env: &Env, owner: &Address, code: String) -> Result<(), Error> {
     if code.len() < 4 {
         return Err(Error::InvalidAmount);
     }

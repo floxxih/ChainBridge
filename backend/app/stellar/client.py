@@ -109,9 +109,7 @@ class StellarClient:
     ) -> Any:
         """Internal: single invocation attempt."""
         try:
-            source_account = self.server.load_account(
-                source_keypair.public_key
-            )
+            source_account = self.server.load_account(source_keypair.public_key)
         except SdkError as e:
             raise NetworkError(f"Failed to load account: {e}") from e
 
@@ -159,9 +157,7 @@ class StellarClient:
         except SdkError as e:
             raise NetworkError(f"SDK error in {function_name}: {e}") from e
         except Exception as e:
-            raise StellarClientError(
-                f"Unexpected error in {function_name}: {e}"
-            ) from e
+            raise StellarClientError(f"Unexpected error in {function_name}: {e}") from e
 
     # ── Transaction Monitoring ────────────────────────────────────────────
 
@@ -189,9 +185,7 @@ class StellarClient:
                     return self._parse_result(response)
 
                 if response.status == GetTransactionStatus.FAILED:
-                    raise ContractError(
-                        f"Transaction {tx_hash} failed on-chain"
-                    )
+                    raise ContractError(f"Transaction {tx_hash} failed on-chain")
 
                 # NOT_FOUND means still pending
             except SdkError as e:

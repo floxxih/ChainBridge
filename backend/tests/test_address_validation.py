@@ -10,13 +10,14 @@ from app.utils.address_validation import (
     validate_address,
     validate_bitcoin_address,
     validate_ethereum_address,
+    validate_solana_address,
     validate_stellar_address,
 )
-
 
 # ---------------------------------------------------------------------------
 # Stellar
 # ---------------------------------------------------------------------------
+
 
 class TestStellarValidation:
     # Real Stellar public key (testnet faucet)
@@ -65,6 +66,7 @@ class TestStellarValidation:
 # Bitcoin
 # ---------------------------------------------------------------------------
 
+
 class TestBitcoinValidation:
     # Mainnet P2PKH (real address)
     P2PKH = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
@@ -111,17 +113,22 @@ class TestBitcoinValidation:
 
     def test_testnet_p2pkh_rejected_on_mainnet(self):
         # Testnet P2PKH starts with m/n – version byte 0x6F
-        r = validate_bitcoin_address("mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn", network="mainnet")
+        r = validate_bitcoin_address(
+            "mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn", network="mainnet"
+        )
         assert r.valid is False
 
     def test_testnet_bech32_rejected_on_mainnet(self):
-        r = validate_bitcoin_address("tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", network="mainnet")
+        r = validate_bitcoin_address(
+            "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", network="mainnet"
+        )
         assert r.valid is False
 
 
 # ---------------------------------------------------------------------------
 # Ethereum
 # ---------------------------------------------------------------------------
+
 
 class TestEthereumValidation:
     VALID_LOWER = "0x52908400098527886e0f7030069857d2e4169ee7"
@@ -136,7 +143,10 @@ class TestEthereumValidation:
     def test_valid_uppercase(self):
         r = validate_ethereum_address(self.VALID_UPPER)
         assert r.valid is True
-        assert r.address_format in (AddressFormat.ETHEREUM, AddressFormat.ETHEREUM_CHECKSUMMED)
+        assert r.address_format in (
+            AddressFormat.ETHEREUM,
+            AddressFormat.ETHEREUM_CHECKSUMMED,
+        )
 
     def test_valid_checksum(self):
         r = validate_ethereum_address(self.VALID_CHECKSUM)
@@ -179,9 +189,12 @@ class TestEthereumValidation:
 # Unified API
 # ---------------------------------------------------------------------------
 
+
 class TestValidateAddress:
     def test_stellar(self):
-        r = validate_address("GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7", "stellar")
+        r = validate_address(
+            "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7", "stellar"
+        )
         assert r.valid is True
 
     def test_ethereum(self):
@@ -192,10 +205,9 @@ class TestValidateAddress:
         r = validate_address("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "bitcoin")
         assert r.valid is True
 
-    def test_unsupported_chain(self):
-        r = validate_address("abc", "solana")
-        assert r.valid is False
-        assert "Unsupported" in (r.error or "")
+    def test_solana(self):
+        r = validate_address("Vote111111111111111111111111111111111111111", "solana")
+        assert r.valid is True
 
     def test_wrong_chain(self):
         # Ethereum address validated as stellar
@@ -207,9 +219,12 @@ class TestValidateAddress:
 # Detection
 # ---------------------------------------------------------------------------
 
+
 class TestDetectAddressChain:
     def test_detect_stellar(self):
-        r = detect_address_chain("GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7")
+        r = detect_address_chain(
+            "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7"
+        )
         assert r.valid is True
         assert r.chain == "stellar"
 
@@ -234,4 +249,15 @@ class TestDetectAddressChain:
 
     def test_detect_unknown(self):
         r = detect_address_chain("zzzznotanaddress")
+        assert r.valid is False
+
+
+class TestSolanaValidation:
+    def test_valid_solana_address(self):
+        r = validate_solana_address("Vote111111111111111111111111111111111111111")
+        assert r.valid is True
+        assert r.address_format == AddressFormat.SOLANA
+
+    def test_invalid_solana_address(self):
+        r = validate_solana_address("bad-solana-address")
         assert r.valid is False

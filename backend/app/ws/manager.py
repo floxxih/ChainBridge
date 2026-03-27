@@ -53,7 +53,9 @@ class ConnectionManager:
         if websocket not in self.preferences:
             self.preferences[websocket] = {}
         # Store filter; empty set means "accept all"
-        self.preferences[websocket][channel] = set(event_types) if event_types else set()
+        self.preferences[websocket][channel] = (
+            set(event_types) if event_types else set()
+        )
         logger.debug("Client subscribed to %s (filter=%s)", channel, event_types)
 
     async def unsubscribe(self, websocket: WebSocket, channel: str):

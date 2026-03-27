@@ -77,16 +77,8 @@ export function Modal({
           <div className="border-b border-border px-6 py-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                {title && (
-                  <h2 className="text-lg font-semibold text-text-primary">
-                    {title}
-                  </h2>
-                )}
-                {description && (
-                  <p className="mt-0.5 text-sm text-text-secondary">
-                    {description}
-                  </p>
-                )}
+                {title && <h2 className="text-lg font-semibold text-text-primary">{title}</h2>}
+                {description && <p className="mt-0.5 text-sm text-text-secondary">{description}</p>}
               </div>
               <button
                 onClick={onClose}

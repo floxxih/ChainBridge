@@ -8,16 +8,14 @@ export const useTransactionStore = create<TransactionStore>()(
     (set) => ({
       transactions: [],
 
-      addTransaction: (tx) => 
-        set((state) => ({ 
-          transactions: [tx, ...state.transactions].slice(0, 100) 
+      addTransaction: (tx) =>
+        set((state) => ({
+          transactions: [tx, ...state.transactions].slice(0, 100),
         })),
 
       updateTransaction: (id, updates) =>
         set((state) => ({
-          transactions: state.transactions.map((tx) =>
-            tx.id === id ? { ...tx, ...updates } : tx
-          ),
+          transactions: state.transactions.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx)),
         })),
 
       removeTransaction: (id) =>
@@ -34,10 +32,10 @@ export const useTransactionStore = create<TransactionStore>()(
 // Helper to mock some initial data for testing if empty
 export const useMockTransactions = () => {
   const { transactions, addTransaction } = useTransactionStore();
-  
+
   const seedMockData = useCallback(() => {
     if (transactions.length > 0) return;
-    
+
     const mocks: Transaction[] = [
       {
         id: "tx_001",
@@ -76,10 +74,10 @@ export const useMockTransactions = () => {
         confirmations: 0,
         requiredConfirmations: 3,
         timestamp: new Date().toISOString(),
-      }
+      },
     ];
-    
-    mocks.forEach(tx => addTransaction(tx));
+
+    mocks.forEach((tx) => addTransaction(tx));
   }, [transactions.length, addTransaction]);
 
   return { seedMockData };

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, Input, Card } from '@/components/ui';
-import { ShieldCheck } from 'lucide-react';
-import { verifyAdminKey, setAdminApiKey } from '@/lib/adminApi';
+import { useState } from "react";
+import { Button, Input, Card } from "@/components/ui";
+import { ShieldCheck } from "lucide-react";
+import { verifyAdminKey, setAdminApiKey } from "@/lib/adminApi";
 
 interface AdminLoginGateProps {
   onAuthenticated: () => void;
 }
 
 export function AdminLoginGate({ onAuthenticated }: AdminLoginGateProps) {
-  const [key, setKey] = useState('');
+  const [key, setKey] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +26,7 @@ export function AdminLoginGate({ onAuthenticated }: AdminLoginGateProps) {
       setAdminApiKey(key.trim());
       onAuthenticated();
     } else {
-      setError('Invalid admin key or insufficient privileges');
+      setError("Invalid admin key or insufficient privileges");
     }
     setLoading(false);
   };
@@ -55,7 +55,7 @@ export function AdminLoginGate({ onAuthenticated }: AdminLoginGateProps) {
             autoFocus
           />
           <Button type="submit" disabled={loading || !key.trim()} className="w-full">
-            {loading ? 'Verifying…' : 'Authenticate'}
+            {loading ? "Verifying…" : "Authenticate"}
           </Button>
         </form>
       </Card>

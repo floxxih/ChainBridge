@@ -8,7 +8,10 @@ use std::time::Duration;
 use tokio::time::sleep;
 
 pub async fn monitor_loop(config: RelayerConfig) {
-    println!("[Bitcoin] Starting monitor — RPC: {}", config.bitcoin_rpc_url);
+    println!(
+        "[Bitcoin] Starting monitor — RPC: {}",
+        config.bitcoin_rpc_url
+    );
 
     let interval = Duration::from_secs(config.poll_interval_secs);
     let mut last_block_height: u64 = 0;

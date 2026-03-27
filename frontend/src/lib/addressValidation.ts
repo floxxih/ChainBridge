@@ -53,7 +53,11 @@ export function validateStellarAddress(address: string): ValidationResult {
   }
 
   if (!StrKey.isValidEd25519PublicKey(address)) {
-    return { valid: false, chain: "stellar", error: "Invalid Stellar account address (checksum failed)" };
+    return {
+      valid: false,
+      chain: "stellar",
+      error: "Invalid Stellar account address (checksum failed)",
+    };
   }
 
   return { valid: true, chain: "stellar", format: "stellar_account" };

@@ -29,7 +29,9 @@ router = APIRouter()
 _ALERTS_KEY = "admin:alerts"
 
 
-def _append_dispute_action(dispute: SwapDispute, *, action: str, actor: str, details: Optional[dict] = None) -> None:
+def _append_dispute_action(
+    dispute: SwapDispute, *, action: str, actor: str, details: Optional[dict] = None
+) -> None:
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "action": action,
@@ -45,8 +47,8 @@ def _append_dispute_action(dispute: SwapDispute, *, action: str, actor: str, det
 
 class AlertCreate(BaseModel):
     name: str
-    metric: str         # e.g. "active_htlcs", "open_orders", "swap_volume"
-    condition: str      # "gt" | "lt" | "eq"
+    metric: str  # e.g. "active_htlcs", "open_orders", "swap_volume"
+    condition: str  # "gt" | "lt" | "eq"
     threshold: float
     severity: str = "warning"  # "info" | "warning" | "critical"
     enabled: bool = True
@@ -72,30 +74,64 @@ async def admin_stats(
         return cached
 
     # Counts
-    total_htlcs       = (await db.execute(select(func.count(HTLC.id)))).scalar() or 0
-    active_htlcs      = (await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "active"))).scalar() or 0
-    claimed_htlcs     = (await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "claimed"))).scalar() or 0
-    refunded_htlcs    = (await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "refunded"))).scalar() or 0
+    total_htlcs = (await db.execute(select(func.count(HTLC.id)))).scalar() or 0
+    active_htlcs = (
+        await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "active"))
+    ).scalar() or 0
+    claimed_htlcs = (
+        await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "claimed"))
+    ).scalar() or 0
+    refunded_htlcs = (
+        await db.execute(select(func.count(HTLC.id)).where(HTLC.status == "refunded"))
+    ).scalar() or 0
 
-    total_orders      = (await db.execute(select(func.count(SwapOrder.id)))).scalar() or 0
-    open_orders       = (await db.execute(select(func.count(SwapOrder.id)).where(SwapOrder.status == "open"))).scalar() or 0
-    matched_orders    = (await db.execute(select(func.count(SwapOrder.id)).where(SwapOrder.status == "matched"))).scalar() or 0
-    cancelled_orders  = (await db.execute(select(func.count(SwapOrder.id)).where(SwapOrder.status == "cancelled"))).scalar() or 0
-
-    total_swaps       = (await db.execute(select(func.count(CrossChainSwap.id)))).scalar() or 0
-    executed_swaps    = (await db.execute(select(func.count(CrossChainSwap.id)).where(CrossChainSwap.state == "executed"))).scalar() or 0
-
-    total_disputes    = (await db.execute(select(func.count(SwapDispute.id)))).scalar() or 0
-    open_disputes     = (
+    total_orders = (await db.execute(select(func.count(SwapOrder.id)))).scalar() or 0
+    open_orders = (
         await db.execute(
-            select(func.count(SwapDispute.id)).where(SwapDispute.status.in_(["submitted", "in_review"]))
+            select(func.count(SwapOrder.id)).where(SwapOrder.status == "open")
+        )
+    ).scalar() or 0
+    matched_orders = (
+        await db.execute(
+            select(func.count(SwapOrder.id)).where(SwapOrder.status == "matched")
+        )
+    ).scalar() or 0
+    cancelled_orders = (
+        await db.execute(
+            select(func.count(SwapOrder.id)).where(SwapOrder.status == "cancelled")
+        )
+    ).scalar() or 0
+
+    total_swaps = (
+        await db.execute(select(func.count(CrossChainSwap.id)))
+    ).scalar() or 0
+    executed_swaps = (
+        await db.execute(
+            select(func.count(CrossChainSwap.id)).where(
+                CrossChainSwap.state == "executed"
+            )
+        )
+    ).scalar() or 0
+
+    total_disputes = (
+        await db.execute(select(func.count(SwapDispute.id)))
+    ).scalar() or 0
+    open_disputes = (
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(
+                SwapDispute.status.in_(["submitted", "in_review"])
+            )
         )
     ).scalar() or 0
     resolved_disputes = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "resolved"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "resolved")
+        )
     ).scalar() or 0
 
-    total_volume      = (await db.execute(select(func.coalesce(func.sum(SwapOrder.from_amount), 0)))).scalar() or 0
+    total_volume = (
+        await db.execute(select(func.coalesce(func.sum(SwapOrder.from_amount), 0)))
+    ).scalar() or 0
     volume_24h_result = await db.execute(
         select(func.coalesce(func.sum(SwapOrder.from_amount), 0)).where(
             SwapOrder.created_at >= datetime.now(timezone.utc) - timedelta(hours=24)
@@ -104,10 +140,14 @@ async def admin_stats(
     volume_24h = volume_24h_result.scalar() or 0
 
     # Unique users (distinct creator addresses)
-    unique_users = (await db.execute(select(func.count(func.distinct(SwapOrder.creator))))).scalar() or 0
+    unique_users = (
+        await db.execute(select(func.count(func.distinct(SwapOrder.creator))))
+    ).scalar() or 0
 
     # Active API keys
-    active_api_keys = (await db.execute(select(func.count(APIKey.id)).where(APIKey.is_active == True))).scalar() or 0
+    active_api_keys = (
+        await db.execute(select(func.count(APIKey.id)).where(APIKey.is_active == True))
+    ).scalar() or 0
 
     stats = {
         "htlcs": {
@@ -166,10 +206,10 @@ async def admin_volume(
         return cached
 
     period_map = {
-        "1h":  ("5 minutes",  timedelta(hours=1)),
-        "24h": ("1 hour",     timedelta(hours=24)),
-        "7d":  ("1 day",      timedelta(days=7)),
-        "30d": ("1 day",      timedelta(days=30)),
+        "1h": ("5 minutes", timedelta(hours=1)),
+        "24h": ("1 hour", timedelta(hours=24)),
+        "7d": ("1 day", timedelta(days=7)),
+        "30d": ("1 day", timedelta(days=30)),
     }
     bucket_interval, lookback = period_map[period]
 
@@ -226,20 +266,26 @@ async def admin_active_htlcs(
     rows = []
     for h in htlcs:
         remaining = int(h.time_lock) - now_ts
-        urgency = "critical" if remaining < 3600 else "warning" if remaining < 86400 else "normal"
-        rows.append({
-            "id": str(h.id),
-            "onchain_id": h.onchain_id,
-            "sender": h.sender,
-            "receiver": h.receiver,
-            "amount": h.amount,
-            "hash_lock": h.hash_lock,
-            "time_lock": h.time_lock,
-            "seconds_remaining": max(remaining, 0),
-            "urgency": urgency,
-            "hash_algorithm": h.hash_algorithm,
-            "created_at": h.created_at.isoformat() if h.created_at else None,
-        })
+        urgency = (
+            "critical"
+            if remaining < 3600
+            else "warning" if remaining < 86400 else "normal"
+        )
+        rows.append(
+            {
+                "id": str(h.id),
+                "onchain_id": h.onchain_id,
+                "sender": h.sender,
+                "receiver": h.receiver,
+                "amount": h.amount,
+                "hash_lock": h.hash_lock,
+                "time_lock": h.time_lock,
+                "seconds_remaining": max(remaining, 0),
+                "urgency": urgency,
+                "hash_algorithm": h.hash_algorithm,
+                "created_at": h.created_at.isoformat() if h.created_at else None,
+            }
+        )
 
     return {"active_count": len(rows), "htlcs": rows}
 
@@ -268,29 +314,35 @@ async def admin_chain_health(
             last_synced = status_data.get("last_synced_block", 0)
             latest = status_data.get("latest_chain_block", 0)
             blocks_behind = status_data.get("blocks_behind", 0)
-            health = "healthy" if is_running and blocks_behind < 10 else (
-                "degraded" if blocks_behind < 50 else "unhealthy"
+            health = (
+                "healthy"
+                if is_running and blocks_behind < 10
+                else ("degraded" if blocks_behind < 50 else "unhealthy")
             )
-            results.append({
-                "chain": chain,
-                "health": health,
-                "is_running": is_running,
-                "last_synced_block": last_synced,
-                "latest_block": latest,
-                "blocks_behind": blocks_behind,
-                "last_updated": status_data.get("last_updated"),
-            })
+            results.append(
+                {
+                    "chain": chain,
+                    "health": health,
+                    "is_running": is_running,
+                    "last_synced_block": last_synced,
+                    "latest_block": latest,
+                    "blocks_behind": blocks_behind,
+                    "last_updated": status_data.get("last_updated"),
+                }
+            )
         else:
             # No indexer data — report as unknown
-            results.append({
-                "chain": chain,
-                "health": "unknown",
-                "is_running": False,
-                "last_synced_block": None,
-                "latest_block": None,
-                "blocks_behind": None,
-                "last_updated": None,
-            })
+            results.append(
+                {
+                    "chain": chain,
+                    "health": "unknown",
+                    "is_running": False,
+                    "last_synced_block": None,
+                    "latest_block": None,
+                    "blocks_behind": None,
+                    "last_updated": None,
+                }
+            )
 
     return {"chains": results}
 
@@ -484,19 +536,29 @@ async def admin_dispute_stats(
 
     total = (await db.execute(select(func.count(SwapDispute.id)))).scalar() or 0
     submitted = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "submitted"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "submitted")
+        )
     ).scalar() or 0
     in_review = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "in_review"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "in_review")
+        )
     ).scalar() or 0
     resolved = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "resolved"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "resolved")
+        )
     ).scalar() or 0
     rejected = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "rejected"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "rejected")
+        )
     ).scalar() or 0
     refunded = (
-        await db.execute(select(func.count(SwapDispute.id)).where(SwapDispute.status == "refunded"))
+        await db.execute(
+            select(func.count(SwapDispute.id)).where(SwapDispute.status == "refunded")
+        )
     ).scalar() or 0
 
     response = {
@@ -579,7 +641,9 @@ async def admin_resolve_dispute(
 
     # Optional swap state override when a refund is explicitly approved.
     if data.refund_override:
-        swap_result = await db.execute(select(CrossChainSwap).where(CrossChainSwap.id == dispute.swap_id))
+        swap_result = await db.execute(
+            select(CrossChainSwap).where(CrossChainSwap.id == dispute.swap_id)
+        )
         swap = swap_result.scalar_one_or_none()
         if swap:
             swap.state = "refunded"

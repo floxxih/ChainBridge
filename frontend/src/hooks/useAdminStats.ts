@@ -1,9 +1,9 @@
 /**
  * React hooks for the admin dashboard (#60).
  */
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
   fetchAdminStats,
   fetchAdminVolume,
@@ -28,22 +28,27 @@ import {
   type Dispute,
   type DisputeStats,
   type DisputeResolveRequest,
-} from '@/lib/adminApi';
+} from "@/lib/adminApi";
 
 type AsyncState<T> = { data: T | null; loading: boolean; error: string | null };
 
-function useAsync<T>(fetcher: () => Promise<T>, deps: unknown[] = []): AsyncState<T> & { refetch: () => void } {
+function useAsync<T>(
+  fetcher: () => Promise<T>,
+  deps: unknown[] = []
+): AsyncState<T> & { refetch: () => void } {
   const [state, setState] = useState<AsyncState<T>>({ data: null, loading: true, error: null });
 
   const run = useCallback(() => {
     setState((s: AsyncState<T>) => ({ ...s, loading: true, error: null }));
     fetcher()
       .then((data) => setState({ data, loading: false, error: null }))
-      .catch((err) => setState({ data: null, loading: false, error: err?.message ?? 'Error' }));
+      .catch((err) => setState({ data: null, loading: false, error: err?.message ?? "Error" }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
-  useEffect(() => { run(); }, [run]);
+  useEffect(() => {
+    run();
+  }, [run]);
 
   return { ...state, refetch: run };
 }
@@ -57,7 +62,7 @@ export function useAdminStats(refreshMs = 30_000) {
   return state;
 }
 
-export function useAdminVolume(period: '1h' | '24h' | '7d' | '30d' = '24h') {
+export function useAdminVolume(period: "1h" | "24h" | "7d" | "30d" = "24h") {
   return useAsync(() => fetchAdminVolume(period), [period]);
 }
 
@@ -86,20 +91,29 @@ export function useUserMetrics() {
 export function useAlerts() {
   const state = useAsync(fetchAlerts, []);
 
-  const add = useCallback(async (alert: AlertCreate) => {
-    await createAlert(alert);
-    state.refetch();
-  }, [state.refetch]);
+  const add = useCallback(
+    async (alert: AlertCreate) => {
+      await createAlert(alert);
+      state.refetch();
+    },
+    [state.refetch]
+  );
 
-  const edit = useCallback(async (id: string, alert: AlertCreate) => {
-    await updateAlert(id, alert);
-    state.refetch();
-  }, [state.refetch]);
+  const edit = useCallback(
+    async (id: string, alert: AlertCreate) => {
+      await updateAlert(id, alert);
+      state.refetch();
+    },
+    [state.refetch]
+  );
 
-  const remove = useCallback(async (id: string) => {
-    await deleteAlert(id);
-    state.refetch();
-  }, [state.refetch]);
+  const remove = useCallback(
+    async (id: string) => {
+      await deleteAlert(id);
+      state.refetch();
+    },
+    [state.refetch]
+  );
 
   return { ...state, add, edit, remove };
 }
@@ -116,17 +130,23 @@ export function useDisputes(refreshMs = 20_000) {
     return () => clearInterval(id);
   }, [disputes.refetch, stats.refetch, refreshMs]);
 
-  const startReview = useCallback(async (id: string, reviewedBy: string, adminNotes: string) => {
-    await reviewDispute(id, reviewedBy, adminNotes);
-    disputes.refetch();
-    stats.refetch();
-  }, [disputes, stats]);
+  const startReview = useCallback(
+    async (id: string, reviewedBy: string, adminNotes: string) => {
+      await reviewDispute(id, reviewedBy, adminNotes);
+      disputes.refetch();
+      stats.refetch();
+    },
+    [disputes, stats]
+  );
 
-  const resolve = useCallback(async (id: string, payload: DisputeResolveRequest) => {
-    await resolveDispute(id, payload);
-    disputes.refetch();
-    stats.refetch();
-  }, [disputes, stats]);
+  const resolve = useCallback(
+    async (id: string, payload: DisputeResolveRequest) => {
+      await resolveDispute(id, payload);
+      disputes.refetch();
+      stats.refetch();
+    },
+    [disputes, stats]
+  );
 
   return {
     disputes: disputes as AsyncState<Dispute[]> & { refetch: () => void },

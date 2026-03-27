@@ -41,3 +41,17 @@ class HTLCResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HTLCTimelineEvent(BaseModel):
+    label: str
+    timestamp: Optional[str] = None
+    completed: bool
+
+
+class HTLCStatusResponse(HTLCResponse):
+    seconds_remaining: int
+    can_claim: bool
+    can_refund: bool
+    phase: str
+    timeline: list[HTLCTimelineEvent]

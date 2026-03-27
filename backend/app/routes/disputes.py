@@ -18,7 +18,9 @@ from app.schemas.dispute import DisputeCreate, DisputeEvidenceCreate, DisputeRes
 router = APIRouter()
 
 
-def _append_action(dispute: SwapDispute, *, action: str, actor: str, details: Optional[dict] = None) -> None:
+def _append_action(
+    dispute: SwapDispute, *, action: str, actor: str, details: Optional[dict] = None
+) -> None:
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "action": action,
@@ -41,7 +43,9 @@ async def create_dispute(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid swap_id")
 
-    swap_result = await db.execute(select(CrossChainSwap).where(CrossChainSwap.id == swap_uuid))
+    swap_result = await db.execute(
+        select(CrossChainSwap).where(CrossChainSwap.id == swap_uuid)
+    )
     swap = swap_result.scalar_one_or_none()
     if not swap:
         raise HTTPException(status_code=404, detail="Swap not found")
@@ -55,7 +59,12 @@ async def create_dispute(
         evidence=[item.model_dump() for item in data.evidence],
         status="submitted",
     )
-    _append_action(dispute, action="dispute.submitted", actor=data.submitted_by, details={"category": data.category})
+    _append_action(
+        dispute,
+        action="dispute.submitted",
+        actor=data.submitted_by,
+        details={"category": data.category},
+    )
 
     db.add(dispute)
     await db.commit()

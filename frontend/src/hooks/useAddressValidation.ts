@@ -28,7 +28,7 @@ interface AddressValidationState {
 
 export function useAddressValidation(
   address: string,
-  options: UseAddressValidationOptions = {},
+  options: UseAddressValidationOptions = {}
 ): AddressValidationState {
   const { chain, debounceMs = 300 } = options;
   const [result, setResult] = useState<ValidationResult | null>(null);
@@ -42,7 +42,7 @@ export function useAddressValidation(
       }
       return chain ? validateAddress(addr, chain) : detectAddressChain(addr);
     },
-    [chain],
+    [chain]
   );
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export function useAddressValidation(
       setIsValidating(false);
       return r;
     },
-    [validate],
+    [validate]
   );
 
   return { result, isValidating, validateNow };

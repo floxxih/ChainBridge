@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface WebSocketMessage {
   type: string;
@@ -34,7 +34,7 @@ export function useWebSocket(url: string | null, token: string | null) {
   const resubscribeAll = useCallback(() => {
     subscriptions.current.forEach((opts, channel) => {
       sendRaw({
-        type: 'subscribe',
+        type: "subscribe",
         channel,
         event_types: opts.eventTypes ?? [],
       });
@@ -51,7 +51,7 @@ export function useWebSocket(url: string | null, token: string | null) {
     }
 
     const wsUrl = new URL(url);
-    wsUrl.searchParams.set('token', token);
+    wsUrl.searchParams.set("token", token);
 
     const socket = new WebSocket(wsUrl.toString());
 
@@ -73,7 +73,7 @@ export function useWebSocket(url: string | null, token: string | null) {
     };
 
     socket.onerror = () => {
-      setError(new Error('WebSocket connection error'));
+      setError(new Error("WebSocket connection error"));
     };
 
     socket.onmessage = (event) => {
@@ -81,8 +81,8 @@ export function useWebSocket(url: string | null, token: string | null) {
         const message: WebSocketMessage = JSON.parse(event.data);
 
         // Respond to server-side heartbeat pings
-        if (message.type === 'ping') {
-          sendRaw({ type: 'pong' });
+        if (message.type === "ping") {
+          sendRaw({ type: "pong" });
           return;
         }
 
@@ -121,7 +121,7 @@ export function useWebSocket(url: string | null, token: string | null) {
       subscriptions.current.set(channel, opts);
 
       // Send subscription to server
-      sendRaw({ type: 'subscribe', channel, event_types: opts.eventTypes ?? [] });
+      sendRaw({ type: "subscribe", channel, event_types: opts.eventTypes ?? [] });
 
       return () => {
         const set = listeners.current.get(channel);
@@ -130,27 +130,23 @@ export function useWebSocket(url: string | null, token: string | null) {
           if (set.size === 0) {
             listeners.current.delete(channel);
             subscriptions.current.delete(channel);
-            sendRaw({ type: 'unsubscribe', channel });
+            sendRaw({ type: "unsubscribe", channel });
           }
         }
       };
     },
-    [sendRaw],
+    [sendRaw]
   );
 
   const updatePreferences = useCallback(
     (channel: string, eventTypes: string[]) => {
       subscriptions.current.set(channel, { eventTypes });
-      sendRaw({ type: 'update_preferences', channel, event_types: eventTypes });
+      sendRaw({ type: "update_preferences", channel, event_types: eventTypes });
     },
-    [sendRaw],
+    [sendRaw]
   );
 
-  const send = useCallback(
-    (type: string, data: object) => sendRaw({ type, ...data }),
-    [sendRaw],
-  );
+  const send = useCallback((type: string, data: object) => sendRaw({ type, ...data }), [sendRaw]);
 
   return { isConnected, error, subscribe, updatePreferences, send };
 }
-

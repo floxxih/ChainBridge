@@ -56,9 +56,7 @@ class BaseIndexer(ABC):
         """Get the latest confirmed block number on the chain."""
 
     @abstractmethod
-    async def fetch_events(
-        self, from_block: int, to_block: int
-    ) -> list[IndexedEvent]:
+    async def fetch_events(self, from_block: int, to_block: int) -> list[IndexedEvent]:
         """Fetch events from a block range."""
 
     @abstractmethod

@@ -2,6 +2,7 @@
 
 import logging
 import os
+from asyncio import sleep
 from datetime import datetime
 
 import httpx
@@ -21,24 +22,36 @@ class EthereumIndexer(BaseIndexer):
         )
         self.contract_address = os.getenv("ETHEREUM_BRIDGE_CONTRACT", "")
         self.confirmations = int(os.getenv("ETHEREUM_CONFIRMATIONS", "12"))
+        self.max_retries = int(os.getenv("ETHEREUM_RPC_RETRIES", "3"))
+        self._last_block_hash: str | None = None
 
     async def _rpc_call(self, method: str, params: list = None) -> dict:
         """Make a JSON-RPC call to the Ethereum node."""
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self.rpc_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": method,
-                    "params": params or [],
-                },
-                timeout=30,
-            )
-            data = response.json()
-            if "error" in data and data["error"]:
-                raise Exception(f"Ethereum RPC error: {data['error']}")
-            return data.get("result")
+        last_error: Exception | None = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        self.rpc_url,
+                        json={
+                            "jsonrpc": "2.0",
+                            "id": 1,
+                            "method": method,
+                            "params": params or [],
+                        },
+                        timeout=30,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    if "error" in data and data["error"]:
+                        raise RuntimeError(f"Ethereum RPC error: {data['error']}")
+                    return data.get("result")
+            except Exception as exc:
+                last_error = exc
+                if attempt == self.max_retries:
+                    break
+                await sleep(attempt)
+        raise RuntimeError("Ethereum RPC call failed") from last_error
 
     async def get_latest_block(self) -> int:
         try:
@@ -49,12 +62,11 @@ class EthereumIndexer(BaseIndexer):
             logger.error("[ethereum] Failed to get block number: %s", e)
             raise
 
-    async def fetch_events(
-        self, from_block: int, to_block: int
-    ) -> list[IndexedEvent]:
+    async def fetch_events(self, from_block: int, to_block: int) -> list[IndexedEvent]:
         if not self.contract_address:
             return []
 
+        await self.detect_reorg(from_block)
         events = []
         try:
             logs = await self._rpc_call(
@@ -71,10 +83,19 @@ class EthereumIndexer(BaseIndexer):
             for log in logs or []:
                 try:
                     block_num = int(log["blockNumber"], 16)
+                    block_data = await self._rpc_call(
+                        "eth_getBlockByNumber",
+                        [log["blockNumber"], False],
+                    )
+                    self._last_block_hash = (
+                        block_data.get("hash") if block_data else None
+                    )
                     events.append(
                         IndexedEvent(
                             chain="ethereum",
-                            event_type=log["topics"][0] if log.get("topics") else "unknown",
+                            event_type=(
+                                log["topics"][0] if log.get("topics") else "unknown"
+                            ),
                             tx_hash=log.get("transactionHash", ""),
                             block_number=block_num,
                             contract_address=log.get("address"),
@@ -101,3 +122,23 @@ class EthereumIndexer(BaseIndexer):
             reorg_block,
         )
         # In production: delete indexed events >= reorg_block from DB
+
+    async def detect_reorg(self, from_block: int) -> None:
+        if from_block <= 0 or not self._last_block_hash:
+            return
+        previous_block = await self._rpc_call(
+            "eth_getBlockByNumber", [hex(from_block - 1), False]
+        )
+        if previous_block and previous_block.get("hash") != self._last_block_hash:
+            await self.handle_reorg(from_block - 1)
+
+    async def get_mempool_transactions(self) -> list[str]:
+        txpool = await self._rpc_call("txpool_content")
+        if not isinstance(txpool, dict):
+            return []
+        pending = txpool.get("pending", {})
+        return list(pending.keys())
+
+    async def broadcast_transaction(self, raw_tx: str) -> str:
+        tx_hash = await self._rpc_call("eth_sendRawTransaction", [raw_tx])
+        return str(tx_hash)

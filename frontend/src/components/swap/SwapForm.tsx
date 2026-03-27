@@ -45,7 +45,8 @@ export default function SwapForm() {
     chain: form.destChain,
     debounceMs: 250,
   });
-  const recipientIsValid = Boolean(form.recipientAddress) && Boolean(recipientValidation.result?.valid);
+  const recipientIsValid =
+    Boolean(form.recipientAddress) && Boolean(recipientValidation.result?.valid);
 
   const isValid =
     form.amount &&
@@ -91,9 +92,7 @@ export default function SwapForm() {
     return (
       <div className="max-w-lg mx-auto p-6 bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-200 dark:border-green-800 text-center">
         <div className="text-4xl mb-4">&#10003;</div>
-        <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-2">
-          Swap Created
-        </h3>
+        <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-2">Swap Created</h3>
         <p className="text-sm text-green-600 dark:text-green-400 mb-4">
           Your cross-chain swap has been initiated.
         </p>
@@ -114,9 +113,7 @@ export default function SwapForm() {
     return (
       <div className="max-w-lg mx-auto p-6 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 text-center">
         <div className="text-4xl mb-4">&#10007;</div>
-        <h3 className="text-xl font-bold text-red-800 dark:text-red-200 mb-2">
-          Swap Failed
-        </h3>
+        <h3 className="text-xl font-bold text-red-800 dark:text-red-200 mb-2">Swap Failed</h3>
         <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
         <button
           onClick={() => setStep("form")}
@@ -252,9 +249,7 @@ export default function SwapForm() {
       </label>
       <select
         value={form.destChain}
-        onChange={(e) =>
-          setForm({ ...form, destChain: e.target.value as Chain })
-        }
+        onChange={(e) => setForm({ ...form, destChain: e.target.value as Chain })}
         className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
       >
         {CHAINS.filter((c) => c.id !== form.sourceChain).map((c) => (
@@ -271,9 +266,7 @@ export default function SwapForm() {
       <input
         type="text"
         value={form.recipientAddress}
-        onChange={(e) =>
-          setForm({ ...form, recipientAddress: e.target.value })
-        }
+        onChange={(e) => setForm({ ...form, recipientAddress: e.target.value })}
         placeholder={
           form.destChain === "bitcoin"
             ? "bc1q..."
@@ -288,11 +281,13 @@ export default function SwapForm() {
         <p className="text-xs text-gray-500 -mt-3 mb-4">Validating recipient address...</p>
       )}
 
-      {form.recipientAddress.length > 0 && !recipientValidation.isValidating && !recipientValidation.result?.valid && (
-        <p className="text-red-500 text-sm -mt-3 mb-4">
-          {recipientValidation.result?.error || getAddressErrorMessage(form.destChain)}
-        </p>
-      )}
+      {form.recipientAddress.length > 0 &&
+        !recipientValidation.isValidating &&
+        !recipientValidation.result?.valid && (
+          <p className="text-red-500 text-sm -mt-3 mb-4">
+            {recipientValidation.result?.error || getAddressErrorMessage(form.destChain)}
+          </p>
+        )}
 
       {recipientIsValid && (
         <p className="text-green-600 dark:text-green-400 text-sm -mt-3 mb-4">
@@ -306,9 +301,7 @@ export default function SwapForm() {
       </label>
       <select
         value={form.timelockHours}
-        onChange={(e) =>
-          setForm({ ...form, timelockHours: parseInt(e.target.value) })
-        }
+        onChange={(e) => setForm({ ...form, timelockHours: parseInt(e.target.value) })}
         className="w-full p-2 mb-4 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
       >
         {[6, 12, 24, 48].map((h) => (

@@ -21,14 +21,14 @@ export default function GlobalError({
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 text-red-500">
         <AlertCircle className="h-10 w-10" />
       </div>
-      
+
       <h1 className="text-4xl font-extrabold tracking-tight text-text-primary">
         Bridge Connection Lost
       </h1>
-      
+
       <p className="mt-4 max-w-md text-text-secondary leading-relaxed">
-        An unexpected error occurred while processing your request. 
-        Don&apos;t worry, your assets remain secure in your wallet.
+        An unexpected error occurred while processing your request. Don&apos;t worry, your assets
+        remain secure in your wallet.
       </p>
 
       {error.digest && (

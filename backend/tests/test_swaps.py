@@ -1,5 +1,7 @@
 """Tests for swap API endpoints."""
 
+import json
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -106,6 +108,30 @@ class TestVerifyProof:
         with pytest.raises(HTTPException) as exc_info:
             await verify_proof("nonexistent", proof, db=mock_db)
         assert exc_info.value.status_code == 404
+
+    @pytest.mark.anyio
+    async def test_verify_proof_rejects_invalid_solana_payload(self):
+        from app.routes.swaps import verify_proof
+        from fastapi import HTTPException
+
+        swap = MagicMock()
+        swap.id = "swap-1"
+        swap.state = "initiated"
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = swap
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock(return_value=result_mock)
+
+        proof = SwapProof(
+            chain="solana",
+            tx_hash="solana-tx",
+            block_height=1,
+            proof_data=json.dumps({"message": "missing signature"}),
+        )
+
+        with pytest.raises(HTTPException) as exc_info:
+            await verify_proof("swap-1", proof, db=mock_db)
+        assert exc_info.value.status_code == 400
 
 
 class TestSwapSchemas:

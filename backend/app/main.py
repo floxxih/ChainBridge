@@ -3,8 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import logging
 
-from app.config.redis import init_redis, close_redis
+from app.config.redis import close_redis, get_redis, init_redis
+from app.indexer import IndexerManager
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.routes import api_router
 from app.stellar import StellarClient, StellarConfig
@@ -13,6 +15,8 @@ from app.stellar import StellarClient, StellarConfig
 from app.ws.manager import ConnectionManager
 from app.routes.ws import router as ws_router
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,8 +24,17 @@ async def lifespan(app: FastAPI):
     # Initialize and start WebSocket manager
     app.state.ws_manager = ConnectionManager(get_redis())
     app.state.ws_manager.start()
+    app.state.indexer_manager = None
+    if os.getenv("CHAINBRIDGE_ENABLE_INDEXERS", "true").lower() == "true":
+        app.state.indexer_manager = IndexerManager()
+        try:
+            await app.state.indexer_manager.start_all()
+        except Exception as exc:
+            logger.warning("Failed to start indexer manager: %s", exc)
     yield
     # Stop WebSocket manager
+    if app.state.indexer_manager:
+        await app.state.indexer_manager.stop_all()
     await app.state.ws_manager.stop()
     await close_redis()
 
@@ -85,6 +98,7 @@ async def transaction_status(tx_hash: str):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",

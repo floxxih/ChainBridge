@@ -69,7 +69,10 @@ pub fn write_admin(env: &Env, admin: &Address) {
 }
 
 pub fn is_paused(env: &Env) -> bool {
-    env.storage().instance().get(&DataKey::Paused).unwrap_or(false)
+    env.storage()
+        .instance()
+        .get(&DataKey::Paused)
+        .unwrap_or(false)
 }
 
 pub fn set_paused(env: &Env, paused: bool) {
@@ -77,7 +80,10 @@ pub fn set_paused(env: &Env, paused: bool) {
 }
 
 pub fn get_fee_rate(env: &Env) -> u32 {
-    env.storage().instance().get(&DataKey::FeeRate).unwrap_or(30)
+    env.storage()
+        .instance()
+        .get(&DataKey::FeeRate)
+        .unwrap_or(30)
 }
 
 pub fn set_fee_rate(env: &Env, rate: u32) {
@@ -89,7 +95,9 @@ pub fn get_fee_treasury(env: &Env) -> Option<Address> {
 }
 
 pub fn set_fee_treasury(env: &Env, treasury: &Address) {
-    env.storage().instance().set(&DataKey::FeeTreasury, treasury);
+    env.storage()
+        .instance()
+        .set(&DataKey::FeeTreasury, treasury);
 }
 
 pub fn read_governance_config(env: &Env) -> Option<GovernanceConfig> {
@@ -97,7 +105,9 @@ pub fn read_governance_config(env: &Env) -> Option<GovernanceConfig> {
 }
 
 pub fn write_governance_config(env: &Env, config: &GovernanceConfig) {
-    env.storage().instance().set(&DataKey::GovernanceConfig, config);
+    env.storage()
+        .instance()
+        .set(&DataKey::GovernanceConfig, config);
 }
 
 pub fn get_proposal_counter(env: &Env) -> u64 {
@@ -116,7 +126,9 @@ pub fn increment_proposal_counter(env: &Env) -> u64 {
 }
 
 pub fn read_proposal(env: &Env, proposal_id: u64) -> Option<GovernanceProposal> {
-    env.storage().persistent().get(&DataKey::Proposal(proposal_id))
+    env.storage()
+        .persistent()
+        .get(&DataKey::Proposal(proposal_id))
 }
 
 pub fn write_proposal(env: &Env, proposal_id: u64, proposal: &GovernanceProposal) {
@@ -158,7 +170,9 @@ pub fn get_pool_counter(env: &Env) -> u64 {
 
 pub fn increment_pool_counter(env: &Env) -> u64 {
     let counter = get_pool_counter(env) + 1;
-    env.storage().instance().set(&DataKey::PoolCounter, &counter);
+    env.storage()
+        .instance()
+        .set(&DataKey::PoolCounter, &counter);
     counter
 }
 
@@ -167,13 +181,16 @@ pub fn read_pool(env: &Env, pool_id: u64) -> Option<LiquidityPool> {
 }
 
 pub fn write_pool(env: &Env, pool_id: u64, pool: &LiquidityPool) {
-    env.storage().persistent().set(&DataKey::Pool(pool_id), pool);
+    env.storage()
+        .persistent()
+        .set(&DataKey::Pool(pool_id), pool);
 }
 
 pub fn write_pool_route(env: &Env, asset_in: &String, asset_out: &String, pool_id: u64) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::PoolRoute(asset_in.clone(), asset_out.clone()), &pool_id);
+    env.storage().persistent().set(
+        &DataKey::PoolRoute(asset_in.clone(), asset_out.clone()),
+        &pool_id,
+    );
 }
 
 pub fn read_pool_route(env: &Env, asset_in: &String, asset_out: &String) -> Option<u64> {
@@ -189,9 +206,10 @@ pub fn read_position(env: &Env, pool_id: u64, provider: &Address) -> Option<Liqu
 }
 
 pub fn write_position(env: &Env, position: &LiquidityPosition) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::Position(position.pool_id, position.provider.clone()), position);
+    env.storage().persistent().set(
+        &DataKey::Position(position.pool_id, position.provider.clone()),
+        position,
+    );
 }
 
 pub fn read_referral_record(env: &Env, code: &String) -> Option<ReferralRecord> {

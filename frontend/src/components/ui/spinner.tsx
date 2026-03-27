@@ -30,17 +30,10 @@ interface LoadingStateProps {
   className?: string;
 }
 
-export function LoadingState({
-  label = "Loading…",
-  size = "md",
-  className,
-}: LoadingStateProps) {
+export function LoadingState({ label = "Loading…", size = "md", className }: LoadingStateProps) {
   return (
     <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-3 py-12 text-center",
-        className
-      )}
+      className={cn("flex flex-col items-center justify-center gap-3 py-12 text-center", className)}
     >
       <Spinner size={size} />
       <p className="text-sm text-text-muted animate-pulse">{label}</p>
@@ -50,12 +43,5 @@ export function LoadingState({
 
 /** Skeleton shimmer block for placeholder loading */
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "animate-pulse rounded-lg bg-surface-overlay",
-        className
-      )}
-    />
-  );
+  return <div className={cn("animate-pulse rounded-lg bg-surface-overlay", className)} />;
 }

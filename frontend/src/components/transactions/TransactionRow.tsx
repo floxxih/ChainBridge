@@ -2,7 +2,15 @@
 
 import { useMemo } from "react";
 import { Transaction, TransactionStatus } from "@/types";
-import { CheckCircle2, Clock, AlertCircle, ChevronRight, ExternalLink, ShieldCheck, ShieldAlert } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ChevronRight,
+  ExternalLink,
+  ShieldCheck,
+  ShieldAlert,
+} from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import { clsx } from "clsx";
 
@@ -33,15 +41,19 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
 
   const explorerUrl = useMemo(() => {
     switch (tx.chain.toLowerCase()) {
-      case "stellar": return `https://stellar.expert/explorer/testnet/tx/${tx.hash}`;
-      case "ethereum": return `https://sepolia.etherscan.io/tx/${tx.hash}`;
-      case "bitcoin": return `https://mempool.space/testnet/tx/${tx.hash}`;
-      default: return "#";
+      case "stellar":
+        return `https://stellar.expert/explorer/testnet/tx/${tx.hash}`;
+      case "ethereum":
+        return `https://sepolia.etherscan.io/tx/${tx.hash}`;
+      case "bitcoin":
+        return `https://mempool.space/testnet/tx/${tx.hash}`;
+      default:
+        return "#";
     }
   }, [tx.chain, tx.hash]);
 
   return (
-    <tr 
+    <tr
       onClick={onSelect}
       className="group border-b border-border/50 bg-surface/30 transition hover:bg-surface-overlay/30 first:rounded-t-2xl last:rounded-b-2xl last:border-0 block md:table-row cursor-pointer"
     >
@@ -52,9 +64,18 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
             {statusIcon}
           </div>
           <div className="flex flex-col">
-             <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">Status</span>
-             <span className="text-sm font-semibold text-text-primary capitalize">{tx.type.replace('_', ' ')}</span>
-             <span className="text-[10px] text-text-muted">{new Date(tx.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+              Status
+            </span>
+            <span className="text-sm font-semibold text-text-primary capitalize">
+              {tx.type.replace("_", " ")}
+            </span>
+            <span className="text-[10px] text-text-muted">
+              {new Date(tx.timestamp).toLocaleString([], {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
+            </span>
           </div>
         </div>
       </td>
@@ -62,9 +83,13 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
       {/* Asset */}
       <td className="px-4 py-2 md:px-6 block md:table-cell">
         <div className="flex flex-col">
-          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">Asset</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+            Asset
+          </span>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-text-primary">{tx.amount} {tx.token}</span>
+            <span className="font-bold text-text-primary">
+              {tx.amount} {tx.token}
+            </span>
             <Badge variant="default" className="text-[10px] uppercase tracking-tighter shrink-0">
               {tx.chain}
             </Badge>
@@ -75,7 +100,9 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
       {/* Hash */}
       <td className="px-4 py-2 md:px-6 block md:table-cell">
         <div className="flex flex-col">
-          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">Hash</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+            Hash
+          </span>
           <div className="flex items-center gap-2 font-mono text-xs text-text-secondary">
             {tx.hash.slice(0, 8)}...{tx.hash.slice(-6)}
           </div>
@@ -85,13 +112,17 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
       {/* Progress */}
       <td className="px-4 py-2 md:px-6 block md:table-cell text-right">
         <div className="flex flex-col md:items-end gap-1.5 min-w-[120px]">
-          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden text-left">Progress</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden text-left">
+            Progress
+          </span>
           <div className="flex justify-between w-full md:w-auto md:gap-4 text-[10px] font-bold uppercase tracking-wider text-text-muted">
             <span className="md:hidden">Confirms</span>
-            <span>{tx.confirmations} / {tx.requiredConfirmations}</span>
+            <span>
+              {tx.confirmations} / {tx.requiredConfirmations}
+            </span>
           </div>
           <div className="h-1.5 w-full md:w-32 overflow-hidden rounded-full bg-surface-overlay border border-border/50">
-            <div 
+            <div
               className={clsx(
                 "h-full transition-all duration-500",
                 tx.status === TransactionStatus.COMPLETED ? "bg-emerald-500" : "bg-brand-500"
@@ -106,23 +137,31 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
       <td className="px-4 py-4 md:px-6 block md:table-cell text-right">
         <div className="flex items-center justify-end gap-2">
           {tx.proofVerified !== undefined && (
-            <div className={clsx(
-              "flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-bold",
-              tx.proofVerified ? "bg-emerald-500/10 text-emerald-500" : "bg-text-muted/10 text-text-muted"
-            )}>
+            <div
+              className={clsx(
+                "flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-bold",
+                tx.proofVerified
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-text-muted/10 text-text-muted"
+              )}
+            >
               <ShieldCheck className="h-3 w-3" />
               <span className="hidden lg:inline">{tx.proofVerified ? "VERIFIED" : "WAITING"}</span>
             </div>
           )}
-          <a 
-            href={explorerUrl} 
-            target="_blank" 
+          <a
+            href={explorerUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg p-2 text-text-muted hover:bg-brand-500/10 hover:text-brand-500 transition shadow-sm"
           >
             <ExternalLink className="h-4 w-4" />
           </a>
-          <Button variant="ghost" size="sm" className="hidden h-8 w-8 p-0 group-hover:flex items-center justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden h-8 w-8 p-0 group-hover:flex items-center justify-center"
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

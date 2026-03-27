@@ -1,5 +1,14 @@
 import uuid
-from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey, BigInteger, JSON
+from sqlalchemy import (
+    Column,
+    String,
+    Text,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    BigInteger,
+    JSON,
+)
 from sqlalchemy.dialects.postgresql import UUID
 
 from .base import Base, TimestampMixin
@@ -9,7 +18,12 @@ class SwapDispute(Base, TimestampMixin):
     __tablename__ = "swap_disputes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    swap_id = Column(UUID(as_uuid=True), ForeignKey("cross_chain_swaps.id"), nullable=False, index=True)
+    swap_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("cross_chain_swaps.id"),
+        nullable=False,
+        index=True,
+    )
     submitted_by = Column(String, nullable=False, index=True)
     category = Column(String, nullable=False)
     reason = Column(Text, nullable=False)

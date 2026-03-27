@@ -3,7 +3,18 @@
 import { useState, useMemo, useEffect } from "react";
 
 import { Transaction, TransactionStatus } from "@/types";
-import { Search, Download, RefreshCcw, Database, CheckCircle2, Clock, AlertCircle, ChevronRight, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  Search,
+  Download,
+  RefreshCcw,
+  Database,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ChevronRight,
+  ExternalLink,
+  ShieldCheck,
+} from "lucide-react";
 import { Input, Button, Badge, Spinner } from "@/components/ui";
 import { TransactionRow } from "./TransactionRow";
 import { TransactionDetailModal } from "./TransactionDetailModal";
@@ -27,22 +38,25 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
 
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];
-    
+
     const result = transactions.filter((tx) => {
       const searchLower = search.toLowerCase().trim();
-      const matchesSearch = !searchLower || 
+      const matchesSearch =
+        !searchLower ||
         tx.hash.toLowerCase().includes(searchLower) ||
-        tx.amount.replace(/,/g, '').includes(searchLower.replace(/,/g, '')) ||
+        tx.amount.replace(/,/g, "").includes(searchLower.replace(/,/g, "")) ||
         tx.token.toLowerCase().includes(searchLower) ||
         tx.chain.toLowerCase().includes(searchLower);
-      
+
       const matchesStatus = statusFilter === "all" || tx.status === statusFilter;
       const matchesChain = chainFilter === "all" || tx.chain === chainFilter;
 
       return matchesSearch && matchesStatus && matchesChain;
     });
 
-    console.log(`[TransactionFeed] Filtered: ${result.length}/${transactions.length} (Search: "${search}", Status: ${statusFilter}, Chain: ${chainFilter})`);
+    console.log(
+      `[TransactionFeed] Filtered: ${result.length}/${transactions.length} (Search: "${search}", Status: ${statusFilter}, Chain: ${chainFilter})`
+    );
     return result;
   }, [transactions, search, statusFilter, chainFilter]);
 
@@ -55,7 +69,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
   }
 
   const exportData = (format: "csv" | "json") => {
-    const data = filteredTransactions.map(tx => ({
+    const data = filteredTransactions.map((tx) => ({
       date: new Date(tx.timestamp).toLocaleString(),
       chain: tx.chain,
       hash: tx.hash,
@@ -63,7 +77,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
       amount: tx.amount,
       token: tx.token,
       status: tx.status,
-      confirmations: `${tx.confirmations}/${tx.requiredConfirmations}`
+      confirmations: `${tx.confirmations}/${tx.requiredConfirmations}`,
     }));
 
     let blob: Blob;
@@ -71,7 +85,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
 
     if (format === "csv") {
       const headers = Object.keys(data[0]).join(",");
-      const rows = data.map(item => Object.values(item).join(",")).join("\n");
+      const rows = data.map((item) => Object.values(item).join(",")).join("\n");
       blob = new Blob([`${headers}\n${rows}`], { type: "text/csv" });
       filename = `chainbridge_txs_${Date.now()}.csv`;
     } else {
@@ -92,16 +106,16 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-          <Input 
-            placeholder="Search by hash, amount, or token..." 
+          <Input
+            placeholder="Search by hash, amount, or token..."
             className="pl-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        
+
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <select 
+          <select
             className="h-10 rounded-xl border border-border bg-surface-overlay px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -113,7 +127,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
             <option value={TransactionStatus.FAILED}>Failed</option>
           </select>
 
-          <select 
+          <select
             className="h-10 rounded-xl border border-border bg-surface-overlay px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             value={chainFilter}
             onChange={(e) => setChainFilter(e.target.value)}
@@ -124,9 +138,9 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
             <option value="Bitcoin">Bitcoin</option>
           </select>
 
-          <Button 
-            variant="secondary" 
-            size="sm" 
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => exportData("csv")}
             icon={<Download className="h-4 w-4" />}
           >
@@ -146,11 +160,21 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
             <table className="w-full text-left border-collapse">
               <thead className="hidden md:table-header-group">
                 <tr className="border-b border-border/50 bg-surface-overlay/30">
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">Type / Status</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">Asset</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">Hash</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted text-right">Progress</th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Type / Status
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Asset
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
+                    Hash
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted text-right">
+                    Progress
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
@@ -171,19 +195,22 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
                 Try adjusting your search or filters.
               </p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setStatusFilter("all"); setChainFilter("all"); }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("all");
+                setChainFilter("all");
+              }}
+            >
               Clear all filters
             </Button>
           </div>
         )}
       </div>
 
-      {selectedTx && (
-        <TransactionDetailModal 
-          tx={selectedTx} 
-          onClose={() => setSelectedTx(null)} 
-        />
-      )}
+      {selectedTx && <TransactionDetailModal tx={selectedTx} onClose={() => setSelectedTx(null)} />}
 
       <div className="flex flex-col gap-4 rounded-xl bg-brand-500/5 border border-brand-500/10 p-4 md:flex-row md:items-center md:gap-8">
         <div className="flex items-center gap-3">
@@ -208,4 +235,3 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
     </div>
   );
 }
-

@@ -3,7 +3,6 @@ import { persist } from "zustand/middleware";
 import { ChainType, WalletStore } from "@/types/wallet";
 import { getAdapter } from "../lib/wallets";
 
-
 export const useWalletStore = create<WalletStore>()(
   persist(
     (set, get) => ({
@@ -21,7 +20,7 @@ export const useWalletStore = create<WalletStore>()(
           const adapter = getAdapter(chain);
           const { address, publicKey } = await adapter.connect();
           const balance = await adapter.getBalance(address);
-          
+
           set({
             address,
             publicKey,

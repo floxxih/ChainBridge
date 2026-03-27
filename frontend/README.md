@@ -40,11 +40,11 @@ cp .env.example .env.local
 
 Environment variables:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_API_URL` | Backend API URL | `http://localhost:8000` |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | Stellar network (testnet/mainnet) | `testnet` |
-| `NEXT_PUBLIC_BITCOIN_NETWORK` | Bitcoin network | `testnet` |
+| Variable                      | Description                       | Default                 |
+| ----------------------------- | --------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_API_URL`         | Backend API URL                   | `http://localhost:8000` |
+| `NEXT_PUBLIC_STELLAR_NETWORK` | Stellar network (testnet/mainnet) | `testnet`               |
+| `NEXT_PUBLIC_BITCOIN_NETWORK` | Bitcoin network                   | `testnet`               |
 
 ### 3. Development Server
 
@@ -90,13 +90,13 @@ frontend/
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Format with Prettier |
+| Script           | Description              |
+| ---------------- | ------------------------ |
+| `npm run dev`    | Start development server |
+| `npm run build`  | Build for production     |
+| `npm run start`  | Start production server  |
+| `npm run lint`   | Run ESLint               |
+| `npm run format` | Format with Prettier     |
 
 ## Code Quality
 
@@ -162,9 +162,7 @@ export const MyComponent: FC<MyComponentProps> = ({ title }) => {
 Use Tailwind CSS classes:
 
 ```tsx
-<div className="flex items-center justify-center p-4 bg-stellar-primary text-white">
-  Content
-</div>
+<div className="flex items-center justify-center p-4 bg-stellar-primary text-white">Content</div>
 ```
 
 ### State Management
@@ -218,6 +216,7 @@ CMD ["node", "server.js"]
 ### Module Not Found
 
 Clear Next.js cache:
+
 ```bash
 rm -rf .next node_modules
 npm install
@@ -226,6 +225,7 @@ npm install
 ### TypeScript Errors
 
 Regenerate type declarations:
+
 ```bash
 npm run build
 ```

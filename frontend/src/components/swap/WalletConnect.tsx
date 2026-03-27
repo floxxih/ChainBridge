@@ -8,7 +8,8 @@ import { truncateAddress, CHAIN_BG } from "@/lib/utils";
 import { ChainType } from "@/types/wallet";
 
 export function WalletConnect() {
-  const { address, chain, isConnected, isConnecting, connect, disconnect, balance } = useWalletStore();
+  const { address, chain, isConnected, isConnecting, connect, disconnect, balance } =
+    useWalletStore();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleConnect = async (targetChain: ChainType) => {
@@ -27,9 +28,7 @@ export function WalletConnect() {
           <span className="text-xs font-medium text-text-primary">
             {balance ? `${parseFloat(balance).toFixed(4)} ${chain?.toUpperCase()}` : "..."}
           </span>
-          <span className="text-[10px] text-text-muted">
-            {truncateAddress(address)}
-          </span>
+          <span className="text-[10px] text-text-muted">{truncateAddress(address)}</span>
         </div>
         <Badge variant="chain" chain={chain || ""}>
           {chain?.toUpperCase()}
@@ -89,8 +88,8 @@ export function WalletConnect() {
         <div className="mt-6 flex items-start gap-3 rounded-xl bg-surface-overlay p-3 text-[11px] text-text-secondary">
           <ShieldCheck className="h-4 w-4 shrink-0 text-brand-500" />
           <p>
-            ChainBridge is non-custodial. Your keys never leave your wallet, and
-            transactions are signed locally.
+            ChainBridge is non-custodial. Your keys never leave your wallet, and transactions are
+            signed locally.
           </p>
         </div>
       </Modal>

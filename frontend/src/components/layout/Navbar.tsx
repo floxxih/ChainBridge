@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,6 +11,7 @@ import { Layers, Menu, X } from "lucide-react";
 const NAV_LINKS = [
   { name: "Swap", href: "/swap" },
   { name: "Market", href: "/marketplace" },
+  { name: "HTLCs", href: "/htlcs" },
   { name: "Protocol", href: "/protocol" },
   { name: "Explorer", href: "/transactions" },
   { name: "About", href: "/about" },
@@ -57,9 +60,9 @@ export function Navbar() {
             <div className="hidden sm:block">
               <WalletConnect />
             </div>
-            
+
             <div className="hidden h-6 w-px bg-border md:block" />
-            
+
             <div className="hidden md:block">
               <DarkModeToggle />
             </div>

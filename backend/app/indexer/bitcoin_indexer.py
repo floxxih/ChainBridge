@@ -2,6 +2,7 @@
 
 import logging
 import os
+from asyncio import sleep
 from datetime import datetime
 
 import httpx
@@ -20,27 +21,41 @@ class BitcoinIndexer(BaseIndexer):
         self.rpc_user = os.getenv("BITCOIN_RPC_USER", "")
         self.rpc_password = os.getenv("BITCOIN_RPC_PASSWORD", "")
         self.confirmations = int(os.getenv("BITCOIN_CONFIRMATIONS", "6"))
+        self.max_retries = int(os.getenv("BITCOIN_RPC_RETRIES", "3"))
+        self._last_block_hash: str | None = None
 
     async def _rpc_call(self, method: str, params: list = None) -> dict:
         """Make a JSON-RPC call to the Bitcoin node."""
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self.rpc_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": method,
-                    "params": params or [],
-                },
-                auth=(self.rpc_user, self.rpc_password)
-                if self.rpc_user
-                else None,
-                timeout=30,
-            )
-            data = response.json()
-            if "error" in data and data["error"]:
-                raise Exception(f"Bitcoin RPC error: {data['error']}")
-            return data.get("result", {})
+        last_error: Exception | None = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        self.rpc_url,
+                        json={
+                            "jsonrpc": "2.0",
+                            "id": 1,
+                            "method": method,
+                            "params": params or [],
+                        },
+                        auth=(
+                            (self.rpc_user, self.rpc_password)
+                            if self.rpc_user
+                            else None
+                        ),
+                        timeout=30,
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    if "error" in data and data["error"]:
+                        raise RuntimeError(f"Bitcoin RPC error: {data['error']}")
+                    return data.get("result", {})
+            except Exception as exc:
+                last_error = exc
+                if attempt == self.max_retries:
+                    break
+                await sleep(attempt)
+        raise RuntimeError("Bitcoin RPC call failed") from last_error
 
     async def get_latest_block(self) -> int:
         try:
@@ -51,13 +66,13 @@ class BitcoinIndexer(BaseIndexer):
             logger.error("[bitcoin] Failed to get block count: %s", e)
             raise
 
-    async def fetch_events(
-        self, from_block: int, to_block: int
-    ) -> list[IndexedEvent]:
+    async def fetch_events(self, from_block: int, to_block: int) -> list[IndexedEvent]:
+        await self.detect_reorg(from_block)
         events = []
         for height in range(from_block, to_block + 1):
             try:
                 block_hash = await self._rpc_call("getblockhash", [height])
+                self._last_block_hash = block_hash
                 block = await self._rpc_call("getblock", [block_hash, 2])
 
                 for tx in block.get("tx", []):
@@ -94,6 +109,21 @@ class BitcoinIndexer(BaseIndexer):
         )
         # In production: delete indexed events >= reorg_block from DB
         # and re-index from reorg_block
+
+    async def detect_reorg(self, height: int) -> None:
+        if height <= 0 or not self._last_block_hash:
+            return
+        current_hash = await self._rpc_call("getblockhash", [height - 1])
+        if current_hash != self._last_block_hash:
+            await self.handle_reorg(height - 1)
+
+    async def get_mempool_transactions(self) -> list[str]:
+        mempool = await self._rpc_call("getrawmempool")
+        return list(mempool or [])
+
+    async def broadcast_transaction(self, raw_tx: str) -> str:
+        tx_hash = await self._rpc_call("sendrawtransaction", [raw_tx])
+        return str(tx_hash)
 
     def _is_bridge_tx(self, asm: str) -> bool:
         """Check if an OP_RETURN contains a ChainBridge marker."""

@@ -82,16 +82,16 @@ async fn poll_logs(
         .json::<serde_json::Value>()
         .await?;
 
-    let logs = logs_resp["result"]
-        .as_array()
-        .cloned()
-        .unwrap_or_default();
+    let logs = logs_resp["result"].as_array().cloned().unwrap_or_default();
 
     for log in &logs {
         let topics = log["topics"].as_array();
         if let Some(topics) = topics {
             let event_sig = topics.first().and_then(|t| t.as_str()).unwrap_or("");
-            println!("[Ethereum] Log detected: {}", &event_sig[..10.min(event_sig.len())]);
+            println!(
+                "[Ethereum] Log detected: {}",
+                &event_sig[..10.min(event_sig.len())]
+            );
 
             // TODO: Decode event data, generate Merkle proof,
             // submit to Stellar ChainBridge contract via verify_proof()

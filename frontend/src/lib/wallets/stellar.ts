@@ -26,7 +26,6 @@ export class StellarAdapter implements WalletAdapter {
     return { address: publicKey, publicKey };
   }
 
-
   async disconnect() {
     // Freighter doesn't have a programmatic disconnect
   }

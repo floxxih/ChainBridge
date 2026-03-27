@@ -17,9 +17,7 @@ class StellarIndexer(BaseIndexer):
 
     def __init__(self):
         super().__init__(chain="stellar")
-        rpc_url = os.getenv(
-            "SOROBAN_RPC_URL", "https://soroban-testnet.stellar.org"
-        )
+        rpc_url = os.getenv("SOROBAN_RPC_URL", "https://soroban-testnet.stellar.org")
         self.server = SorobanServer(rpc_url)
         self.contract_id = os.getenv("CHAINBRIDGE_CONTRACT_ID", "")
 
@@ -31,21 +29,21 @@ class StellarIndexer(BaseIndexer):
             logger.error("[stellar] Failed to get latest ledger: %s", e)
             raise
 
-    async def fetch_events(
-        self, from_block: int, to_block: int
-    ) -> list[IndexedEvent]:
+    async def fetch_events(self, from_block: int, to_block: int) -> list[IndexedEvent]:
         events = []
         try:
             response = self.server.get_events(
                 start_ledger=from_block,
-                filters=[
-                    {
-                        "type": "contract",
-                        "contractIds": [self.contract_id],
-                    }
-                ]
-                if self.contract_id
-                else [],
+                filters=(
+                    [
+                        {
+                            "type": "contract",
+                            "contractIds": [self.contract_id],
+                        }
+                    ]
+                    if self.contract_id
+                    else []
+                ),
                 limit=200,
             )
 

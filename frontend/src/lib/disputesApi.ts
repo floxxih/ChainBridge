@@ -46,9 +46,17 @@ export async function listMyDisputes(submittedBy?: string) {
   return data;
 }
 
-export async function addDisputeEvidence(disputeId: string, actor: string, evidence: DisputeEvidenceItem[]) {
-  const { data } = await userClient().post(`/${disputeId}/evidence`, { evidence }, {
-    params: { actor },
-  });
+export async function addDisputeEvidence(
+  disputeId: string,
+  actor: string,
+  evidence: DisputeEvidenceItem[]
+) {
+  const { data } = await userClient().post(
+    `/${disputeId}/evidence`,
+    { evidence },
+    {
+      params: { actor },
+    }
+  );
   return data;
 }

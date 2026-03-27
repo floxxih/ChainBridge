@@ -15,9 +15,7 @@ export const useOrderBookStore = create<OrderBookStore>()(
 
       updateOrder: (id, updates) =>
         set((state) => ({
-          orders: state.orders.map((o) =>
-            o.id === id ? { ...o, ...updates } : o
-          ),
+          orders: state.orders.map((o) => (o.id === id ? { ...o, ...updates } : o)),
         })),
 
       removeOrder: (id) =>
@@ -97,7 +95,7 @@ export const useMockOrders = () => {
         chainOut: "Bitcoin",
         status: OrderStatus.OPEN,
         timestamp: new Date().toISOString(),
-      }
+      },
     ];
 
     mocks.forEach((o) => addOrder(o));

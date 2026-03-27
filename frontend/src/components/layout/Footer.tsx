@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Layers, Globe, Share2, ExternalLink } from "lucide-react";
 
-
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -22,8 +21,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-text-secondary">
-              A trustless, non-custodial gateway for cross-chain atomic swaps.
-              Built on Stellar, Bitcoin, and Ethereum.
+              A trustless, non-custodial gateway for cross-chain atomic swaps. Built on Stellar,
+              Bitcoin, and Ethereum.
             </p>
           </div>
 
@@ -32,13 +31,19 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-text-primary">Platform</h3>
             <ul className="mt-4 space-y-2 text-sm text-text-secondary">
               <li>
-                <Link href="/swap" className="hover:text-brand-500 transition">Create Swap</Link>
+                <Link href="/swap" className="hover:text-brand-500 transition">
+                  Create Swap
+                </Link>
               </li>
               <li>
-                <Link href="/swaps" className="hover:text-brand-500 transition">Swap History</Link>
+                <Link href="/swaps" className="hover:text-brand-500 transition">
+                  Swap History
+                </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-brand-500 transition">How it Works</Link>
+                <Link href="/about" className="hover:text-brand-500 transition">
+                  How it Works
+                </Link>
               </li>
             </ul>
           </div>
@@ -47,17 +52,29 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-text-primary">Ecosystem</h3>
             <ul className="mt-4 space-y-2 text-sm text-text-secondary">
               <li>
-                <a href="https://stellar.org" target="_blank" className="flex items-center gap-1 hover:text-brand-500 transition">
+                <a
+                  href="https://stellar.org"
+                  target="_blank"
+                  className="flex items-center gap-1 hover:text-brand-500 transition"
+                >
                   Stellar <ExternalLink className="h-3 w-3" />
                 </a>
               </li>
               <li>
-                <a href="https://ethereum.org" target="_blank" className="flex items-center gap-1 hover:text-brand-500 transition">
+                <a
+                  href="https://ethereum.org"
+                  target="_blank"
+                  className="flex items-center gap-1 hover:text-brand-500 transition"
+                >
                   Ethereum <ExternalLink className="h-3 w-3" />
                 </a>
               </li>
               <li>
-                <a href="https://bitcoin.org" target="_blank" className="flex items-center gap-1 hover:text-brand-500 transition">
+                <a
+                  href="https://bitcoin.org"
+                  target="_blank"
+                  className="flex items-center gap-1 hover:text-brand-500 transition"
+                >
                   Bitcoin <ExternalLink className="h-3 w-3" />
                 </a>
               </li>
@@ -83,8 +100,18 @@ export function Footer() {
             © {currentYear} ChainBridge Platform. All rights reserved.
           </p>
           <div className="mt-4 flex justify-center gap-6 sm:mt-0">
-            <Link href="/terms" className="text-xs text-text-muted hover:text-text-primary transition">Terms</Link>
-            <Link href="/privacy" className="text-xs text-text-muted hover:text-text-primary transition">Privacy</Link>
+            <Link
+              href="/terms"
+              className="text-xs text-text-muted hover:text-text-primary transition"
+            >
+              Terms
+            </Link>
+            <Link
+              href="/privacy"
+              className="text-xs text-text-muted hover:text-text-primary transition"
+            >
+              Privacy
+            </Link>
           </div>
         </div>
       </div>

@@ -23,9 +23,13 @@ def generate_api_key() -> str:
 
 
 def create_jwt_token(subject: str) -> dict:
-    expires = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expiration_minutes)
+    expires = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.jwt_expiration_minutes
+    )
     payload = {"sub": subject, "exp": expires, "iat": datetime.now(timezone.utc)}
-    token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    token = jwt.encode(
+        payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -35,7 +39,9 @@ def create_jwt_token(subject: str) -> dict:
 
 def decode_jwt_token(token: str) -> Optional[dict]:
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        return jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+        )
     except jwt.InvalidTokenError:
         return None
 
@@ -55,7 +61,10 @@ async def _resolve_api_key(api_key: Optional[str], db: AsyncSession) -> APIKey:
     await db.execute(
         update(APIKey)
         .where(APIKey.id == key_record.id)
-        .values(request_count=APIKey.request_count + 1, last_used_at=datetime.now(timezone.utc))
+        .values(
+            request_count=APIKey.request_count + 1,
+            last_used_at=datetime.now(timezone.utc),
+        )
     )
     await db.commit()
     return key_record

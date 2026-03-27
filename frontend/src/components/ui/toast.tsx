@@ -17,15 +17,15 @@ interface ToastProps {
 
 const ICONS: Record<ToastType, React.ReactNode> = {
   success: <CheckCircle className="h-5 w-5 text-emerald-400" />,
-  error:   <XCircle className="h-5 w-5 text-red-400" />,
-  info:    <Info className="h-5 w-5 text-brand-500" />,
+  error: <XCircle className="h-5 w-5 text-red-400" />,
+  info: <Info className="h-5 w-5 text-brand-500" />,
   warning: <AlertTriangle className="h-5 w-5 text-yellow-400" />,
 };
 
 const BORDER_COLORS: Record<ToastType, string> = {
   success: "border-emerald-500/20",
-  error:   "border-red-500/20",
-  info:    "border-brand-500/20",
+  error: "border-red-500/20",
+  info: "border-brand-500/20",
   warning: "border-yellow-500/20",
 };
 
@@ -59,9 +59,7 @@ export function Toast({
       <div className="shrink-0 mt-0.5">{ICONS[type]}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-text-primary">{title}</p>
-        {message && (
-          <p className="mt-0.5 text-xs text-text-secondary">{message}</p>
-        )}
+        {message && <p className="mt-0.5 text-xs text-text-secondary">{message}</p>}
       </div>
       <button
         onClick={() => {

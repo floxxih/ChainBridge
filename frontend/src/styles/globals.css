@@ -4,16 +4,16 @@
 
 /* ===== LIGHT THEME TOKENS ===== */
 :root {
-  --surface:         220 13% 97%;
-  --surface-raised:  0 0% 100%;
+  --surface: 220 13% 97%;
+  --surface-raised: 0 0% 100%;
   --surface-overlay: 220 13% 94%;
 
   --border: 220 13% 88%;
-  --ring:   174 72% 40%;
+  --ring: 174 72% 40%;
 
-  --text-primary:   220 20% 10%;
+  --text-primary: 220 20% 10%;
   --text-secondary: 220 10% 35%;
-  --text-muted:     220 8%  55%;
+  --text-muted: 220 8% 55%;
 
   --background: 0 0% 100%;
   --foreground: 220 20% 10%;
@@ -26,16 +26,16 @@
 
 /* ===== DARK THEME TOKENS ===== */
 .dark {
-  --surface:         220 18% 10%;
-  --surface-raised:  220 18% 14%;
+  --surface: 220 18% 10%;
+  --surface-raised: 220 18% 14%;
   --surface-overlay: 220 18% 18%;
 
   --border: 220 15% 22%;
-  --ring:   174 72% 40%;
+  --ring: 174 72% 40%;
 
-  --text-primary:   210 20% 95%;
+  --text-primary: 210 20% 95%;
   --text-secondary: 210 12% 65%;
-  --text-muted:     210 8%  45%;
+  --text-muted: 210 8% 45%;
 
   --background: 220 20% 8%;
   --foreground: 210 20% 95%;
@@ -62,10 +62,17 @@
     color: hsl(var(--foreground));
     font-family: var(--font-inter, system-ui, sans-serif);
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-space, system-ui, sans-serif);
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -141,4 +148,3 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
-

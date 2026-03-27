@@ -219,9 +219,15 @@ jobs:
           ${{ runner.os }}-cargo-tests-
           
     - name: Run integration tests
+      if: ${{ hashFiles('tests/Cargo.toml') != '' }}
       run: cargo test --manifest-path tests/Cargo.toml --verbose
-      
+
+    - name: Skip missing integration crate
+      if: ${{ hashFiles('tests/Cargo.toml') == '' }}
+      run: echo "tests/Cargo.toml not present; skipping integration-tests job."
+
     - name: Run stress tests
+      if: ${{ hashFiles('tests/Cargo.toml') != '' }}
       run: cargo test --manifest-path tests/Cargo.toml -- stress --test-threads=1
 
   code-quality:

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
-import type { VolumeBucket } from '@/lib/adminApi';
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import type { VolumeBucket } from "@/lib/adminApi";
 
 interface BarChartProps {
   buckets: VolumeBucket[];
@@ -53,7 +53,9 @@ export function BarChart({
       .filter((_, i) => i % stride === 0)
       .map((b, idx) => ({
         x: PAD.left + idx * stride * (inner.w / buckets.length) + barW / 2,
-        label: formatX ? formatX(b.timestamp) : new Date(b.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        label: formatX
+          ? formatX(b.timestamp)
+          : new Date(b.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }));
 
     return { bars, yTicks, xLabels, maxVal };
@@ -61,7 +63,12 @@ export function BarChart({
 
   if (!buckets.length) {
     return (
-      <div className={cn('flex items-center justify-center rounded-xl border border-border bg-surface py-12 text-sm text-text-muted', className)}>
+      <div
+        className={cn(
+          "flex items-center justify-center rounded-xl border border-border bg-surface py-12 text-sm text-text-muted",
+          className
+        )}
+      >
         No data for selected period
       </div>
     );
@@ -70,7 +77,9 @@ export function BarChart({
   const fmt = formatValue ?? ((v: number) => v.toLocaleString());
 
   return (
-    <div className={cn('w-full overflow-hidden rounded-xl border border-border bg-surface', className)}>
+    <div
+      className={cn("w-full overflow-hidden rounded-xl border border-border bg-surface", className)}
+    >
       <svg
         viewBox={`0 0 600 ${height}`}
         className="w-full"
@@ -80,12 +89,27 @@ export function BarChart({
         {/* Grid lines + Y ticks */}
         {yTicks.map((t) => (
           <g key={t.y}>
-            <line x1={PAD.left} y1={t.y} x2={600 - PAD.right} y2={t.y}
-              stroke="currentColor" strokeOpacity={0.06} strokeWidth={1} />
-            <text x={PAD.left - 6} y={t.y + 4} textAnchor="end"
-              className="fill-text-muted text-[9px]" fontSize={9}>
-              {t.value >= 1_000_000 ? `${(t.value / 1_000_000).toFixed(1)}M` :
-               t.value >= 1_000 ? `${(t.value / 1_000).toFixed(0)}K` : String(Math.round(t.value))}
+            <line
+              x1={PAD.left}
+              y1={t.y}
+              x2={600 - PAD.right}
+              y2={t.y}
+              stroke="currentColor"
+              strokeOpacity={0.06}
+              strokeWidth={1}
+            />
+            <text
+              x={PAD.left - 6}
+              y={t.y + 4}
+              textAnchor="end"
+              className="fill-text-muted text-[9px]"
+              fontSize={9}
+            >
+              {t.value >= 1_000_000
+                ? `${(t.value / 1_000_000).toFixed(1)}M`
+                : t.value >= 1_000
+                  ? `${(t.value / 1_000).toFixed(0)}K`
+                  : String(Math.round(t.value))}
             </text>
           </g>
         ))}
@@ -94,19 +118,30 @@ export function BarChart({
         {bars.map((b, i) => (
           <g key={i}>
             <rect
-              x={b.x} y={b.y} width={b.w} height={Math.max(b.h, 1)}
+              x={b.x}
+              y={b.y}
+              width={b.w}
+              height={Math.max(b.h, 1)}
               rx={2}
               className="fill-brand-500/70 hover:fill-brand-500 transition-colors duration-100 cursor-pointer"
             >
-              <title>{fmt(b.bucket.volume)} ({b.bucket.order_count} orders)</title>
+              <title>
+                {fmt(b.bucket.volume)} ({b.bucket.order_count} orders)
+              </title>
             </rect>
           </g>
         ))}
 
         {/* X labels */}
         {xLabels.map((l) => (
-          <text key={l.x} x={l.x} y={height - 6} textAnchor="middle"
-            className="fill-text-muted text-[9px]" fontSize={9}>
+          <text
+            key={l.x}
+            x={l.x}
+            y={height - 6}
+            textAnchor="middle"
+            className="fill-text-muted text-[9px]"
+            fontSize={9}
+          >
             {l.label}
           </text>
         ))}

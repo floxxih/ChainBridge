@@ -2,13 +2,13 @@
  * Admin API client (#60).
  * All requests use an admin API key in the X-API-Key header.
  */
-import axios from 'axios';
-import config from '@/lib/config';
+import axios from "axios";
+import config from "@/lib/config";
 
-const ADMIN_KEY_STORAGE = 'cb_admin_api_key';
+const ADMIN_KEY_STORAGE = "cb_admin_api_key";
 
 export function getAdminApiKey(): string | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   return localStorage.getItem(ADMIN_KEY_STORAGE);
 }
 
@@ -24,7 +24,7 @@ function adminClient() {
   const key = getAdminApiKey();
   return axios.create({
     baseURL: `${config.api.url}/api/v1/admin`,
-    headers: key ? { 'X-API-Key': key } : {},
+    headers: key ? { "X-API-Key": key } : {},
   });
 }
 
@@ -59,14 +59,14 @@ export interface ActiveHTLC {
   hash_lock: string;
   time_lock: number;
   seconds_remaining: number;
-  urgency: 'normal' | 'warning' | 'critical';
+  urgency: "normal" | "warning" | "critical";
   hash_algorithm: string;
   created_at: string | null;
 }
 
 export interface ChainHealth {
   chain: string;
-  health: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
+  health: "healthy" | "degraded" | "unhealthy" | "unknown";
   is_running: boolean;
   last_synced_block: number | null;
   latest_block: number | null;
@@ -103,14 +103,14 @@ export interface Alert {
   id: string;
   name: string;
   metric: string;
-  condition: 'gt' | 'lt' | 'eq';
+  condition: "gt" | "lt" | "eq";
   threshold: number;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   enabled: boolean;
   created_at: string;
 }
 
-export type AlertCreate = Omit<Alert, 'id' | 'created_at'>;
+export type AlertCreate = Omit<Alert, "id" | "created_at">;
 
 export interface Dispute {
   id: string;
@@ -118,19 +118,24 @@ export interface Dispute {
   submitted_by: string;
   category: string;
   reason: string;
-  status: 'submitted' | 'in_review' | 'resolved' | 'rejected' | 'refunded';
-  priority: 'low' | 'normal' | 'high' | 'critical';
+  status: "submitted" | "in_review" | "resolved" | "rejected" | "refunded";
+  priority: "low" | "normal" | "high" | "critical";
   evidence: Array<{ type: string; value: string; description?: string }>;
   admin_notes?: string;
   resolution?: string;
-  resolution_action?: 'approve' | 'reject' | 'refund_override' | 'manual_settlement';
+  resolution_action?: "approve" | "reject" | "refund_override" | "manual_settlement";
   refund_override: boolean;
   refund_amount?: number;
   reviewed_by?: string;
   reviewed_at?: string;
   resolved_by?: string;
   resolved_at?: string;
-  action_log: Array<{ timestamp: string; action: string; actor: string; details: Record<string, unknown> }>;
+  action_log: Array<{
+    timestamp: string;
+    action: string;
+    actor: string;
+    details: Record<string, unknown>;
+  }>;
   created_at?: string;
   updated_at?: string;
 }
@@ -145,8 +150,8 @@ export interface DisputeStats {
 }
 
 export interface DisputeResolveRequest {
-  status: 'resolved' | 'rejected' | 'refunded';
-  resolution_action: 'approve' | 'reject' | 'refund_override' | 'manual_settlement';
+  status: "resolved" | "rejected" | "refunded";
+  resolution_action: "approve" | "reject" | "refund_override" | "manual_settlement";
   resolution: string;
   admin_notes?: string;
   resolved_by: string;
@@ -157,37 +162,39 @@ export interface DisputeResolveRequest {
 // ── API functions ──────────────────────────────────────────────────────────────
 
 export async function fetchAdminStats(): Promise<AdminStats> {
-  const { data } = await adminClient().get<AdminStats>('/stats');
+  const { data } = await adminClient().get<AdminStats>("/stats");
   return data;
 }
 
-export async function fetchAdminVolume(period: '1h' | '24h' | '7d' | '30d' = '24h'): Promise<VolumeData> {
-  const { data } = await adminClient().get<VolumeData>('/volume', { params: { period } });
+export async function fetchAdminVolume(
+  period: "1h" | "24h" | "7d" | "30d" = "24h"
+): Promise<VolumeData> {
+  const { data } = await adminClient().get<VolumeData>("/volume", { params: { period } });
   return data;
 }
 
 export async function fetchActiveHTLCs(): Promise<{ active_count: number; htlcs: ActiveHTLC[] }> {
-  const { data } = await adminClient().get('/htlcs/active');
+  const { data } = await adminClient().get("/htlcs/active");
   return data;
 }
 
 export async function fetchChainHealth(): Promise<{ chains: ChainHealth[] }> {
-  const { data } = await adminClient().get('/chains');
+  const { data } = await adminClient().get("/chains");
   return data;
 }
 
 export async function fetchUserMetrics(): Promise<UserMetrics> {
-  const { data } = await adminClient().get<UserMetrics>('/users');
+  const { data } = await adminClient().get<UserMetrics>("/users");
   return data;
 }
 
 export async function fetchAlerts(): Promise<Alert[]> {
-  const { data } = await adminClient().get<Alert[]>('/alerts');
+  const { data } = await adminClient().get<Alert[]>("/alerts");
   return data;
 }
 
 export async function createAlert(alert: AlertCreate): Promise<Alert> {
-  const { data } = await adminClient().post<Alert>('/alerts', alert);
+  const { data } = await adminClient().post<Alert>("/alerts", alert);
   return data;
 }
 
@@ -201,20 +208,24 @@ export async function deleteAlert(id: string): Promise<void> {
 }
 
 export async function fetchDisputes(status?: string): Promise<Dispute[]> {
-  const { data } = await adminClient().get<Dispute[]>('/disputes', {
+  const { data } = await adminClient().get<Dispute[]>("/disputes", {
     params: status ? { status } : {},
   });
   return data;
 }
 
 export async function fetchDisputeStats(): Promise<DisputeStats> {
-  const { data } = await adminClient().get<DisputeStats>('/disputes/stats');
+  const { data } = await adminClient().get<DisputeStats>("/disputes/stats");
   return data;
 }
 
-export async function reviewDispute(id: string, reviewed_by: string, admin_notes: string): Promise<Dispute> {
+export async function reviewDispute(
+  id: string,
+  reviewed_by: string,
+  admin_notes: string
+): Promise<Dispute> {
   const { data } = await adminClient().post<Dispute>(`/disputes/${id}/review`, {
-    status: 'in_review',
+    status: "in_review",
     reviewed_by,
     admin_notes,
   });
@@ -230,7 +241,7 @@ export async function resolveDispute(id: string, payload: DisputeResolveRequest)
 export async function verifyAdminKey(key: string): Promise<boolean> {
   try {
     await axios.get(`${config.api.url}/api/v1/admin/stats`, {
-      headers: { 'X-API-Key': key },
+      headers: { "X-API-Key": key },
     });
     return true;
   } catch {

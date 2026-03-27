@@ -55,12 +55,13 @@ pub fn add_liquidity(
     pool.total_lp_tokens += minted;
     storage::write_pool(env, pool_id, &pool);
 
-    let mut position = storage::read_position(env, pool_id, provider).unwrap_or(LiquidityPosition {
-        provider: provider.clone(),
-        pool_id,
-        lp_tokens: 0,
-        rewards_earned: 0,
-    });
+    let mut position =
+        storage::read_position(env, pool_id, provider).unwrap_or(LiquidityPosition {
+            provider: provider.clone(),
+            pool_id,
+            lp_tokens: 0,
+            rewards_earned: 0,
+        });
     position.lp_tokens += minted;
     position.rewards_earned += minted * pool.reward_bps as i128 / 10_000;
     storage::write_position(env, &position);
@@ -76,7 +77,8 @@ pub fn get_pool_quote(
     if amount_in <= 0 {
         return Err(Error::InvalidAmount);
     }
-    let pool_id = storage::read_pool_route(env, &asset_in, &asset_out).ok_or(Error::OrderNotFound)?;
+    let pool_id =
+        storage::read_pool_route(env, &asset_in, &asset_out).ok_or(Error::OrderNotFound)?;
     let pool = storage::read_pool(env, pool_id).ok_or(Error::OrderNotFound)?;
 
     let (reserve_in, reserve_out) = if pool.asset_a == asset_in {

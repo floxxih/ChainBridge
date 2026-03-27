@@ -13,7 +13,7 @@ export async function connectEthereumWallet(): Promise<string | null> {
     if (!provider) {
       throw new Error("No Ethereum wallet detected. Please install MetaMask.");
     }
-    
+
     const accounts = await provider.send("eth_requestAccounts", []);
     return accounts[0] || null;
   } catch (error) {
@@ -28,7 +28,7 @@ export async function getEthereumBalance(address: string): Promise<string> {
     if (!provider) {
       throw new Error("No Ethereum provider available");
     }
-    
+
     const balance = await provider.getBalance(address);
     return ethers.formatEther(balance);
   } catch (error) {

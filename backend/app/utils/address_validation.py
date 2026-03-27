@@ -1,7 +1,7 @@
 """Multi-chain address validation (#61).
 
 Supports Stellar (G-address, C-address), Bitcoin (P2PKH, P2SH, Bech32,
-Bech32m / Taproot), and Ethereum (0x hex, EIP-55 checksum).
+Bech32m / Taproot), Ethereum (0x hex, EIP-55 checksum), and Solana.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from stellar_sdk.exceptions import Ed25519PublicKeyInvalidError
 # Types
 # ---------------------------------------------------------------------------
 
-SUPPORTED_CHAINS = {"stellar", "ethereum", "bitcoin"}
+SUPPORTED_CHAINS = {"stellar", "ethereum", "bitcoin", "solana"}
 
 
 class AddressFormat(str, Enum):
@@ -34,6 +34,8 @@ class AddressFormat(str, Enum):
     # Ethereum
     ETHEREUM = "ethereum"
     ETHEREUM_CHECKSUMMED = "ethereum_checksummed"
+    # Solana
+    SOLANA = "solana"
 
 
 class ValidationResult:
@@ -55,7 +57,9 @@ class ValidationResult:
         return {
             "valid": self.valid,
             "chain": self.chain,
-            "address_format": self.address_format.value if self.address_format else None,
+            "address_format": (
+                self.address_format.value if self.address_format else None
+            ),
             "error": self.error,
         }
 
@@ -64,27 +68,40 @@ class ValidationResult:
 # Stellar
 # ---------------------------------------------------------------------------
 
+
 def validate_stellar_address(address: str) -> ValidationResult:
     """Validate a Stellar G-address (account) or C-address (contract)."""
     if not isinstance(address, str) or not address:
-        return ValidationResult(False, "stellar", error="Address must be a non-empty string")
+        return ValidationResult(
+            False, "stellar", error="Address must be a non-empty string"
+        )
 
     # Contract address (C...)
     if address.startswith("C"):
         if len(address) != 56:
-            return ValidationResult(False, "stellar", error="Stellar contract address must be 56 characters")
+            return ValidationResult(
+                False, "stellar", error="Stellar contract address must be 56 characters"
+            )
         if not re.fullmatch(r"C[A-Z2-7]{55}", address):
-            return ValidationResult(False, "stellar", error="Invalid Stellar contract address encoding")
+            return ValidationResult(
+                False, "stellar", error="Invalid Stellar contract address encoding"
+            )
         return ValidationResult(True, "stellar", AddressFormat.STELLAR_CONTRACT)
 
     # Account address (G...)
     if not address.startswith("G"):
-        return ValidationResult(False, "stellar", error="Stellar address must start with 'G' (account) or 'C' (contract)")
+        return ValidationResult(
+            False,
+            "stellar",
+            error="Stellar address must start with 'G' (account) or 'C' (contract)",
+        )
 
     try:
         Keypair.from_public_key(address)
     except (Ed25519PublicKeyInvalidError, Exception):
-        return ValidationResult(False, "stellar", error="Invalid Stellar account address (checksum failed)")
+        return ValidationResult(
+            False, "stellar", error="Invalid Stellar account address (checksum failed)"
+        )
 
     return ValidationResult(True, "stellar", AddressFormat.STELLAR_ACCOUNT)
 
@@ -218,21 +235,35 @@ def _bech32_decode(bech: str) -> tuple[Optional[str], Optional[int], Optional[by
 # Mainnet prefixes:  "1" / "3" for Base58Check, "bc1" for segwit
 # Testnet prefixes:  "m" / "n" / "2" for Base58Check, "tb1" for segwit
 
-_BITCOIN_BASE58_MAINNET = {0x00: AddressFormat.BITCOIN_P2PKH, 0x05: AddressFormat.BITCOIN_P2SH}
-_BITCOIN_BASE58_TESTNET = {0x6F: AddressFormat.BITCOIN_P2PKH, 0xC4: AddressFormat.BITCOIN_P2SH}
+_BITCOIN_BASE58_MAINNET = {
+    0x00: AddressFormat.BITCOIN_P2PKH,
+    0x05: AddressFormat.BITCOIN_P2SH,
+}
+_BITCOIN_BASE58_TESTNET = {
+    0x6F: AddressFormat.BITCOIN_P2PKH,
+    0xC4: AddressFormat.BITCOIN_P2SH,
+}
 
 
-def validate_bitcoin_address(address: str, *, network: str = "mainnet") -> ValidationResult:
+def validate_bitcoin_address(
+    address: str, *, network: str = "mainnet"
+) -> ValidationResult:
     """Validate a Bitcoin address (Legacy, SegWit, Taproot)."""
     if not isinstance(address, str) or not address:
-        return ValidationResult(False, "bitcoin", error="Address must be a non-empty string")
+        return ValidationResult(
+            False, "bitcoin", error="Address must be a non-empty string"
+        )
 
     # Bech32 / Bech32m
     expected_hrp = "bc" if network == "mainnet" else "tb"
     if address.lower().startswith(expected_hrp + "1"):
         hrp, witness_version, program = _bech32_decode(address)
         if hrp is None or hrp != expected_hrp:
-            return ValidationResult(False, "bitcoin", error="Invalid Bitcoin bech32 address (checksum failed)")
+            return ValidationResult(
+                False,
+                "bitcoin",
+                error="Invalid Bitcoin bech32 address (checksum failed)",
+            )
         if witness_version == 0:
             fmt = AddressFormat.BITCOIN_BECH32
         else:
@@ -242,13 +273,18 @@ def validate_bitcoin_address(address: str, *, network: str = "mainnet") -> Valid
     # Base58Check
     decoded = _b58decode_check(address)
     if decoded is None or len(decoded) != 21:
-        return ValidationResult(False, "bitcoin", error="Invalid Bitcoin address (base58 checksum failed)")
+        return ValidationResult(
+            False, "bitcoin", error="Invalid Bitcoin address (base58 checksum failed)"
+        )
     version_byte = decoded[0]
-    version_map = _BITCOIN_BASE58_MAINNET if network == "mainnet" else _BITCOIN_BASE58_TESTNET
+    version_map = (
+        _BITCOIN_BASE58_MAINNET if network == "mainnet" else _BITCOIN_BASE58_TESTNET
+    )
     fmt = version_map.get(version_byte)
     if fmt is None:
         return ValidationResult(
-            False, "bitcoin",
+            False,
+            "bitcoin",
             error=f"Unrecognised Bitcoin address version byte 0x{version_byte:02X} for {network}",
         )
     return ValidationResult(True, "bitcoin", fmt)
@@ -281,12 +317,20 @@ def _eip55_checksum(address: str) -> str:
 def validate_ethereum_address(address: str) -> ValidationResult:
     """Validate an Ethereum address (with optional EIP-55 checksum)."""
     if not isinstance(address, str) or not address:
-        return ValidationResult(False, "ethereum", error="Address must be a non-empty string")
+        return ValidationResult(
+            False, "ethereum", error="Address must be a non-empty string"
+        )
 
     if not _ETH_ADDR_RE.match(address):
         if address.startswith("0x"):
-            return ValidationResult(False, "ethereum", error="Ethereum address must be 40 hex characters after '0x'")
-        return ValidationResult(False, "ethereum", error="Ethereum address must start with '0x'")
+            return ValidationResult(
+                False,
+                "ethereum",
+                error="Ethereum address must be 40 hex characters after '0x'",
+            )
+        return ValidationResult(
+            False, "ethereum", error="Ethereum address must start with '0x'"
+        )
 
     # If all-lower or all-upper, it's valid but not checksummed
     hex_part = address[2:]
@@ -295,7 +339,9 @@ def validate_ethereum_address(address: str) -> ValidationResult:
 
     if hex_part == hex_part.upper():
         if _eip55_checksum(address) == address:
-            return ValidationResult(True, "ethereum", AddressFormat.ETHEREUM_CHECKSUMMED)
+            return ValidationResult(
+                True, "ethereum", AddressFormat.ETHEREUM_CHECKSUMMED
+            )
         return ValidationResult(True, "ethereum", AddressFormat.ETHEREUM)
 
     # Mixed-case → verify EIP-55
@@ -325,6 +371,43 @@ _CHAIN_VALIDATORS = {
     "ethereum": validate_ethereum_address,
     "bitcoin": validate_bitcoin_address,
 }
+
+
+def validate_solana_address(address: str) -> ValidationResult:
+    """Validate a Solana public key encoded in base58."""
+    if not isinstance(address, str) or not address:
+        return ValidationResult(
+            False, "solana", error="Address must be a non-empty string"
+        )
+    try:
+        raw = 0
+        for char in address.encode("ascii"):
+            if char not in _B58_MAP:
+                return ValidationResult(
+                    False, "solana", error="Invalid Solana base58 character"
+                )
+            raw = raw * 58 + _B58_MAP[char]
+        decoded = raw.to_bytes((raw.bit_length() + 7) // 8, "big") if raw else b""
+        padding = 0
+        for char in address:
+            if char == "1":
+                padding += 1
+            else:
+                break
+        decoded = (b"\x00" * padding) + decoded
+    except Exception:
+        return ValidationResult(
+            False, "solana", error="Invalid Solana address encoding"
+        )
+
+    if len(decoded) != 32:
+        return ValidationResult(
+            False, "solana", error="Solana address must decode to 32 bytes"
+        )
+    return ValidationResult(True, "solana", AddressFormat.SOLANA)
+
+
+_CHAIN_VALIDATORS["solana"] = validate_solana_address
 
 
 def validate_address(address: str, chain: str, **kwargs) -> ValidationResult:
@@ -364,5 +447,10 @@ def detect_address_chain(address: str) -> ValidationResult:
         return validate_bitcoin_address(address, network="mainnet")
     if address[0] in "mn2":
         return validate_bitcoin_address(address, network="testnet")
+
+    # Solana public keys are base58-encoded 32-byte values.
+    solana_result = validate_solana_address(address)
+    if solana_result.valid:
+        return solana_result
 
     return ValidationResult(False, error="Unable to detect chain for address")

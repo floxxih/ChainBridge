@@ -7,7 +7,8 @@ and provides a unified status API.
 
 import asyncio
 import logging
-from datetime import datetime
+
+from app.config.redis import CacheService, get_redis
 
 from .base import BaseIndexer, IndexerStatus
 from .stellar_indexer import StellarIndexer
@@ -35,6 +36,7 @@ class IndexerManager:
             "ethereum": EthereumIndexer(),
         }
         self._tasks: dict[str, asyncio.Task] = {}
+        self._status_task: asyncio.Task | None = None
 
     async def start_all(
         self,
@@ -51,6 +53,7 @@ class IndexerManager:
             )
             self._tasks[chain] = task
             logger.info("Started %s indexer from block %d", chain, from_block)
+        self._status_task = asyncio.create_task(self._publish_status_loop())
 
     async def stop_all(self) -> None:
         """Stop all running indexers."""
@@ -63,6 +66,14 @@ class IndexerManager:
                 await task
             except asyncio.CancelledError:
                 pass
+
+        if self._status_task:
+            self._status_task.cancel()
+            try:
+                await self._status_task
+            except asyncio.CancelledError:
+                pass
+            self._status_task = None
 
         self._tasks.clear()
         logger.info("All indexers stopped")
@@ -80,9 +91,7 @@ class IndexerManager:
                 "blocks_behind": s.blocks_behind,
                 "events_processed": s.events_processed,
                 "last_error": s.last_error,
-                "last_sync_at": s.last_sync_at.isoformat()
-                if s.last_sync_at
-                else None,
+                "last_sync_at": s.last_sync_at.isoformat() if s.last_sync_at else None,
             }
         return statuses
 
@@ -109,3 +118,12 @@ class IndexerManager:
             to_block,
         )
         return len(events)
+
+    async def _publish_status_loop(self) -> None:
+        cache = CacheService(get_redis())
+        while True:
+            statuses = self.get_all_status()
+            for chain, status in statuses.items():
+                status["last_updated"] = status["last_sync_at"]
+                await cache.set(f"indexer:status:{chain}", status, ttl=60)
+            await asyncio.sleep(5)

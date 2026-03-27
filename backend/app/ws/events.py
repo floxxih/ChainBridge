@@ -76,7 +76,9 @@ async def emit_htlc_event(redis: Redis, event_type: EventType, htlc_data: dict) 
     await redis.publish("cb:htlcs", payload)
 
 
-async def emit_order_event(redis: Redis, event_type: EventType, order_data: dict) -> None:
+async def emit_order_event(
+    redis: Redis, event_type: EventType, order_data: dict
+) -> None:
     """Publish an order event to the per-order channel and the global orders channel."""
     order_id = str(order_data.get("id", ""))
     payload = _build_event(event_type, f"order:{order_id}", order_data)

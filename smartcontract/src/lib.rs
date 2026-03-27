@@ -46,7 +46,9 @@ impl ChainBridge {
         multi_sig: OptMultiSig,
     ) -> Result<u64, Error> {
         sender.require_auth();
-        htlc::create_htlc(&env, &sender, &receiver, amount, hash_lock, time_lock, multi_sig)
+        htlc::create_htlc(
+            &env, &sender, &receiver, amount, hash_lock, time_lock, multi_sig,
+        )
     }
 
     /// Claim HTLC by revealing the secret
@@ -162,7 +164,7 @@ impl ChainBridge {
         Ok(())
     }
 
-    /// Unpause contract 
+    /// Unpause contract
     pub fn unpause(env: Env, admin: Address) -> Result<(), Error> {
         admin.require_auth();
         let stored_admin = storage::read_admin(&env);
@@ -348,7 +350,11 @@ impl ChainBridge {
         order::amend_order(&env, &creator, order_id, to_amount, expiry, execution)
     }
 
-    pub fn init_governance(env: Env, admin: Address, config: GovernanceConfig) -> Result<(), Error> {
+    pub fn init_governance(
+        env: Env,
+        admin: Address,
+        config: GovernanceConfig,
+    ) -> Result<(), Error> {
         admin.require_auth();
         if admin != storage::read_admin(&env) {
             return Err(Error::Unauthorized);
@@ -417,7 +423,11 @@ impl ChainBridge {
         storage::read_pool(&env, pool_id).ok_or(Error::OrderNotFound)
     }
 
-    pub fn get_position(env: Env, pool_id: u64, provider: Address) -> Result<LiquidityPosition, Error> {
+    pub fn get_position(
+        env: Env,
+        pool_id: u64,
+        provider: Address,
+    ) -> Result<LiquidityPosition, Error> {
         storage::read_position(&env, pool_id, &provider).ok_or(Error::OrderNotFound)
     }
 

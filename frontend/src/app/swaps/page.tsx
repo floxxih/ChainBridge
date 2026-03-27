@@ -50,8 +50,9 @@ export default function HistoryPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const disputableSwaps = useMemo(
-    () => MOCK_SWAPS.filter((s) => s.status === SwapStatus.PENDING || s.status === SwapStatus.EXPIRED),
-    [],
+    () =>
+      MOCK_SWAPS.filter((s) => s.status === SwapStatus.PENDING || s.status === SwapStatus.EXPIRED),
+    []
   );
 
   const submitDispute = async () => {
@@ -113,7 +114,11 @@ export default function HistoryPage() {
             <Card className="p-3 text-sm text-text-secondary">{statusMessage}</Card>
           )}
           {MOCK_SWAPS.map((swap) => (
-            <Card key={swap.id} hover className="flex items-center justify-between p-6 overflow-hidden">
+            <Card
+              key={swap.id}
+              hover
+              className="flex items-center justify-between p-6 overflow-hidden"
+            >
               <div className="flex items-center gap-6">
                 <div className="flex -space-x-2">
                   <div className="h-10 w-10 rounded-full border-2 border-background bg-surface flex items-center justify-center text-xs font-bold">
@@ -123,15 +128,23 @@ export default function HistoryPage() {
                     {swap.to}
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-text-primary">{swap.amount} {swap.from}</span>
+                    <span className="font-bold text-text-primary">
+                      {swap.amount} {swap.from}
+                    </span>
                     <ArrowRight className="h-3 w-3 text-text-muted" />
-                    <span className="font-bold text-text-primary">{swap.toAmount} {swap.to}</span>
+                    <span className="font-bold text-text-primary">
+                      {swap.toAmount} {swap.to}
+                    </span>
                   </div>
                   <p className="text-xs text-text-muted mt-1">
-                    {new Date(swap.date).toLocaleDateString()} at {new Date(swap.date).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}
+                    {new Date(swap.date).toLocaleDateString()} at{" "}
+                    {new Date(swap.date).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </p>
                 </div>
               </div>
@@ -156,11 +169,9 @@ export default function HistoryPage() {
               </div>
             </Card>
           ))}
-          
+
           <div className="pt-6 text-center">
-            <p className="text-xs text-text-muted">
-              Showing {MOCK_SWAPS.length} recent swaps
-            </p>
+            <p className="text-xs text-text-muted">Showing {MOCK_SWAPS.length} recent swaps</p>
           </div>
         </div>
       )}
@@ -181,7 +192,9 @@ export default function HistoryPage() {
             >
               <option value="">Select swap</option>
               {disputableSwaps.map((s) => (
-                <option key={s.id} value={s.id}>{s.id} ({s.from} to {s.to})</option>
+                <option key={s.id} value={s.id}>
+                  {s.id} ({s.from} to {s.to})
+                </option>
               ))}
             </select>
           </div>
@@ -234,7 +247,10 @@ export default function HistoryPage() {
             placeholder="Tx hash, explorer URL, or additional notes"
           />
 
-          <Button onClick={submitDispute} disabled={submitting || !selectedSwap || reason.trim().length < 10}>
+          <Button
+            onClick={submitDispute}
+            disabled={submitting || !selectedSwap || reason.trim().length < 10}
+          >
             {submitting ? "Submitting…" : "Submit Dispute"}
           </Button>
         </div>

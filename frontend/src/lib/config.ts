@@ -29,14 +29,8 @@ export const config = {
 
   stellar: {
     network: getEnv("NEXT_PUBLIC_STELLAR_NETWORK", "testnet") as "testnet" | "mainnet",
-    sorobanRpc: getEnv(
-      "NEXT_PUBLIC_SOROBAN_RPC_URL",
-      "https://soroban-testnet.stellar.org"
-    ),
-    horizonUrl: getEnv(
-      "NEXT_PUBLIC_HORIZON_URL",
-      "https://horizon-testnet.stellar.org"
-    ),
+    sorobanRpc: getEnv("NEXT_PUBLIC_SOROBAN_RPC_URL", "https://soroban-testnet.stellar.org"),
+    horizonUrl: getEnv("NEXT_PUBLIC_HORIZON_URL", "https://horizon-testnet.stellar.org"),
     chainbridgeContractId: getEnv("NEXT_PUBLIC_CHAINBRIDGE_CONTRACT_ID", ""),
   },
 

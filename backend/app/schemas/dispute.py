@@ -3,7 +3,6 @@ from typing import Optional, Literal
 
 from pydantic import BaseModel, Field
 
-
 DisputeCategory = Literal[
     "timeout",
     "incorrect_amount",

@@ -5,10 +5,7 @@ use crate::types::{
 };
 use soroban_sdk::{Address, Env, String, Vec};
 
-pub fn init_governance(
-    env: &Env,
-    config: GovernanceConfig,
-) -> Result<(), Error> {
+pub fn init_governance(env: &Env, config: GovernanceConfig) -> Result<(), Error> {
     if config.quorum_bps == 0 || config.quorum_bps > 10_000 {
         return Err(Error::InvalidFeeRate);
     }
@@ -85,18 +82,21 @@ pub fn finalize_proposal(env: &Env, proposal: &mut GovernanceProposal) -> Result
     let total_participation = proposal.for_votes + proposal.against_votes + proposal.abstain_votes;
     let quorum_target = config.proposal_threshold * config.quorum_bps as i128 / 10_000;
 
-    proposal.status = if proposal.for_votes > proposal.against_votes && total_participation >= quorum_target {
-        ProposalStatus::Succeeded
-    } else {
-        ProposalStatus::Defeated
-    };
+    proposal.status =
+        if proposal.for_votes > proposal.against_votes && total_participation >= quorum_target {
+            ProposalStatus::Succeeded
+        } else {
+            ProposalStatus::Defeated
+        };
     storage::write_proposal(env, proposal.id, proposal);
     Ok(())
 }
 
 pub fn execute_proposal(env: &Env, proposal_id: u64) -> Result<(), Error> {
     let mut proposal = storage::read_proposal(env, proposal_id).ok_or(Error::OrderNotFound)?;
-    if proposal.status == ProposalStatus::Active && env.ledger().timestamp() >= proposal.voting_ends_at {
+    if proposal.status == ProposalStatus::Active
+        && env.ledger().timestamp() >= proposal.voting_ends_at
+    {
         finalize_proposal(env, &mut proposal)?;
         proposal = storage::read_proposal(env, proposal_id).ok_or(Error::OrderNotFound)?;
     }

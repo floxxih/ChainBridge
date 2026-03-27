@@ -25,14 +25,18 @@ class OrderCreate(BaseModel):
     def validate_chain(cls, v: str) -> str:
         v = v.lower()
         if v not in SUPPORTED_CHAINS:
-            raise ValueError(f"Unsupported chain '{v}'. Must be one of: {', '.join(sorted(SUPPORTED_CHAINS))}")
+            raise ValueError(
+                f"Unsupported chain '{v}'. Must be one of: {', '.join(sorted(SUPPORTED_CHAINS))}"
+            )
         return v
 
     @model_validator(mode="after")
     def validate_creator_address(self):
         result = validate_address(self.creator, self.from_chain)
         if not result.valid:
-            raise ValueError(f"Invalid creator address for {self.from_chain}: {result.error}")
+            raise ValueError(
+                f"Invalid creator address for {self.from_chain}: {result.error}"
+            )
         return self
 
 

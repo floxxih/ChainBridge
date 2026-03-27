@@ -14,7 +14,7 @@ export class EthereumAdapter implements WalletAdapter {
     const accounts = await provider.send("eth_requestAccounts", []);
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
-    
+
     return { address, publicKey: address }; // For EVM, address is the primary ID
   }
 

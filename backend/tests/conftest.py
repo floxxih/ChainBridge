@@ -1,8 +1,13 @@
 """Shared test fixtures for ChainBridge API tests."""
 
+import pathlib
+import sys
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import AsyncClient, ASGITransport
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from app.main import app
 
@@ -38,7 +43,10 @@ def mock_stellar_client():
     client.get_contract_events = AsyncMock(return_value=[])
     client.get_latest_ledger = AsyncMock(return_value=5000)
     client.health_check = AsyncMock(
-        return_value={"status": "healthy", "rpc_url": "https://soroban-testnet.stellar.org"}
+        return_value={
+            "status": "healthy",
+            "rpc_url": "https://soroban-testnet.stellar.org",
+        }
     )
     return client
 
@@ -78,13 +86,15 @@ def make_htlc(overrides=None):
     defaults = {
         "id": "htlc-001",
         "onchain_id": "onchain-htlc-001",
-        "token": "USDC",
-        "amount_stroops": "10000000",
+        "amount": 10_000_000,
         "hash_lock": "abc123hash",
         "time_lock": 1735689600,
         "sender": "GABC123",
         "receiver": "GDEF456",
-        "state": "locked",
+        "status": "active",
+        "hash_algorithm": "sha256",
+        "secret": None,
+        "updated_at": None,
         "created_at": "2026-01-01T00:00:00Z",
     }
     if overrides:
