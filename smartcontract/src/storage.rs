@@ -1,7 +1,8 @@
 use crate::types::{
-    Chain, CrossChainSwap, HTLCStatus, StorageMetrics, SwapOrder, SwapStatus, HTLC,
+    Chain, CrossChainSwap, DelegationRecord, GovernanceConfig, GovernanceProposal, HTLCStatus,
+    LiquidityPool, LiquidityPosition, ReferralRecord, StorageMetrics, SwapOrder, SwapStatus, HTLC,
 };
-use soroban_sdk::{contracttype, Address, Env, Vec};
+use soroban_sdk::{contracttype, Address, Env, String, Vec};
 
 /// Encodes a chain-pair as a single u64 for use as a storage key.
 /// Combines from_chain and to_chain discriminants into the high and low 32 bits.
@@ -39,6 +40,16 @@ pub enum DataKey {
     Paused,
     FeeRate,
     FeeTreasury,
+    GovernanceConfig,
+    ProposalCounter,
+    Proposal(u64),
+    ProposalVote(u64, Address),
+    Delegation(Address),
+    PoolCounter,
+    Pool(u64),
+    PoolRoute(String, String),
+    Position(u64, Address),
+    ReferralCode(String),
     /// Index of open order IDs for a specific chain pair (encoded as u64).
     ChainPairOrders(u64),
 }
@@ -58,7 +69,10 @@ pub fn write_admin(env: &Env, admin: &Address) {
 }
 
 pub fn is_paused(env: &Env) -> bool {
-    env.storage().instance().get(&DataKey::Paused).unwrap_or(false)
+    env.storage()
+        .instance()
+        .get(&DataKey::Paused)
+        .unwrap_or(false)
 }
 
 pub fn set_paused(env: &Env, paused: bool) {
@@ -66,7 +80,10 @@ pub fn set_paused(env: &Env, paused: bool) {
 }
 
 pub fn get_fee_rate(env: &Env) -> u32 {
-    env.storage().instance().get(&DataKey::FeeRate).unwrap_or(30)
+    env.storage()
+        .instance()
+        .get(&DataKey::FeeRate)
+        .unwrap_or(30)
 }
 
 pub fn set_fee_rate(env: &Env, rate: u32) {
@@ -78,7 +95,133 @@ pub fn get_fee_treasury(env: &Env) -> Option<Address> {
 }
 
 pub fn set_fee_treasury(env: &Env, treasury: &Address) {
-    env.storage().instance().set(&DataKey::FeeTreasury, treasury);
+    env.storage()
+        .instance()
+        .set(&DataKey::FeeTreasury, treasury);
+}
+
+pub fn read_governance_config(env: &Env) -> Option<GovernanceConfig> {
+    env.storage().instance().get(&DataKey::GovernanceConfig)
+}
+
+pub fn write_governance_config(env: &Env, config: &GovernanceConfig) {
+    env.storage()
+        .instance()
+        .set(&DataKey::GovernanceConfig, config);
+}
+
+pub fn get_proposal_counter(env: &Env) -> u64 {
+    env.storage()
+        .instance()
+        .get(&DataKey::ProposalCounter)
+        .unwrap_or(0)
+}
+
+pub fn increment_proposal_counter(env: &Env) -> u64 {
+    let counter = get_proposal_counter(env) + 1;
+    env.storage()
+        .instance()
+        .set(&DataKey::ProposalCounter, &counter);
+    counter
+}
+
+pub fn read_proposal(env: &Env, proposal_id: u64) -> Option<GovernanceProposal> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Proposal(proposal_id))
+}
+
+pub fn write_proposal(env: &Env, proposal_id: u64, proposal: &GovernanceProposal) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::Proposal(proposal_id), proposal);
+}
+
+pub fn read_proposal_vote(env: &Env, proposal_id: u64, voter: &Address) -> Option<bool> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::ProposalVote(proposal_id, voter.clone()))
+}
+
+pub fn write_proposal_vote(env: &Env, proposal_id: u64, voter: &Address, voted: bool) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::ProposalVote(proposal_id, voter.clone()), &voted);
+}
+
+pub fn read_delegation(env: &Env, delegator: &Address) -> Option<DelegationRecord> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Delegation(delegator.clone()))
+}
+
+pub fn write_delegation(env: &Env, record: &DelegationRecord) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::Delegation(record.delegator.clone()), record);
+}
+
+pub fn get_pool_counter(env: &Env) -> u64 {
+    env.storage()
+        .instance()
+        .get(&DataKey::PoolCounter)
+        .unwrap_or(0)
+}
+
+pub fn increment_pool_counter(env: &Env) -> u64 {
+    let counter = get_pool_counter(env) + 1;
+    env.storage()
+        .instance()
+        .set(&DataKey::PoolCounter, &counter);
+    counter
+}
+
+pub fn read_pool(env: &Env, pool_id: u64) -> Option<LiquidityPool> {
+    env.storage().persistent().get(&DataKey::Pool(pool_id))
+}
+
+pub fn write_pool(env: &Env, pool_id: u64, pool: &LiquidityPool) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::Pool(pool_id), pool);
+}
+
+pub fn write_pool_route(env: &Env, asset_in: &String, asset_out: &String, pool_id: u64) {
+    env.storage().persistent().set(
+        &DataKey::PoolRoute(asset_in.clone(), asset_out.clone()),
+        &pool_id,
+    );
+}
+
+pub fn read_pool_route(env: &Env, asset_in: &String, asset_out: &String) -> Option<u64> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::PoolRoute(asset_in.clone(), asset_out.clone()))
+}
+
+pub fn read_position(env: &Env, pool_id: u64, provider: &Address) -> Option<LiquidityPosition> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Position(pool_id, provider.clone()))
+}
+
+pub fn write_position(env: &Env, position: &LiquidityPosition) {
+    env.storage().persistent().set(
+        &DataKey::Position(position.pool_id, position.provider.clone()),
+        position,
+    );
+}
+
+pub fn read_referral_record(env: &Env, code: &String) -> Option<ReferralRecord> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::ReferralCode(code.clone()))
+}
+
+pub fn write_referral_record(env: &Env, record: &ReferralRecord) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::ReferralCode(record.code.clone()), record);
 }
 
 pub fn get_htlc_counter(env: &Env) -> u64 {

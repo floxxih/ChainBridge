@@ -10,27 +10,19 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  (
-    { className, label, error, hint, leftElement, rightElement, id, ...props },
-    ref
-  ) => {
+  ({ className, label, error, hint, leftElement, rightElement, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label
-            htmlFor={inputId}
-            className="text-sm font-medium text-text-secondary"
-          >
+          <label htmlFor={inputId} className="text-sm font-medium text-text-secondary">
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftElement && (
-            <div className="absolute left-3 flex items-center text-text-muted">
-              {leftElement}
-            </div>
+            <div className="absolute left-3 flex items-center text-text-muted">{leftElement}</div>
           )}
           <input
             ref={ref}
@@ -49,15 +41,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightElement && (
-            <div className="absolute right-3 flex items-center text-text-muted">
-              {rightElement}
-            </div>
+            <div className="absolute right-3 flex items-center text-text-muted">{rightElement}</div>
           )}
         </div>
         {error && <p className="text-xs text-red-400">{error}</p>}
-        {hint && !error && (
-          <p className="text-xs text-text-muted">{hint}</p>
-        )}
+        {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
       </div>
     );
   }

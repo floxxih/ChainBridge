@@ -2,15 +2,24 @@
 
 import { useMemo } from "react";
 import { Transaction, TransactionStatus } from "@/types";
-import { CheckCircle2, Clock, AlertCircle, ChevronRight, ExternalLink, ShieldCheck, ShieldAlert } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ChevronRight,
+  ExternalLink,
+  ShieldCheck,
+  ShieldAlert,
+} from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import { clsx } from "clsx";
 
 interface TransactionRowProps {
   tx: Transaction;
+  onSelect: () => void;
 }
 
-export function TransactionRow({ tx }: TransactionRowProps) {
+export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
   const statusIcon = useMemo(() => {
     switch (tx.status) {
       case TransactionStatus.COMPLETED:
@@ -32,43 +41,88 @@ export function TransactionRow({ tx }: TransactionRowProps) {
 
   const explorerUrl = useMemo(() => {
     switch (tx.chain.toLowerCase()) {
-      case "stellar": return `https://stellar.expert/explorer/testnet/tx/${tx.hash}`;
-      case "ethereum": return `https://sepolia.etherscan.io/tx/${tx.hash}`;
-      case "bitcoin": return `https://mempool.space/testnet/tx/${tx.hash}`;
-      default: return "#";
+      case "stellar":
+        return `https://stellar.expert/explorer/testnet/tx/${tx.hash}`;
+      case "ethereum":
+        return `https://sepolia.etherscan.io/tx/${tx.hash}`;
+      case "bitcoin":
+        return `https://mempool.space/testnet/tx/${tx.hash}`;
+      default:
+        return "#";
     }
   }, [tx.chain, tx.hash]);
 
   return (
-    <div className="group relative flex items-center justify-between border-b border-border/50 bg-surface/30 p-4 transition hover:bg-surface-overlay/30 first:rounded-t-2xl last:rounded-b-2xl last:border-0 md:px-6">
-        <div className="flex items-center gap-4 md:gap-6">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-overlay border border-border shadow-sm">
-          {statusIcon}
+    <tr
+      onClick={onSelect}
+      className="group border-b border-border/50 bg-surface/30 transition hover:bg-surface-overlay/30 first:rounded-t-2xl last:rounded-b-2xl last:border-0 block md:table-row cursor-pointer"
+    >
+      {/* Type & Status */}
+      <td className="px-4 py-4 md:px-6 block md:table-cell">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-overlay border border-border shadow-sm">
+            {statusIcon}
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+              Status
+            </span>
+            <span className="text-sm font-semibold text-text-primary capitalize">
+              {tx.type.replace("_", " ")}
+            </span>
+            <span className="text-[10px] text-text-muted">
+              {new Date(tx.timestamp).toLocaleString([], {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
+            </span>
+          </div>
         </div>
-        
+      </td>
+
+      {/* Asset */}
+      <td className="px-4 py-2 md:px-6 block md:table-cell">
         <div className="flex flex-col">
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+            Asset
+          </span>
           <div className="flex items-center gap-2">
-            <span className="font-bold text-text-primary">{tx.amount} {tx.token}</span>
-            <Badge variant="default" className="text-[10px] uppercase tracking-tighter">
+            <span className="font-bold text-text-primary">
+              {tx.amount} {tx.token}
+            </span>
+            <Badge variant="default" className="text-[10px] uppercase tracking-tighter shrink-0">
               {tx.chain}
             </Badge>
           </div>
-          <div className="mt-1 flex items-center gap-2 text-xs text-text-muted">
-             <span className="font-mono">{tx.hash.slice(0, 6)}...{tx.hash.slice(-4)}</span>
-             <span>•</span>
-             <span>{new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </td>
+
+      {/* Hash */}
+      <td className="px-4 py-2 md:px-6 block md:table-cell">
+        <div className="flex flex-col">
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
+            Hash
+          </span>
+          <div className="flex items-center gap-2 font-mono text-xs text-text-secondary">
+            {tx.hash.slice(0, 8)}...{tx.hash.slice(-6)}
           </div>
         </div>
-      </div>
+      </td>
 
-      <div className="hidden flex-1 px-8 md:block">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-text-muted">
-            <span>Progress</span>
-            <span>{tx.confirmations} / {tx.requiredConfirmations} Confirmed</span>
+      {/* Progress */}
+      <td className="px-4 py-2 md:px-6 block md:table-cell text-right">
+        <div className="flex flex-col md:items-end gap-1.5 min-w-[120px]">
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden text-left">
+            Progress
+          </span>
+          <div className="flex justify-between w-full md:w-auto md:gap-4 text-[10px] font-bold uppercase tracking-wider text-text-muted">
+            <span className="md:hidden">Confirms</span>
+            <span>
+              {tx.confirmations} / {tx.requiredConfirmations}
+            </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-overlay border border-border/50">
-            <div 
+          <div className="h-1.5 w-full md:w-32 overflow-hidden rounded-full bg-surface-overlay border border-border/50">
+            <div
               className={clsx(
                 "h-full transition-all duration-500",
                 tx.status === TransactionStatus.COMPLETED ? "bg-emerald-500" : "bg-brand-500"
@@ -77,38 +131,41 @@ export function TransactionRow({ tx }: TransactionRowProps) {
             />
           </div>
         </div>
-      </div>
+      </td>
 
-      <div className="flex items-center gap-3 md:gap-4">
-        {tx.proofVerified !== undefined && (
-          <div className="flex items-center gap-1.5">
-             {tx.proofVerified ? (
-               <span title="HTLC Proof Verified">
-                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
-               </span>
-             ) : (
-               <span title="Awaiting Proof">
-                 <Clock className="h-4 w-4 text-text-muted" />
-               </span>
-             )}
-          </div>
-        )}
-
-        
-        <div className="flex items-center gap-1">
-          <a 
-            href={explorerUrl} 
-            target="_blank" 
+      {/* Actions */}
+      <td className="px-4 py-4 md:px-6 block md:table-cell text-right">
+        <div className="flex items-center justify-end gap-2">
+          {tx.proofVerified !== undefined && (
+            <div
+              className={clsx(
+                "flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-bold",
+                tx.proofVerified
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-text-muted/10 text-text-muted"
+              )}
+            >
+              <ShieldCheck className="h-3 w-3" />
+              <span className="hidden lg:inline">{tx.proofVerified ? "VERIFIED" : "WAITING"}</span>
+            </div>
+          )}
+          <a
+            href={explorerUrl}
+            target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg p-2 text-text-muted hover:bg-surface-overlay hover:text-text-primary transition"
+            className="rounded-lg p-2 text-text-muted hover:bg-brand-500/10 hover:text-brand-500 transition shadow-sm"
           >
             <ExternalLink className="h-4 w-4" />
           </a>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 group-hover:bg-brand-500/10 group-hover:text-brand-500">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden h-8 w-8 p-0 group-hover:flex items-center justify-center"
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }

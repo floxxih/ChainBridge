@@ -24,7 +24,9 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     order_count = (await db.execute(select(func.count(SwapOrder.id)))).scalar() or 0
     swap_count = (await db.execute(select(func.count(CrossChainSwap.id)))).scalar() or 0
     open_orders = (
-        await db.execute(select(func.count(SwapOrder.id)).where(SwapOrder.status == "open"))
+        await db.execute(
+            select(func.count(SwapOrder.id)).where(SwapOrder.status == "open")
+        )
     ).scalar() or 0
     total_volume = (
         await db.execute(select(func.coalesce(func.sum(SwapOrder.from_amount), 0)))

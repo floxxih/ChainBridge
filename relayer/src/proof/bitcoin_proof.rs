@@ -4,7 +4,6 @@
 /// transaction, consisting of the transaction, Merkle branch, and
 /// block header. This proof is submitted to the Stellar contract
 /// to verify that a Bitcoin HTLC was created or claimed.
-
 use sha2::{Digest, Sha256};
 
 /// An SPV proof for a Bitcoin transaction.
@@ -23,11 +22,7 @@ pub fn double_sha256(data: &[u8]) -> Vec<u8> {
 }
 
 /// Verify a Merkle branch for a transaction.
-pub fn verify_merkle_branch(
-    tx_hash: &[u8],
-    merkle_branch: &[Vec<u8>],
-    tx_index: u32,
-) -> Vec<u8> {
+pub fn verify_merkle_branch(tx_hash: &[u8], merkle_branch: &[Vec<u8>], tx_index: u32) -> Vec<u8> {
     let mut current = tx_hash.to_vec();
     let mut index = tx_index;
 

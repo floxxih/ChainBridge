@@ -27,6 +27,19 @@ pub struct MultiSigConfig {
     pub signatures: soroban_sdk::Vec<Address>,
 }
 
+/// Soroban-compatible optional wrapper for MultiSigConfig.
+///
+/// Rust's `Option<MultiSigConfig>` cannot be used directly as a `#[contracttype]`
+/// field because the Soroban XDR serialization layer does not generate a
+/// `TryFrom<ScVal>` impl for `Option<CustomContractType>`. Using a first-class
+/// enum avoids that limitation while preserving the same semantics.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum OptMultiSig {
+    None,
+    Config(MultiSigConfig),
+}
+
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
@@ -50,6 +63,24 @@ pub enum SwapStatus {
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub enum AdvancedOrderType {
+    Market,
+    Limit,
+    TWAP,
+    StopLoss,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct OrderExecutionCondition {
+    pub trigger_price_numerator: i128,
+    pub trigger_price_denominator: i128,
+    pub execute_after: u64,
+    pub allow_partial_fills: bool,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[allow(clippy::upper_case_acronyms)]
 pub struct HTLC {
     pub sender: Address,
@@ -60,7 +91,7 @@ pub struct HTLC {
     pub status: HTLCStatus,
     pub secret: Option<Bytes>,
     pub created_at: u64,
-    pub multi_sig: Option<MultiSigConfig>,
+    pub multi_sig: OptMultiSig,
     /// Hash algorithm used for this HTLC's hash lock.
     pub hash_algorithm: HashAlgorithm,
 }
@@ -85,6 +116,12 @@ pub struct SwapOrder {
     pub filled_amount: i128,
     /// Ledger sequence when this order was created, for time-priority sorting.
     pub created_ledger: u32,
+    /// Order execution mode for advanced order support.
+    pub order_type: AdvancedOrderType,
+    /// Optional trigger/conditional execution settings.
+    pub execution: Option<OrderExecutionCondition>,
+    /// Number of amendments applied to the order.
+    pub amendment_count: u32,
 }
 
 #[contracttype]
@@ -134,4 +171,89 @@ pub struct StorageMetrics {
 #[contracttype]
 pub struct HTLCCleanupQueue {
     pub htlc_ids: soroban_sdk::Vec<u64>,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GovernanceConfig {
+    pub token_symbol: String,
+    pub quorum_bps: u32,
+    pub proposal_threshold: i128,
+    pub voting_period_secs: u64,
+    pub timelock_secs: u64,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ProposalStatus {
+    Active,
+    Succeeded,
+    Defeated,
+    Executed,
+    Cancelled,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum VoteChoice {
+    For,
+    Against,
+    Abstain,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GovernanceProposal {
+    pub id: u64,
+    pub proposer: Address,
+    pub title: String,
+    pub description: String,
+    pub actions: soroban_sdk::Vec<String>,
+    pub created_at: u64,
+    pub voting_ends_at: u64,
+    pub executable_after: u64,
+    pub for_votes: i128,
+    pub against_votes: i128,
+    pub abstain_votes: i128,
+    pub status: ProposalStatus,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DelegationRecord {
+    pub delegator: Address,
+    pub delegatee: Address,
+    pub updated_at: u64,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LiquidityPool {
+    pub id: u64,
+    pub asset_a: String,
+    pub asset_b: String,
+    pub reserve_a: i128,
+    pub reserve_b: i128,
+    pub total_lp_tokens: i128,
+    pub fee_bps: u32,
+    pub reward_bps: u32,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LiquidityPosition {
+    pub provider: Address,
+    pub pool_id: u64,
+    pub lp_tokens: i128,
+    pub rewards_earned: i128,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferralRecord {
+    pub owner: Address,
+    pub code: String,
+    pub uses: u64,
+    pub rewards_earned: i128,
+    pub last_swap_id: u64,
 }

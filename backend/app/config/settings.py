@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -6,7 +7,9 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Database
-    database_url: str = "postgresql+asyncpg://chainbridge:password@localhost:5432/chainbridge"
+    database_url: str = (
+        "postgresql+asyncpg://chainbridge:password@localhost:5432/chainbridge"
+    )
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
@@ -24,6 +27,17 @@ class Settings(BaseSettings):
     # Stellar
     soroban_rpc_url: str = "https://soroban-testnet.stellar.org"
     chainbridge_contract_id: str = ""
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def parse_debug(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"release", "prod", "production", "false", "0", "off"}:
+                return False
+            if normalized in {"debug", "dev", "development", "true", "1", "on"}:
+                return True
+        return value
 
     class Config:
         env_file = ".env"

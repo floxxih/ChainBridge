@@ -11,30 +11,30 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:          "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
   locked_initiator: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   locked_responder: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-  completed:        "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  cancelled:        "bg-red-500/10 text-red-400 border-red-500/20",
-  expired:          "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  completed: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  cancelled: "bg-red-500/10 text-red-400 border-red-500/20",
+  expired: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  pending:          "Pending",
+  pending: "Pending",
   locked_initiator: "Locked (Init)",
   locked_responder: "Locked (Resp)",
-  completed:        "Completed",
-  cancelled:        "Cancelled",
-  expired:          "Expired",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  expired: "Expired",
 };
 
 const variantStyles: Record<BadgeVariant, string> = {
   default: "bg-surface-overlay text-text-secondary border-border",
   success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   warning: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  error:   "bg-red-500/10 text-red-400 border-red-500/20",
-  info:    "bg-brand-500/10 text-brand-500 border-brand-500/20",
-  chain:   "",
+  error: "bg-red-500/10 text-red-400 border-red-500/20",
+  info: "bg-brand-500/10 text-brand-500 border-brand-500/20",
+  chain: "",
 };
 
 export function Badge({

@@ -6,6 +6,7 @@ from datetime import datetime
 class APIKeyCreate(BaseModel):
     name: str
     owner: str
+    is_admin: bool = False
 
 
 class APIKeyResponse(BaseModel):
@@ -14,6 +15,7 @@ class APIKeyResponse(BaseModel):
     name: str
     owner: str
     is_active: bool
+    is_admin: bool = False
     request_count: int
     created_at: Optional[datetime] = None
 

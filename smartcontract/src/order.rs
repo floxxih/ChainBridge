@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::storage;
-use crate::types::{Chain, SwapOrder, SwapStatus};
+use crate::types::{AdvancedOrderType, Chain, OrderExecutionCondition, SwapOrder, SwapStatus};
 use soroban_sdk::{Address, Env, String};
 
 #[allow(clippy::too_many_arguments)]
@@ -31,6 +31,8 @@ pub fn create_order(
         to_amount,
         expiry,
         from_amount,
+        AdvancedOrderType::Market,
+        None,
     )
 }
 
@@ -54,6 +56,8 @@ pub fn create_order_with_min_fill(
     to_amount: i128,
     expiry: u64,
     min_fill_amount: i128,
+    order_type: AdvancedOrderType,
+    execution: Option<OrderExecutionCondition>,
 ) -> Result<u64, Error> {
     if storage::is_paused(env) {
         return Err(Error::Paused);
@@ -88,11 +92,45 @@ pub fn create_order_with_min_fill(
         min_fill_amount,
         filled_amount: 0,
         created_ledger: env.ledger().sequence(),
+        order_type,
+        execution,
+        amendment_count: 0,
     };
 
     storage::write_order(env, order_id, &order);
     storage::add_order_to_chain_index(env, &from_chain, &to_chain, order_id);
     Ok(order_id)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn create_advanced_order(
+    env: &Env,
+    creator: &Address,
+    from_chain: Chain,
+    to_chain: Chain,
+    from_asset: String,
+    to_asset: String,
+    from_amount: i128,
+    to_amount: i128,
+    expiry: u64,
+    min_fill_amount: i128,
+    order_type: AdvancedOrderType,
+    execution: Option<OrderExecutionCondition>,
+) -> Result<u64, Error> {
+    create_order_with_min_fill(
+        env,
+        creator,
+        from_chain,
+        to_chain,
+        from_asset,
+        to_asset,
+        from_amount,
+        to_amount,
+        expiry,
+        min_fill_amount,
+        order_type,
+        execution,
+    )
 }
 
 /// Fully match an open order.
@@ -159,9 +197,9 @@ pub fn match_order_partial(
         id: swap_id,
         stellar_htlc_id: 0,
         other_chain: order.from_chain.clone(),
-        other_chain_tx: String::from_slice(env, ""),
+        other_chain_tx: String::from_str(env, ""),
         stellar_party: counterparty.clone(),
-        other_party: String::from_slice(env, ""),
+        other_party: String::from_str(env, ""),
         state: crate::types::SwapState::Initiated,
         updated_at: current_time,
     };
@@ -210,6 +248,33 @@ pub fn expire_order(env: &Env, order_id: u64) -> Result<(), Error> {
 
     order.status = SwapStatus::Expired;
     storage::remove_order_from_chain_index(env, &order.from_chain, &order.to_chain, order_id);
+    storage::write_order(env, order_id, &order);
+    Ok(())
+}
+
+pub fn amend_order(
+    env: &Env,
+    creator: &Address,
+    order_id: u64,
+    to_amount: i128,
+    expiry: u64,
+    execution: Option<OrderExecutionCondition>,
+) -> Result<(), Error> {
+    let mut order = storage::read_order(env, order_id).ok_or(Error::OrderNotFound)?;
+    if order.creator != *creator {
+        return Err(Error::Unauthorized);
+    }
+    if order.status != SwapStatus::Open {
+        return Err(Error::OrderAlreadyMatched);
+    }
+    if to_amount <= 0 || expiry <= env.ledger().timestamp() {
+        return Err(Error::InvalidAmount);
+    }
+
+    order.to_amount = to_amount;
+    order.expiry = expiry;
+    order.execution = execution;
+    order.amendment_count += 1;
     storage::write_order(env, order_id, &order);
     Ok(())
 }

@@ -23,9 +23,13 @@ def generate_api_key() -> str:
 
 
 def create_jwt_token(subject: str) -> dict:
-    expires = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expiration_minutes)
+    expires = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.jwt_expiration_minutes
+    )
     payload = {"sub": subject, "exp": expires, "iat": datetime.now(timezone.utc)}
-    token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    token = jwt.encode(
+        payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -35,29 +39,49 @@ def create_jwt_token(subject: str) -> dict:
 
 def decode_jwt_token(token: str) -> Optional[dict]:
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        return jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+        )
     except jwt.InvalidTokenError:
         return None
 
 
-async def require_api_key(
-    api_key: Optional[str] = Security(api_key_header),
-    db: AsyncSession = Depends(get_db),
-) -> APIKey:
+async def _resolve_api_key(api_key: Optional[str], db: AsyncSession) -> APIKey:
+    """Shared key validation logic used by both require_api_key and require_admin_key."""
     if not api_key:
         raise HTTPException(status_code=401, detail="API key required")
 
-    result = await db.execute(select(APIKey).where(APIKey.key == api_key, APIKey.is_active == True))
+    result = await db.execute(
+        select(APIKey).where(APIKey.key == api_key, APIKey.is_active == True)
+    )
     key_record = result.scalar_one_or_none()
-
     if not key_record:
         raise HTTPException(status_code=401, detail="Invalid or inactive API key")
 
     await db.execute(
         update(APIKey)
         .where(APIKey.id == key_record.id)
-        .values(request_count=APIKey.request_count + 1, last_used_at=datetime.now(timezone.utc))
+        .values(
+            request_count=APIKey.request_count + 1,
+            last_used_at=datetime.now(timezone.utc),
+        )
     )
     await db.commit()
+    return key_record
 
+
+async def require_api_key(
+    api_key: Optional[str] = Security(api_key_header),
+    db: AsyncSession = Depends(get_db),
+) -> APIKey:
+    return await _resolve_api_key(api_key, db)
+
+
+async def require_admin_key(
+    api_key: Optional[str] = Security(api_key_header),
+    db: AsyncSession = Depends(get_db),
+) -> APIKey:
+    key_record = await _resolve_api_key(api_key, db)
+    if not key_record.is_admin:
+        raise HTTPException(status_code=403, detail="Admin privileges required")
     return key_record

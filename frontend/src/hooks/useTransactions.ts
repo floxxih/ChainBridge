@@ -3,21 +3,25 @@ import { persist } from "zustand/middleware";
 import { Transaction, TransactionStore, TransactionStatus } from "@/types";
 import { useCallback } from "react";
 
+import {
+  buildCompletedLifecycle,
+  buildTransactionLifecycle,
+} from "@/lib/transactionLifecycle";
+import { getExplorerUrl } from "@/lib/explorers";
+
 export const useTransactionStore = create<TransactionStore>()(
   persist(
     (set) => ({
       transactions: [],
 
-      addTransaction: (tx) => 
-        set((state) => ({ 
-          transactions: [tx, ...state.transactions].slice(0, 100) 
+      addTransaction: (tx) =>
+        set((state) => ({
+          transactions: [tx, ...state.transactions].slice(0, 100),
         })),
 
       updateTransaction: (id, updates) =>
         set((state) => ({
-          transactions: state.transactions.map((tx) =>
-            tx.id === id ? { ...tx, ...updates } : tx
-          ),
+          transactions: state.transactions.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx)),
         })),
 
       removeTransaction: (id) =>
@@ -34,10 +38,10 @@ export const useTransactionStore = create<TransactionStore>()(
 // Helper to mock some initial data for testing if empty
 export const useMockTransactions = () => {
   const { transactions, addTransaction } = useTransactionStore();
-  
+
   const seedMockData = useCallback(() => {
     if (transactions.length > 0) return;
-    
+
     const mocks: Transaction[] = [
       {
         id: "tx_001",
@@ -51,6 +55,8 @@ export const useMockTransactions = () => {
         requiredConfirmations: 1,
         timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
         proofVerified: true,
+        explorerUrl: getExplorerUrl("stellar", "GC...3X4"),
+        lifecycle: buildCompletedLifecycle("Stellar"),
       },
       {
         id: "tx_002",
@@ -64,6 +70,8 @@ export const useMockTransactions = () => {
         requiredConfirmations: 12,
         timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
         proofVerified: false,
+        explorerUrl: getExplorerUrl("ethereum", "0x7a...f21"),
+        lifecycle: buildTransactionLifecycle("Ethereum", "confirm"),
       },
       {
         id: "tx_003",
@@ -72,14 +80,21 @@ export const useMockTransactions = () => {
         type: "inbound",
         amount: "0.0024",
         token: "BTC",
-        status: TransactionStatus.PENDING,
+        status: TransactionStatus.FAILED,
         confirmations: 0,
         requiredConfirmations: 3,
         timestamp: new Date().toISOString(),
-      }
+        explorerUrl: getExplorerUrl("bitcoin", "bc1...qwe"),
+        lifecycle: buildTransactionLifecycle("Bitcoin", "approval", {
+          failedStep: "broadcast",
+          errorMessage: "Bitcoin broadcast failed: mempool rejected the transaction fee rate.",
+          retryable: true,
+        }),
+        failureReason: "Bitcoin broadcast failed: mempool rejected the transaction fee rate.",
+      },
     ];
-    
-    mocks.forEach(tx => addTransaction(tx));
+
+    mocks.forEach((tx) => addTransaction(tx));
   }, [transactions.length, addTransaction]);
 
   return { seedMockData };

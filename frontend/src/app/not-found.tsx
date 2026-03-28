@@ -8,14 +8,14 @@ export default function NotFound() {
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-surface-overlay border border-border text-text-muted">
         <Compass className="h-10 w-10" />
       </div>
-      
+
       <h1 className="text-4xl font-extrabold tracking-tight text-text-primary">
         Destination Unknown
       </h1>
-      
+
       <p className="mt-4 max-w-md text-text-secondary">
-        The page you are looking for has either sailed past the timelock 
-        or never existed in this chain.
+        The page you are looking for has either sailed past the timelock or never existed in this
+        chain.
       </p>
 
       <div className="mt-10">

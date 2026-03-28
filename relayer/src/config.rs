@@ -4,6 +4,7 @@ use serde::Deserialize;
 pub struct RelayerConfig {
     pub relayer_name: String,
     pub relayer_fee_bps: u32,
+    pub metrics_bind_addr: String,
     pub stellar_rpc_url: String,
     pub contract_id: String,
     pub bitcoin_rpc_url: String,
@@ -20,6 +21,8 @@ impl RelayerConfig {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(10),
+            metrics_bind_addr: std::env::var("RELAYER_METRICS_BIND")
+                .unwrap_or_else(|_| "0.0.0.0:9108".into()),
             stellar_rpc_url: std::env::var("SOROBAN_RPC_URL")
                 .unwrap_or_else(|_| "https://soroban-testnet.stellar.org".into()),
             contract_id: std::env::var("CHAINBRIDGE_CONTRACT_ID").unwrap_or_default(),

@@ -263,6 +263,50 @@ Get HTLC details.
 }
 ```
 
+---
+
+### Disputes
+
+#### POST /disputes
+
+Submit a dispute for a problematic swap requiring manual intervention.
+
+**Request:**
+
+```json
+{
+  "swap_id": "f2f9bcdc-9f85-4f56-9d6f-a57de0fdad83",
+  "submitted_by": "GAAZI4TCR3TY5OJHCTJC2A4QSY6CJWJH5IAJTGKIN2ER7LBNVKOCCWN7",
+  "category": "timeout",
+  "reason": "Counterparty did not complete second leg after lock period.",
+  "priority": "high",
+  "evidence": [
+    {
+      "type": "tx_hash",
+      "value": "0xabc123",
+      "description": "Outbound lock transaction"
+    }
+  ]
+}
+```
+
+#### POST /disputes/{dispute_id}/evidence
+
+Append additional evidence to an existing dispute.
+
+#### GET /disputes
+
+List disputes (supports filtering by submitter and status).
+
+#### Admin endpoints
+
+- `GET /admin/disputes`
+- `GET /admin/disputes/stats`
+- `POST /admin/disputes/{dispute_id}/review`
+- `POST /admin/disputes/{dispute_id}/resolve`
+
+See [DISPUTES.md](./DISPUTES.md) for full workflow and operational guidance.
+
 #### POST /htlc/{htlc_id}/claim
 
 Claim an HTLC by revealing the secret.

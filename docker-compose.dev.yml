@@ -72,6 +72,82 @@ services:
       - chainbridge-dev-network
     restart: unless-stopped
 
+  relayer:
+    build:
+      context: ./relayer
+      dockerfile: Dockerfile
+    container_name: chainbridge-relayer-dev
+    environment:
+      RELAYER_NAME: dev-relayer
+      RELAYER_FEE_BPS: 10
+      RELAYER_METRICS_BIND: 0.0.0.0:9108
+      SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+      CHAINBRIDGE_CONTRACT_ID: ${CHAINBRIDGE_CONTRACT_ID:-}
+      BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:-http://host.docker.internal:8332}
+      ETHEREUM_RPC_URL: ${ETHEREUM_RPC_URL:-http://host.docker.internal:8545}
+      POLL_INTERVAL_SECS: 15
+      MAX_RETRIES: 3
+    ports:
+      - "9108:9108"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - chainbridge-dev-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: chainbridge-prometheus-dev
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+    depends_on:
+      - backend
+      - relayer
+      - alertmanager
+    networks:
+      - chainbridge-dev-network
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: chainbridge-alertmanager-dev
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - chainbridge-dev-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    container_name: chainbridge-grafana-dev
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - chainbridge-dev-network
+    restart: unless-stopped
+
   adminer:
     image: adminer:latest
     container_name: chainbridge-adminer-dev
@@ -91,6 +167,8 @@ volumes:
   postgres_dev_data:
     driver: local
   redis_dev_data:
+    driver: local
+  grafana_dev_data:
     driver: local
 
 networks:

@@ -4,18 +4,20 @@
 /// known HTLC script patterns, and generates SPV proofs for
 /// submission to the Stellar contract.
 use crate::config::RelayerConfig;
+use crate::metrics::RelayerMetrics;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn monitor_loop(config: RelayerConfig) {
-    println!("[Bitcoin] Starting monitor — RPC: {}", config.bitcoin_rpc_url);
+pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
+    println!("[Bitcoin] Starting monitor - RPC: {}", config.bitcoin_rpc_url);
+    metrics.mark_started("bitcoin");
 
     let interval = Duration::from_secs(config.poll_interval_secs);
     let mut last_block_height: u64 = 0;
 
     loop {
         match poll_blocks(&config, last_block_height).await {
-            Ok(new_height) => {
+            Ok((new_height, detected_events)) => {
                 if new_height > last_block_height {
                     println!(
                         "[Bitcoin] Processed blocks {} -> {}",
@@ -23,9 +25,11 @@ pub async fn monitor_loop(config: RelayerConfig) {
                     );
                     last_block_height = new_height;
                 }
+                metrics.mark_poll_success("bitcoin", new_height, detected_events as u64);
             }
             Err(e) => {
                 eprintln!("[Bitcoin] Poll error: {}. Retrying...", e);
+                metrics.mark_poll_error("bitcoin");
             }
         }
         sleep(interval).await;
@@ -35,7 +39,7 @@ pub async fn monitor_loop(config: RelayerConfig) {
 async fn poll_blocks(
     config: &RelayerConfig,
     last_height: u64,
-) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(u64, usize), Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::new();
 
     // Get current block count
@@ -55,6 +59,7 @@ async fn poll_blocks(
     let current_height = resp["result"].as_u64().unwrap_or(last_height);
 
     // Scan new blocks for HTLC transactions
+    let mut detected_events = 0usize;
     for height in (last_height + 1)..=current_height {
         // Get block hash
         let hash_resp = client
@@ -96,8 +101,9 @@ async fn poll_blocks(
             // (OP_SHA256 <hash> OP_EQUALVERIFY or OP_HASH256 <hash> OP_EQUAL)
             // When found, generate SPV proof and submit to Stellar contract
             let _txid = tx["txid"].as_str().unwrap_or("");
+            detected_events += 0;
         }
     }
 
-    Ok(current_height)
+    Ok((current_height, detected_events))
 }

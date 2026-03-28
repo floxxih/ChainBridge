@@ -18,6 +18,7 @@ async def create_api_key(data: APIKeyCreate, db: AsyncSession = Depends(get_db))
         key=generate_api_key(),
         name=data.name,
         owner=data.owner,
+        is_admin=data.is_admin,
     )
     db.add(key)
     await db.commit()

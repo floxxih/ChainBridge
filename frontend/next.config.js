@@ -2,11 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-    NEXT_PUBLIC_STELLAR_NETWORK: process.env.NEXT_PUBLIC_STELLAR_NETWORK || 'testnet',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+    NEXT_PUBLIC_STELLAR_NETWORK: process.env.NEXT_PUBLIC_STELLAR_NETWORK || "testnet",
   },
   images: {
-    domains: ['avatars.githubusercontent.com', 'raw.githubusercontent.com'],
+    domains: ["avatars.githubusercontent.com", "raw.githubusercontent.com"],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -27,4 +27,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-

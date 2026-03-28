@@ -3,25 +3,33 @@
 /// Polls the Soroban RPC for contract events, detects new HTLCs and matched
 /// orders, and triggers proof generation for counterparty chains.
 use crate::config::RelayerConfig;
+use crate::metrics::RelayerMetrics;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn monitor_loop(config: RelayerConfig) {
+pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
     println!(
-        "[Stellar] Starting monitor — RPC: {}, contract: {}",
+        "[Stellar] Starting monitor - RPC: {}, contract: {}",
         config.stellar_rpc_url, config.contract_id
     );
+    metrics.mark_started("stellar");
 
     let interval = Duration::from_secs(config.poll_interval_secs);
     let mut cursor: Option<String> = None;
+    let mut latest_ledger = 0u64;
 
     loop {
         match poll_events(&config, &cursor).await {
-            Ok(new_cursor) => {
+            Ok((new_cursor, event_count, max_ledger)) => {
                 cursor = new_cursor;
+                if max_ledger > latest_ledger {
+                    latest_ledger = max_ledger;
+                }
+                metrics.mark_poll_success("stellar", latest_ledger, event_count as u64);
             }
             Err(e) => {
                 eprintln!("[Stellar] Poll error: {}. Retrying...", e);
+                metrics.mark_poll_error("stellar");
             }
         }
         sleep(interval).await;
@@ -31,7 +39,7 @@ pub async fn monitor_loop(config: RelayerConfig) {
 async fn poll_events(
     config: &RelayerConfig,
     cursor: &Option<String>,
-) -> Result<Option<String>, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<(Option<String>, usize, u64), Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::new();
 
     let mut body = serde_json::json!({
@@ -64,6 +72,7 @@ async fn poll_events(
         .cloned()
         .unwrap_or_default();
 
+    let mut max_ledger = 0u64;
     for event in &events {
         let topics = event["topic"].as_array();
         if let Some(topics) = topics {
@@ -71,8 +80,14 @@ async fn poll_events(
             println!("[Stellar] Event detected: {}", event_type);
 
             // TODO: Dispatch to proof generators based on event type
-            // e.g. "htlc_created" → generate Bitcoin/Ethereum proof request
-            // e.g. "swap_matched" → prepare counterparty HTLC
+            // e.g. "htlc_created" -> generate Bitcoin/Ethereum proof request
+            // e.g. "swap_matched" -> prepare counterparty HTLC
+        }
+
+        if let Some(ledger) = event["ledger"].as_u64() {
+            if ledger > max_ledger {
+                max_ledger = ledger;
+            }
         }
     }
 
@@ -81,5 +96,5 @@ async fn poll_events(
         .and_then(|e| e["pagingToken"].as_str())
         .map(String::from);
 
-    Ok(new_cursor)
+    Ok((new_cursor, events.len(), max_ledger))
 }

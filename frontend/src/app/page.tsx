@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Button, Card, Badge } from "@/components/ui";
-import { 
-  ArrowRightLeft, 
-  ShieldCheck, 
-  Zap, 
-  Coins, 
+import {
+  ArrowRightLeft,
+  ShieldCheck,
+  Zap,
+  Coins,
   ArrowRight,
   ChevronRight,
   Globe,
-  Lock
+  Lock,
 } from "lucide-react";
 
 export default function Home() {
@@ -33,11 +33,11 @@ export default function Home() {
               Cross-Chain Swaps, <br />
               <span className="text-gradient">No Intermediaries.</span>
             </h1>
-            
+
             <p className="mt-8 max-w-2xl animate-fade-in text-lg leading-relaxed text-text-secondary [animation-delay:200ms]">
-              Experience the future of decentralized finance with trustless, 
-              atomic swaps powered by HTLCs. Securely trade assets between 
-              Stellar, Bitcoin, and Ethereum with zero counterparty risk.
+              Experience the future of decentralized finance with trustless, atomic swaps powered by
+              HTLCs. Securely trade assets between Stellar, Bitcoin, and Ethereum with zero
+              counterparty risk.
             </p>
 
             <div className="mt-10 flex animate-fade-in flex-wrap items-center justify-center gap-4 [animation-delay:400ms]">
@@ -45,6 +45,11 @@ export default function Home() {
                 <Button size="lg" className="rounded-2xl px-8 shadow-glow-md">
                   Launch Swap Wizard
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/protocol">
+                <Button variant="outline" size="lg" className="rounded-2xl px-8">
+                  Explore Protocol
                 </Button>
               </Link>
               <Link href="/about">
@@ -77,21 +82,26 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <FeatureCard 
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <FeatureCard
               icon={<Lock className="h-6 w-6 text-brand-500" />}
               title="Self-Custody"
               description="Your keys never leave your device. All transactions are signed locally using your preferred wallet."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<ShieldCheck className="h-6 w-6 text-indigo-500" />}
               title="Atomic Guarantees"
               description="Hash Time-Locked Contracts ensure that either both parties receive their assets, or both are refunded."
             />
-            <FeatureCard 
+            <FeatureCard
               icon={<Zap className="h-6 w-6 text-amber-500" />}
               title="Ultra Low Fees"
               description="Leverage Stellar's high-speed network for settlement, reducing cross-chain bridging costs by up to 90%."
+            />
+            <FeatureCard
+              icon={<Coins className="h-6 w-6 text-emerald-500" />}
+              title="Roadmap Foundations"
+              description="Governance, fallback liquidity pools, advanced orders, and referral growth tooling now have dedicated product surfaces."
             />
           </div>
         </div>
@@ -100,14 +110,15 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <Card variant="glow" className="flex flex-col items-center gap-8 overflow-hidden p-8 text-center md:flex-row md:p-12 md:text-left">
+          <Card
+            variant="glow"
+            className="flex flex-col items-center gap-8 overflow-hidden p-8 text-center md:flex-row md:p-12 md:text-left"
+          >
             <div className="flex-1">
-              <h2 className="text-3xl font-bold text-text-primary">
-                Ready to cross the bridge?
-              </h2>
+              <h2 className="text-3xl font-bold text-text-primary">Ready to cross the bridge?</h2>
               <p className="mt-4 text-text-secondary">
-                Connect your wallet and start swapping assets instantly across 
-                major blockchain networks.
+                Connect your wallet and start swapping assets instantly across major blockchain
+                networks.
               </p>
               <div className="mt-8">
                 <Link href="/swap">
@@ -131,7 +142,7 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value }: { label: string, value: string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-surface-raised border border-border p-6 text-center">
       <p className="text-2xl font-bold text-text-primary">{value}</p>
@@ -140,17 +151,25 @@ function Stat({ label, value }: { label: string, value: string }) {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
-    <Card variant="glass" className="p-8 transition-all hover:border-brand-500/50 hover:shadow-glow-sm">
+    <Card
+      variant="glass"
+      className="p-8 transition-all hover:border-brand-500/50 hover:shadow-glow-sm"
+    >
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-overlay border border-border">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-text-primary">{title}</h3>
-      <p className="mt-4 text-sm leading-relaxed text-text-secondary">
-        {description}
-      </p>
+      <p className="mt-4 text-sm leading-relaxed text-text-secondary">{description}</p>
     </Card>
   );
 }
-

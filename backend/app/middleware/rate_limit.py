@@ -36,7 +36,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Rate limit exceeded", "retry_after": ttl},
-                headers={"Retry-After": str(ttl), "X-RateLimit-Limit": str(max_requests)},
+                headers={
+                    "Retry-After": str(ttl),
+                    "X-RateLimit-Limit": str(max_requests),
+                },
             )
 
         response = await call_next(request)

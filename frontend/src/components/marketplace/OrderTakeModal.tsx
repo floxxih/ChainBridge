@@ -1,115 +1,290 @@
 "use client";
 
-import { Order, OrderSide } from "@/types";
-import { Modal, Button, Badge } from "@/components/ui";
-import { ArrowRight, Zap, ShieldCheck, Info } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  ShieldCheck,
+  Wallet,
+} from "lucide-react";
+
+import { Badge, Button } from "@/components/ui";
+import { SigningProgressStepper } from "@/components/transactions/SigningProgressStepper";
+import { cn } from "@/lib/utils";
+import { getExplorerUrl } from "@/lib/explorers";
+import { useWalletStore } from "@/hooks/useWallet";
+import { Order, OrderSide, Transaction, TransactionStatus } from "@/types";
 
 interface OrderTakeModalProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (order: Order) => void;
+  onConfirm: (order: Order) => Promise<void>;
+  workflowTx?: Transaction | null;
 }
 
-export function OrderTakeModal({ order, isOpen, onClose, onConfirm }: OrderTakeModalProps) {
-  const { address } = useWallet();
+function shortAddress(value: string) {
+  if (value.length <= 18) return value;
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
 
-  if (!order) return null;
+function requiredFundingChain(order: Order) {
+  return order.side === OrderSide.BUY ? order.chainOut : order.chainIn;
+}
 
-  const isBuy = order.side === OrderSide.BUY;
+function requiredFundingToken(order: Order) {
+  return order.side === OrderSide.BUY ? order.tokenOut : order.tokenIn;
+}
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Execute Swap Order">
-       <div className="space-y-6 pt-2">
-         <div className="rounded-2xl bg-surface-overlay p-6 border border-border shadow-inner">
-            <div className="flex items-center justify-between mb-6">
-               <div className="flex flex-col gap-1">
-                 <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">You Give</span>
-                 <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-text-primary">
-                      {isBuy ? order.total : order.amount}
-                    </span>
-                    <span className="text-sm font-bold text-brand-500">
-                      {isBuy ? order.tokenOut : order.tokenIn}
-                    </span>
-                 </div>
-                 <Badge variant="chain" chain={isBuy ? order.chainOut : order.chainIn} className="w-fit mt-1">
-                    {isBuy ? order.chainOut : order.chainIn}
-                 </Badge>
-               </div>
+function requiredFundingAmount(order: Order) {
+  return order.side === OrderSide.BUY ? order.total : order.amount;
+}
 
-               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500/10 text-brand-500">
-                 <ArrowRight />
-               </div>
+export function OrderTakeModal({
+  order,
+  isOpen,
+  onClose,
+  onConfirm,
+  workflowTx,
+}: OrderTakeModalProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const { address, chain, isConnected } = useWalletStore();
+  const [reviewArmed, setReviewArmed] = useState(false);
 
-               <div className="flex flex-col gap-1 items-end">
-                 <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest text-right">You Receive</span>
-                 <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black text-emerald-500">
-                      {isBuy ? order.amount : order.total}
-                    </span>
-                    <span className="text-sm font-bold text-emerald-500/80">
-                      {isBuy ? order.tokenIn : order.tokenOut}
-                    </span>
-                 </div>
-                 <Badge variant="chain" chain={isBuy ? order.chainIn : order.chainOut} className="w-fit mt-1 text-right">
-                    {isBuy ? order.chainIn : order.chainOut}
-                 </Badge>
-               </div>
+  useEffect(() => {
+    if (!isOpen) {
+      setReviewArmed(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (workflowTx) {
+      setReviewArmed(true);
+    }
+  }, [workflowTx]);
+
+  const validation = useMemo(() => {
+    if (!order) {
+      return { ready: false, items: [] as Array<{ ok: boolean; label: string }> };
+    }
+
+    const expectedChain = requiredFundingChain(order).toLowerCase();
+    const connectedChain = chain?.toLowerCase() ?? null;
+    const isDifferentMaker = !address || address !== order.maker;
+
+    return {
+      ready: Boolean(isConnected && connectedChain === expectedChain && isDifferentMaker),
+      items: [
+        {
+          ok: isConnected,
+          label: isConnected ? "Wallet connected" : "Connect a wallet before matching",
+        },
+        {
+          ok: connectedChain === expectedChain,
+          label:
+            connectedChain === expectedChain
+              ? `Connected to ${requiredFundingChain(order)}`
+              : `Switch wallet to ${requiredFundingChain(order)} to fund the taker side`,
+        },
+        {
+          ok: isDifferentMaker,
+          label: isDifferentMaker
+            ? "Taker address differs from maker"
+            : "Maker and taker cannot be the same address",
+        },
+      ],
+    };
+  }, [address, chain, isConnected, order]);
+
+  if (!isOpen || !order) return null;
+
+  const fundingChain = requiredFundingChain(order);
+  const fundingToken = requiredFundingToken(order);
+  const fundingAmount = requiredFundingAmount(order);
+  const receiveChain = order.side === OrderSide.BUY ? order.chainIn : order.chainOut;
+  const receiveToken = order.side === OrderSide.BUY ? order.tokenIn : order.tokenOut;
+  const receiveAmount = order.side === OrderSide.BUY ? order.amount : order.total;
+  const explorerUrl =
+    workflowTx?.hash && workflowTx.hash !== "pending"
+      ? workflowTx.explorerUrl ?? getExplorerUrl(workflowTx.chain, workflowTx.hash)
+      : null;
+
+  return createPortal(
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex justify-end"
+      onClick={(event) => event.target === overlayRef.current && onClose()}
+    >
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      <aside className="relative h-full w-full max-w-xl overflow-y-auto border-l border-border bg-background shadow-2xl">
+        <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-6 py-5 backdrop-blur-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-500">
+                Order Detail
+              </p>
+              <h2 className="mt-2 text-2xl font-bold text-text-primary">{order.pair}</h2>
+              <p className="mt-1 text-sm text-text-secondary">
+                Review metadata, validate wallet prerequisites, and confirm the taker side.
+              </p>
             </div>
-
-            <div className="flex items-center justify-between border-t border-border/50 pt-4 text-sm">
-               <span className="text-text-muted">Execution Price</span>
-               <span className="font-mono font-bold text-text-primary">
-                 1 {order.tokenIn} = {order.price} {order.tokenOut}
-               </span>
-            </div>
-         </div>
-
-         <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-xl border border-border bg-background/50 p-4">
-               <div className="flex items-center gap-2 text-xs font-bold text-text-muted uppercase mb-1">
-                 <ShieldCheck size={14} className="text-emerald-500" />
-                 Safe Swap
-               </div>
-               <p className="text-[10px] text-text-secondary leading-relaxed">
-                 Uses Hashed Timelock Contracts. Funds are only released if proofs are provided.
-               </p>
-            </div>
-            <div className="rounded-xl border border-border bg-background/50 p-4">
-               <div className="flex items-center gap-2 text-xs font-bold text-text-muted uppercase mb-1">
-                 <Zap size={14} className="text-brand-500" />
-                 Instant Fill
-               </div>
-               <p className="text-[10px] text-text-secondary leading-relaxed">
-                 This order is ready to be taken immediately from the current liquidity pool.
-               </p>
-            </div>
-         </div>
-
-         <div className="flex flex-col gap-3">
-            <Button 
-               variant="primary" 
-               className="w-full h-12 text-lg shadow-glow-md"
-               onClick={() => onConfirm(order)}
-               icon={<Zap size={20} />}
-            >
-               Confirm & Swap
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              Close
             </Button>
-            <Button variant="ghost" className="w-full text-text-muted" onClick={onClose}>
-               Cancel
-            </Button>
-         </div>
+          </div>
+        </div>
 
-         <div className="flex items-start gap-3 rounded-lg bg-surface-overlay border border-border/50 p-3">
-            <Info size={16} className="text-brand-500 mt-0.5 shrink-0" />
-            <p className="text-[10px] text-text-secondary">
-               By confirming, you will initiate a lock transaction on {isBuy ? order.chainOut : order.chainIn}. 
-               Ensure you have sufficient balance for the swap amount and network fees.
+        <div className="space-y-6 p-6">
+          <div className="rounded-3xl border border-border bg-surface-overlay/40 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  Taker Funds
+                </p>
+                <p className="mt-2 text-3xl font-black text-text-primary">
+                  {fundingAmount} {fundingToken}
+                </p>
+                <Badge variant="chain" chain={fundingChain} className="mt-3">
+                  {fundingChain}
+                </Badge>
+              </div>
+              <ArrowRight className="h-5 w-5 text-brand-500" />
+              <div className="text-right">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  Taker Receives
+                </p>
+                <p className="mt-2 text-3xl font-black text-emerald-500">
+                  {receiveAmount} {receiveToken}
+                </p>
+                <Badge variant="chain" chain={receiveChain} className="mt-3">
+                  {receiveChain}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MetaCard label="Maker" value={shortAddress(order.maker)} />
+            <MetaCard label="Order Type" value={order.orderType ?? "limit"} />
+            <MetaCard label="Expiry" value={order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"} />
+            <MetaCard label="Partial Fills" value={order.allowPartialFills ? "Allowed" : "Disabled"} />
+            <MetaCard label="Minimum Fill" value={order.minFillAmount ?? "Full size only"} />
+            <MetaCard label="Amendments" value={String(order.amendmentCount ?? 0)} />
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface-raised p-4">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-brand-500" />
+              <p className="text-sm font-semibold text-text-primary">Wallet Prerequisites</p>
+            </div>
+            <div className="mt-4 space-y-3">
+              {validation.items.map((item) => (
+                <div key={item.label} className="flex items-start gap-3">
+                  {item.ok ? (
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <AlertCircle className="mt-0.5 h-4 w-4 text-amber-400" />
+                  )}
+                  <p className={cn("text-sm", item.ok ? "text-text-primary" : "text-text-secondary")}>
+                    {item.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {!workflowTx && !reviewArmed && (
+            <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 h-5 w-5 text-brand-500" />
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">Confirmation required</p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    Matching this order will prompt your wallet to approve, sign, broadcast, and
+                    confirm the taker-side transaction on {fundingChain}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {reviewArmed && !workflowTx && (
+            <div className="rounded-2xl border border-border bg-surface-overlay/30 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                Final Review
+              </p>
+              <div className="mt-3 grid gap-2 text-sm text-text-secondary">
+                <p>You will lock {fundingAmount} {fundingToken} on {fundingChain}.</p>
+                <p>You expect to receive {receiveAmount} {receiveToken} from {receiveChain}.</p>
+                <p>Order expiry: {order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}.</p>
+              </div>
+            </div>
+          )}
+
+          {workflowTx?.lifecycle && (
+            <SigningProgressStepper lifecycle={workflowTx.lifecycle} retryLabel="Retry match" />
+          )}
+
+          {workflowTx?.status === TransactionStatus.COMPLETED && explorerUrl && (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <p className="text-sm font-semibold text-emerald-400">Match submitted successfully.</p>
+              <a
+                href={explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex text-sm text-text-primary underline underline-offset-4"
+              >
+                View transaction on explorer
+              </a>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 border-t border-border pt-2">
+            {!reviewArmed ? (
+              <Button
+                className="w-full"
+                onClick={() => setReviewArmed(true)}
+                disabled={!validation.ready}
+              >
+                Review Match
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                onClick={() => void onConfirm(order)}
+                disabled={!validation.ready || Boolean(workflowTx)}
+                loading={Boolean(workflowTx && workflowTx.status !== TransactionStatus.COMPLETED)}
+              >
+                Confirm Match
+              </Button>
+            )}
+            <Button variant="secondary" className="w-full" onClick={onClose}>
+              {workflowTx?.status === TransactionStatus.COMPLETED ? "Close" : "Cancel"}
+            </Button>
+          </div>
+
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-surface-overlay/30 p-4 text-sm text-text-secondary">
+            <Clock3 className="mt-0.5 h-4 w-4 text-brand-500" />
+            <p>
+              ChainBridge executes this match as an atomic workflow. If the taker-side transaction
+              is not confirmed before expiry, the order remains available or times out safely.
             </p>
-         </div>
-       </div>
-    </Modal>
+          </div>
+        </div>
+      </aside>
+    </div>,
+    document.body
+  );
+}
+
+function MetaCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface-raised p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{label}</p>
+      <p className="mt-2 text-sm text-text-primary">{value}</p>
+    </div>
   );
 }

@@ -1,0 +1,62 @@
+groups:
+  - name: chainbridge-performance
+    rules:
+      - alert: ChainBridgeApiLatencyP95High
+        expr: histogram_quantile(0.95, sum(rate(chainbridge_http_request_duration_seconds_bucket[5m])) by (le)) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "API p95 latency is elevated"
+          description: "ChainBridge API p95 response time has been above 1s for 10 minutes."
+
+      - alert: ChainBridgeApiErrorRateHigh
+        expr: sum(rate(chainbridge_http_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(chainbridge_http_requests_total[5m])), 1) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "API 5xx error rate is high"
+          description: "More than 5% of API responses are failing with 5xx status codes."
+
+      - alert: ChainBridgeDbSlowQueries
+        expr: increase(chainbridge_db_slow_queries_total[10m]) > 15
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow query spike detected"
+          description: "More than 15 slow DB queries were observed within 10 minutes."
+
+      - alert: ChainBridgeIndexerLagging
+        expr: chainbridge_indexer_blocks_behind > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: indexer
+        annotations:
+          summary: "Indexer is behind chain head"
+          description: "One or more indexers are lagging by over 100 blocks/ledgers."
+
+      - alert: ChainBridgeSwapCompletionP95High
+        expr: histogram_quantile(0.95, sum(rate(chainbridge_swap_completion_seconds_bucket[15m])) by (le, chain)) > 3600
+        for: 15m
+        labels:
+          severity: warning
+          component: swaps
+        annotations:
+          summary: "Swap completion time p95 is high"
+          description: "The p95 swap completion duration exceeds 1 hour."
+
+      - alert: ChainBridgeRelayerUnhealthy
+        expr: chainbridge_relayer_healthy < 1
+        for: 5m
+        labels:
+          severity: critical
+          component: relayer
+        annotations:
+          summary: "Relayer health degraded"
+          description: "Relayer reports degraded health for longer than 5 minutes."

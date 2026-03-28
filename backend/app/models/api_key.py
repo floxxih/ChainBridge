@@ -12,5 +12,6 @@ class APIKey(Base, TimestampMixin):
     name = Column(String, nullable=False)
     owner = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     request_count = Column(Integer, default=0)
     last_used_at = Column(DateTime(timezone=True), nullable=True)

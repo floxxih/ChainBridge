@@ -1,7 +1,7 @@
 use crate::crypto;
 use crate::error::Error;
 use crate::storage;
-use crate::types::{HTLCStatus, HashAlgorithm, HTLC, MultiSigConfig};
+use crate::types::{HTLCStatus, HashAlgorithm, OptMultiSig, HTLC};
 use soroban_sdk::{Address, Bytes, BytesN, Env};
 
 /// Creates a new HTLC using SHA256 as the hash algorithm (default, Bitcoin-compatible).
@@ -12,7 +12,7 @@ pub fn create_htlc(
     amount: i128,
     hash_lock: BytesN<32>,
     time_lock: u64,
-    multi_sig: Option<MultiSigConfig>,
+    multi_sig: OptMultiSig,
 ) -> Result<u64, Error> {
     if storage::is_paused(env) {
         return Err(Error::Paused);
@@ -41,7 +41,7 @@ pub fn create_htlc_with_algorithm(
     amount: i128,
     hash_lock: BytesN<32>,
     time_lock: u64,
-    multi_sig: Option<MultiSigConfig>,
+    multi_sig: OptMultiSig,
     algorithm: HashAlgorithm,
 ) -> Result<u64, Error> {
     if amount <= 0 {
@@ -92,7 +92,7 @@ pub fn claim_htlc(env: &Env, htlc_id: u64, secret: Bytes) -> Result<(), Error> {
         return Err(Error::HTLCExpired);
     }
 
-    if let Some(config) = &htlc.multi_sig {
+    if let OptMultiSig::Config(config) = &htlc.multi_sig {
         if config.signatures.len() < config.threshold {
             return Err(Error::ThresholdNotMet);
         }
@@ -176,13 +176,13 @@ pub fn sign_htlc(env: &Env, htlc_id: u64, signer: &Address) -> Result<(), Error>
         return Err(Error::AlreadyClaimed); // or similar error
     }
 
-    if let Some(mut config) = htlc.multi_sig.clone() {
+    if let OptMultiSig::Config(mut config) = htlc.multi_sig.clone() {
         if !config.signers.contains(signer) {
             return Err(Error::SignerNotAuthorized);
         }
         if !config.signatures.contains(signer) {
             config.signatures.push_back(signer.clone());
-            htlc.multi_sig = Some(config);
+            htlc.multi_sig = OptMultiSig::Config(config);
             storage::write_htlc(env, htlc_id, &htlc);
         }
         Ok(())

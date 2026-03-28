@@ -61,4 +61,4 @@ coverage/
 *.bak
 *.tmp
 issue.md
-pr.md
+pr.md.venv/

@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
+
+from app.utils.address_validation import detect_address_chain
 
 
 class HTLCCreate(BaseModel):
@@ -10,6 +12,14 @@ class HTLCCreate(BaseModel):
     hash_lock: str
     time_lock: int = Field(gt=0)
     hash_algorithm: str = "sha256"
+
+    @field_validator("sender", "receiver")
+    @classmethod
+    def validate_address(cls, v: str, info) -> str:
+        result = detect_address_chain(v)
+        if not result.valid:
+            raise ValueError(f"Invalid {info.field_name} address: {result.error}")
+        return v
 
 
 class HTLCClaim(BaseModel):
@@ -31,3 +41,17 @@ class HTLCResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HTLCTimelineEvent(BaseModel):
+    label: str
+    timestamp: Optional[str] = None
+    completed: bool
+
+
+class HTLCStatusResponse(HTLCResponse):
+    seconds_remaining: int
+    can_claim: bool
+    can_refund: bool
+    phase: str
+    timeline: list[HTLCTimelineEvent]
