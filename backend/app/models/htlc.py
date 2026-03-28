@@ -1,8 +1,7 @@
 import uuid
-from sqlalchemy import Column, String, BigInteger, DateTime, Enum as SQLEnum
+from sqlalchemy import Column, String, BigInteger
 from sqlalchemy.dialects.postgresql import UUID
 from .base import Base, TimestampMixin
-
 
 class HTLC(Base, TimestampMixin):
     __tablename__ = "htlcs"
