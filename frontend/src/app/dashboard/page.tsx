@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryClient";
-import { Card, Badge, Skeleton } from "@/components/ui";
+import { Card, Badge } from "@/components/ui";
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { cn, CHAIN_COLORS } from "@/lib/utils";
 import {
   Activity,
@@ -58,12 +59,10 @@ function KPICard({
   icon,
   label,
   value,
-  isLoading,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string | number;
-  isLoading: boolean;
 }) {
   return (
     <Card variant="raised" className="p-6">
@@ -73,11 +72,7 @@ function KPICard({
         </div>
         <span className="text-xs font-medium uppercase tracking-wider text-text-muted">{label}</span>
       </div>
-      {isLoading ? (
-        <Skeleton className="h-8 w-24" />
-      ) : (
-        <p className="text-2xl font-bold text-text-primary">{value}</p>
-      )}
+      <p className="text-2xl font-bold text-text-primary">{value}</p>
     </Card>
   );
 }
@@ -87,6 +82,10 @@ export default function DashboardPage() {
     queryKey: queryKeys.dashboard.stats,
     queryFn: fetchProtocolStats,
   });
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -104,25 +103,21 @@ export default function DashboardPage() {
           icon={<TrendingUp className="h-5 w-5 text-brand-500" />}
           label="Total Volume"
           value={data?.totalVolume ?? "-"}
-          isLoading={isLoading}
         />
         <KPICard
           icon={<ArrowRightLeft className="h-5 w-5 text-indigo-500" />}
           label="Active Swaps"
           value={data?.activeSwaps ?? 0}
-          isLoading={isLoading}
         />
         <KPICard
           icon={<BarChart3 className="h-5 w-5 text-emerald-500" />}
           label="Total Swaps"
           value={data?.totalSwaps ?? 0}
-          isLoading={isLoading}
         />
         <KPICard
           icon={<Clock className="h-5 w-5 text-amber-500" />}
           label="Avg. Settlement"
           value={data?.avgSettlementTime ?? "-"}
-          isLoading={isLoading}
         />
       </div>
 
@@ -132,13 +127,7 @@ export default function DashboardPage() {
           <Activity className="h-5 w-5 text-brand-500" />
           <h2 className="text-lg font-bold text-text-primary">Chain Status</h2>
         </div>
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <div className="py-8 text-center">
             <p className="text-sm text-text-muted">
               Unable to load chain status. Please try again later.

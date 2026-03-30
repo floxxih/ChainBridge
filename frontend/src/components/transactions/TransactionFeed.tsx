@@ -15,9 +15,10 @@ import {
   ExternalLink,
   ShieldCheck,
 } from "lucide-react";
-import { Input, Button, Badge, Spinner } from "@/components/ui";
+import { Input, Button, Badge } from "@/components/ui";
 import { TransactionRow } from "./TransactionRow";
 import { TransactionDetailModal } from "./TransactionDetailModal";
+import { TransactionFeedSkeleton } from "./TransactionFeedSkeleton";
 import { useTransactionStore } from "@/hooks/useTransactions";
 import {
   buildCompletedLifecycle,
@@ -103,11 +104,11 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
   }
 
   if (!isHydrated) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <TransactionFeedSkeleton rows={6} />;
+  }
+
+  if (isLoading) {
+    return <TransactionFeedSkeleton rows={6} />;
   }
 
   const exportData = (format: "csv" | "json") => {
@@ -192,12 +193,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
       </div>
 
       <div className="rounded-2xl border border-border bg-background/50 backdrop-blur-sm overflow-hidden shadow-glow-sm">
-        {isLoading ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-4">
-            <Spinner size="lg" />
-            <p className="text-sm text-text-secondary">Syncing with history nodes...</p>
-          </div>
-        ) : filteredTransactions.length > 0 ? (
+        {filteredTransactions.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="hidden md:table-header-group">
