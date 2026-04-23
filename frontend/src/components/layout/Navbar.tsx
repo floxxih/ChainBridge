@@ -62,6 +62,21 @@ export function Navbar() {
 
           {/* Right Side: Actions & Mobile Toggle */}
           <div className="flex items-center gap-2 md:gap-4">
+            <div className="hidden lg:flex items-center gap-2 mr-2">
+              <span className="flex items-center gap-1.5 rounded-full border border-border bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary">
+                <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                Stellar
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full border border-border bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary">
+                <div className="h-2 w-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.4)]" />
+                Bitcoin
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full border border-border bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary opacity-50">
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                Ethereum
+              </span>
+            </div>
+
             <div className="hidden sm:block">
               <WalletConnect />
             </div>
