@@ -15,5 +15,8 @@ class User(Base, TimestampMixin):
     preferred_chain = Column(String, nullable=True)
     email = Column(String, nullable=True)
     notifications_enabled = Column(Boolean, default=True)
+    email_swap_confirmations = Column(Boolean, default=True)
+    email_expiration_warnings = Column(Boolean, default=True)
+    email_completion_notifications = Column(Boolean, default=True)
     theme = Column(String, default="dark")
     is_active = Column(Boolean, nullable=False, default=True, index=True)
