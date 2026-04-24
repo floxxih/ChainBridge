@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { EnvValidationWrapper } from "@/components/EnvValidationWrapper";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -91,16 +92,18 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <Providers>
-          <ServiceWorkerRegistrar />
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar />
-            <main id="main-content" className="flex-1" tabIndex={-1}>
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </Providers>
+        <EnvValidationWrapper>
+          <Providers>
+            <ServiceWorkerRegistrar />
+            <div className="relative flex min-h-screen flex-col">
+              <Navbar />
+              <main id="main-content" className="flex-1" tabIndex={-1}>
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </Providers>
+        </EnvValidationWrapper>
       </body>
     </html>
   );
