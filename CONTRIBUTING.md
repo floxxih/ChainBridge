@@ -288,9 +288,73 @@ cargo run
 
 ### TypeScript/JavaScript (Frontend)
 - Use TypeScript for type safety
-- Follow ESLint rules
+- Follow ESLint rules and Prettier formatting
 - Write meaningful component names
 - Add comments for complex logic
+
+#### Linting and Formatting
+
+The frontend enforces strict linting and formatting standards. Before committing:
+
+```bash
+cd frontend
+
+# Check for linting errors
+npm run lint
+
+# Auto-fix formatting issues
+npm run format
+
+# Verify no formatting issues remain
+npm run format:check
+
+# Type checking
+npm run type-check
+```
+
+**ESLint Rules** (.eslintrc.json):
+- No `var` statements (use `const` or `let`)
+- Prefer `const` over `let`
+- No unused variables (unless prefixed with `_`)
+- No implicit type coercion (use `===` not `==`)
+- No nested ternaries
+- No console.log in production code (warn on other console methods)
+- All React keys must be present and valid
+- No param reassignment
+
+**Prettier Configuration** (.prettierrc):
+- Print width: 100 characters
+- 2-space indentation
+- Trailing commas (ES5 compatible)
+- Double quotes for strings
+- Semicolons required
+- No trailing semicolons on object properties
+
+#### Pre-commit Hooks (Recommended)
+
+To automatically enforce linting and formatting before commits, install Husky:
+
+```bash
+cd frontend
+
+# Install Husky
+npm install husky lint-staged --save-dev
+
+# Initialize Husky
+npx husky install
+
+# Add pre-commit hook
+npx husky add .husky/pre-commit "npm run lint && npm run format:check"
+
+# Add prepare script to package.json (if not present)
+npm set-script prepare "husky install"
+```
+
+After setup, the following will run automatically before each commit:
+- ESLint validation
+- Prettier formatting check
+
+If hooks fail, fix the issues and try committing again.
 
 ### Python (Backend)
 - Follow PEP 8 style guide

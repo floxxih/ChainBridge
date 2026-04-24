@@ -6,6 +6,35 @@
   ],
   "rules": {
     "react/no-unescaped-entities": "off",
-    "@next/next/no-page-custom-font": "off"
+    "@next/next/no-page-custom-font": "off",
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
+    "eqeqeq": [
+      "error",
+      "always"
+    ],
+    "no-implicit-coercion": "error",
+    "no-nested-ternary": "warn",
+    "prefer-template": "warn",
+    "no-param-reassign": "error",
+    "react/jsx-key": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off"
   }
 }

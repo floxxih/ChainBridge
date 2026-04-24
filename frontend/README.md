@@ -100,11 +100,23 @@ frontend/
 
 ## Code Quality
 
+All code must pass linting and formatting checks before merging.
+
 ### ESLint
 
 ```bash
 npm run lint
 ```
+
+**ESLint Rules**:
+- No `var` statements (use `const`/`let`)
+- Prefer `const` over `let`
+- No unused variables (prefix with `_` to suppress)
+- Strict equality (`===` not `==`)
+- No implicit type coercion
+- No console.log (warn on other console methods)
+- All React keys required
+- No param reassignment
 
 ### Prettier
 
@@ -112,16 +124,29 @@ npm run lint
 # Format all files
 npm run format
 
-# Check formatting
-npx prettier --check .
+# Check formatting (used in CI)
+npm run format:check
 ```
 
 ### TypeScript
 
 ```bash
 # Type check
-npx tsc --noEmit
+npm run type-check
 ```
+
+### Pre-commit Hooks (Optional but Recommended)
+
+Install Husky to automatically lint and format before commits:
+
+```bash
+npm install husky lint-staged --save-dev
+npx husky install
+npx husky add .husky/pre-commit "npm run lint && npm run format:check"
+npm set-script prepare "husky install"
+```
+
+This ensures all committed code meets team standards.
 
 ## Features
 
