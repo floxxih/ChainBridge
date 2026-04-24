@@ -24,9 +24,15 @@ class Settings(BaseSettings):
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
 
-    # Stellar
-    soroban_rpc_url: str = "https://soroban-testnet.stellar.org"
-    chainbridge_contract_id: str = ""
+    # Email
+    email_enabled: bool = False
+    email_provider: str = "sendgrid"  # sendgrid or ses
+    sendgrid_api_key: str = ""
+    ses_access_key: str = ""
+    ses_secret_key: str = ""
+    ses_region: str = "us-east-1"
+    email_from: str = "noreply@chainbridge.io"
+    email_from_name: str = "ChainBridge"
 
     @field_validator("debug", mode="before")
     @classmethod

@@ -8,7 +8,7 @@ use crate::metrics::RelayerMetrics;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
+pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics, retry_queue: std::sync::Arc<crate::retry::RetryQueue>) {
     println!("[Bitcoin] Starting monitor - RPC: {}", config.bitcoin_rpc_url);
     metrics.mark_started("bitcoin");
 
@@ -16,7 +16,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
     let mut last_block_height: u64 = 0;
 
     loop {
-        match poll_blocks(&config, last_block_height).await {
+        match poll_blocks(&config, last_block_height, &retry_queue).await {
             Ok((new_height, detected_events)) => {
                 if new_height > last_block_height {
                     println!(
@@ -39,6 +39,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
 async fn poll_blocks(
     config: &RelayerConfig,
     last_height: u64,
+    retry_queue: &std::sync::Arc<crate::retry::RetryQueue>,
 ) -> Result<(u64, usize), Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::new();
 
@@ -100,8 +101,21 @@ async fn poll_blocks(
             // TODO: Check transaction scripts for HTLC patterns
             // (OP_SHA256 <hash> OP_EQUALVERIFY or OP_HASH256 <hash> OP_EQUAL)
             // When found, generate SPV proof and submit to Stellar contract
-            let _txid = tx["txid"].as_str().unwrap_or("");
-            detected_events += 0;
+            let txid = tx["txid"].as_str().unwrap_or("");
+            // Simulate HTLC detection
+            if txid.starts_with("a") { // Dummy condition
+                println!("[Bitcoin] HTLC detected: {}", txid);
+                let proof_tx = crate::retry::RetryableTransaction {
+                    id: format!("bitcoin-proof-{}", txid),
+                    chain: "stellar".to_string(),
+                    tx_data: vec![], // TODO: Fill with SPV proof
+                    attempt: 0,
+                    max_attempts: config.max_retries,
+                    next_retry_at: std::time::SystemTime::now(),
+                };
+                retry_queue.enqueue(proof_tx).await;
+                detected_events += 1;
+            }
         }
     }
 

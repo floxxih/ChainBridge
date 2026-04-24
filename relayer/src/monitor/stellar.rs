@@ -7,7 +7,7 @@ use crate::metrics::RelayerMetrics;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
+pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics, retry_queue: std::sync::Arc<crate::retry::RetryQueue>) {
     println!(
         "[Stellar] Starting monitor - RPC: {}, contract: {}",
         config.stellar_rpc_url, config.contract_id
@@ -19,7 +19,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
     let mut latest_ledger = 0u64;
 
     loop {
-        match poll_events(&config, &cursor).await {
+        match poll_events(&config, &cursor, &retry_queue).await {
             Ok((new_cursor, event_count, max_ledger)) => {
                 cursor = new_cursor;
                 if max_ledger > latest_ledger {
@@ -39,6 +39,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
 async fn poll_events(
     config: &RelayerConfig,
     cursor: &Option<String>,
+    retry_queue: &std::sync::Arc<crate::retry::RetryQueue>,
 ) -> Result<(Option<String>, usize, u64), Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::new();
 
@@ -79,9 +80,36 @@ async fn poll_events(
             let event_type = topics.first().and_then(|t| t.as_str()).unwrap_or("");
             println!("[Stellar] Event detected: {}", event_type);
 
-            // TODO: Dispatch to proof generators based on event type
-            // e.g. "htlc_created" -> generate Bitcoin/Ethereum proof request
-            // e.g. "swap_matched" -> prepare counterparty HTLC
+            // Dispatch to proof generation and transaction submission
+            match event_type {
+                "htlc_created" => {
+                    // Generate proof and submit to counterparty chain (e.g., Bitcoin)
+                    let tx_id = format!("stellar-htlc-proof-{}", event["id"].as_str().unwrap_or("unknown"));
+                    let tx = crate::retry::RetryableTransaction {
+                        id: tx_id,
+                        chain: "bitcoin".to_string(), // Assume counterparty is Bitcoin
+                        tx_data: vec![], // TODO: Fill with actual proof data
+                        attempt: 0,
+                        max_attempts: config.max_retries,
+                        next_retry_at: std::time::SystemTime::now(),
+                    };
+                    retry_queue.enqueue(tx).await;
+                }
+                "swap_matched" => {
+                    // Create HTLC on counterparty chain
+                    let tx_id = format!("stellar-swap-htlc-{}", event["id"].as_str().unwrap_or("unknown"));
+                    let tx = crate::retry::RetryableTransaction {
+                        id: tx_id,
+                        chain: "bitcoin".to_string(), // Assume counterparty
+                        tx_data: vec![], // TODO: Fill with HTLC data
+                        attempt: 0,
+                        max_attempts: config.max_retries,
+                        next_retry_at: std::time::SystemTime::now(),
+                    };
+                    retry_queue.enqueue(tx).await;
+                }
+                _ => {}
+            }
         }
 
         if let Some(ledger) = event["ledger"].as_u64() {

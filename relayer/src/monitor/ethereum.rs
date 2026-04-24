@@ -8,7 +8,7 @@ use crate::metrics::RelayerMetrics;
 use std::time::Duration;
 use tokio::time::sleep;
 
-pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
+pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics, retry_queue: std::sync::Arc<crate::retry::RetryQueue>) {
     println!("[Ethereum] Starting monitor - RPC: {}", config.ethereum_rpc_url);
     metrics.mark_started("ethereum");
 
@@ -16,7 +16,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
     let mut last_block: u64 = 0;
 
     loop {
-        match poll_logs(&config, last_block).await {
+        match poll_logs(&config, last_block, &retry_queue).await {
             Ok((new_block, detected_events)) => {
                 if new_block > last_block {
                     println!("[Ethereum] Processed blocks {} -> {}", last_block, new_block);
@@ -36,6 +36,7 @@ pub async fn monitor_loop(config: RelayerConfig, metrics: RelayerMetrics) {
 async fn poll_logs(
     config: &RelayerConfig,
     from_block: u64,
+    retry_queue: &std::sync::Arc<crate::retry::RetryQueue>,
 ) -> Result<(u64, usize), Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::new();
 
@@ -90,6 +91,19 @@ async fn poll_logs(
 
             // TODO: Decode event data, generate Merkle proof,
             // submit to Stellar ChainBridge contract via verify_proof()
+            // Simulate event handling
+            if event_sig.starts_with("0x") { // Dummy
+                let tx_id = format!("ethereum-proof-{}", log["transactionHash"].as_str().unwrap_or("unknown"));
+                let tx = crate::retry::RetryableTransaction {
+                    id: tx_id,
+                    chain: "stellar".to_string(),
+                    tx_data: vec![], // TODO: Fill with proof
+                    attempt: 0,
+                    max_attempts: config.max_retries,
+                    next_retry_at: std::time::SystemTime::now(),
+                };
+                retry_queue.enqueue(tx).await;
+            }
         }
     }
 

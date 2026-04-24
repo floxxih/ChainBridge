@@ -21,6 +21,10 @@ pub struct RelayerMetrics {
     chain_healthy: IntGaugeVec,
     relayer_healthy: Gauge,
     relayer_uptime_seconds: Gauge,
+    tx_submissions_total: IntCounterVec,
+    tx_submission_errors_total: IntCounterVec,
+    tx_retries_total: IntCounterVec,
+    tx_retry_failures_total: IntCounterVec,
     started_at: Instant,
 }
 
@@ -85,6 +89,42 @@ impl RelayerMetrics {
         ))
         .expect("relayer_uptime_seconds metric");
 
+        let tx_submissions_total = IntCounterVec::new(
+            opts!(
+                "chainbridge_relayer_tx_submissions_total",
+                "Total transaction submissions attempted"
+            ),
+            &["chain"],
+        )
+        .expect("tx_submissions_total metric");
+
+        let tx_submission_errors_total = IntCounterVec::new(
+            opts!(
+                "chainbridge_relayer_tx_submission_errors_total",
+                "Total transaction submission errors"
+            ),
+            &["chain"],
+        )
+        .expect("tx_submission_errors_total metric");
+
+        let tx_retries_total = IntCounterVec::new(
+            opts!(
+                "chainbridge_relayer_tx_retries_total",
+                "Total transaction retries attempted"
+            ),
+            &["chain"],
+        )
+        .expect("tx_retries_total metric");
+
+        let tx_retry_failures_total = IntCounterVec::new(
+            opts!(
+                "chainbridge_relayer_tx_retry_failures_total",
+                "Total transaction retries that failed permanently"
+            ),
+            &["chain"],
+        )
+        .expect("tx_retry_failures_total metric");
+
         let relayer_build_info = GaugeVec::new(
             opts!(
                 "chainbridge_relayer_build_info",
@@ -116,6 +156,18 @@ impl RelayerMetrics {
             .register(Box::new(relayer_uptime_seconds.clone()))
             .expect("register relayer_uptime_seconds");
         registry
+            .register(Box::new(tx_submissions_total.clone()))
+            .expect("register tx_submissions_total");
+        registry
+            .register(Box::new(tx_submission_errors_total.clone()))
+            .expect("register tx_submission_errors_total");
+        registry
+            .register(Box::new(tx_retries_total.clone()))
+            .expect("register tx_retries_total");
+        registry
+            .register(Box::new(tx_retry_failures_total.clone()))
+            .expect("register tx_retry_failures_total");
+        registry
             .register(Box::new(relayer_build_info.clone()))
             .expect("register relayer_build_info");
 
@@ -131,6 +183,10 @@ impl RelayerMetrics {
             chain_healthy,
             relayer_healthy,
             relayer_uptime_seconds,
+            tx_submissions_total,
+            tx_submission_errors_total,
+            tx_retries_total,
+            tx_retry_failures_total,
             started_at: Instant::now(),
         }
     }
@@ -162,6 +218,22 @@ impl RelayerMetrics {
         self.chain_last_poll_timestamp
             .with_label_values(&[chain])
             .set(current_unix_timestamp());
+    }
+
+    pub fn mark_tx_submission(&self, chain: &str) {
+        self.tx_submissions_total.with_label_values(&[chain]).inc();
+    }
+
+    pub fn mark_tx_error(&self, chain: &str) {
+        self.tx_submission_errors_total.with_label_values(&[chain]).inc();
+    }
+
+    pub fn mark_tx_retry(&self, chain: &str) {
+        self.tx_retries_total.with_label_values(&[chain]).inc();
+    }
+
+    pub fn mark_tx_retry_failure(&self, chain: &str) {
+        self.tx_retry_failures_total.with_label_values(&[chain]).inc();
     }
 
     fn update_uptime(&self) {

@@ -9,6 +9,8 @@ mod config;
 mod metrics;
 mod monitor;
 mod proof;
+mod retry;
+mod submit;
 
 #[tokio::main]
 async fn main() {
@@ -26,19 +28,30 @@ async fn main() {
     let metrics_handle = tokio::spawn(metrics::serve(metrics.clone(), metrics_addr));
     println!("Relayer metrics available on http://{}/metrics", metrics_addr);
 
+    let retry_processor = retry::RetryProcessor::new(config.clone(), metrics.clone());
+    let retry_queue = retry_processor.queue().clone();
+
     // Spawn chain monitoring tasks
     let stellar_handle = tokio::spawn(monitor::stellar::monitor_loop(
         config.clone(),
         metrics.clone(),
+        retry_queue.clone(),
     ));
     let bitcoin_handle = tokio::spawn(monitor::bitcoin::monitor_loop(
         config.clone(),
         metrics.clone(),
+        retry_queue.clone(),
     ));
     let ethereum_handle = tokio::spawn(monitor::ethereum::monitor_loop(
         config.clone(),
         metrics.clone(),
+        retry_queue.clone(),
     ));
+
+    let retry_handle = tokio::spawn(async move {
+        retry_processor.run().await;
+    });
+    println!("Transaction retry processor started");
 
     println!("Relayer running. Press Ctrl+C to stop.");
 
@@ -48,5 +61,6 @@ async fn main() {
         r = stellar_handle => eprintln!("Stellar monitor exited: {:?}", r),
         r = bitcoin_handle => eprintln!("Bitcoin monitor exited: {:?}", r),
         r = ethereum_handle => eprintln!("Ethereum monitor exited: {:?}", r),
+        r = retry_handle => eprintln!("Retry processor exited: {:?}", r),
     }
 }
