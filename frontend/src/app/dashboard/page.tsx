@@ -2,6 +2,7 @@
 
 import { Button, Input, Select, CopyButton } from "@/components/ui";
 import { useSettingsStore } from "@/hooks/useSettings";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const settings = useSettingsStore();
@@ -43,6 +44,21 @@ export default function DashboardPage() {
       </div>
       
       <Button variant="primary">Save Changes</Button>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link href="/notifications" className="rounded-xl border border-border bg-surface-overlay p-5 block">
+          <h3 className="text-lg font-semibold text-text-primary">Notifications Center</h3>
+          <p className="text-sm text-text-secondary mt-1">
+            View alert history, filter by type, and mark updates as read.
+          </p>
+        </Link>
+        <Link href="/analytics" className="rounded-xl border border-border bg-surface-overlay p-5 block">
+          <h3 className="text-lg font-semibold text-text-primary">Analytics</h3>
+          <p className="text-sm text-text-secondary mt-1">
+            Track swap volume across 24h, 7d, and 30d chart windows.
+          </p>
+        </Link>
+      </div>
     </div>
   );
 }

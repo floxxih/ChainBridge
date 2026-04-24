@@ -5,7 +5,7 @@ import { Order, OrderSide, OrderStatus } from "@/types";
 import { Badge, Button, Modal } from "@/components/ui";
 import { ArrowUpDown, Filter, Search, Zap, Eye } from "lucide-react";
 import { clsx } from "clsx";
-import { useWalletStore } from "@/hooks/useWallet";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 interface OrderBookListProps {
   orders: Order[];
@@ -20,7 +20,7 @@ interface OrderTakeModalProps {
 }
 
 export function OrderTakeModal({ order, isOpen, onClose, onConfirm }: OrderTakeModalProps) {
-  const { address } = useWalletStore();
+  const { activeAddress: address } = useUnifiedWallet();
 
   if (!order) return null;
 

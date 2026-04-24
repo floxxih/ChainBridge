@@ -8,9 +8,9 @@ import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from 
 import { QuotePreviewCard } from "@/components/swap/QuotePreviewCard";
 import { TimelockConfigurator } from "@/components/swap/TimelockConfigurator";
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
-import { useWalletStore } from "@/hooks/useWallet";
 import { FeeWarningBanner } from "@/components/fees/FeeWarningBanner";
 import { useI18n } from "@/components/i18n/I18nProvider";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 type ChainId = "stellar" | "bitcoin" | "ethereum";
 
@@ -21,7 +21,7 @@ const CHAINS: Array<{ id: ChainId; label: string; tokens: string[] }> = [
 ];
 
 export default function SwapPage() {
-  const { isConnected } = useWalletStore();
+  const { isConnected } = useUnifiedWallet();
   const { localizePath } = useI18n();
   const [amount, setAmount] = useState("");
   const [orderType, setOrderType] = useState<"market" | "limit" | "twap">("limit");

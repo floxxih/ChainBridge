@@ -7,12 +7,14 @@ import { BookmarkPlus, Clock3, Filter, RefreshCw, Search, Trash2, XCircle } from
 
 import { Button, Card, EmptyState, Input, ToastContainer } from "@/components/ui";
 import { DEMO_ORDER_OWNER, useMockOrders, useOrderBookStore } from "@/hooks/useOrderBook";
-import { useWalletStore } from "@/hooks/useWallet";
 import { Order, OrderStatus } from "@/types";
 import { cn } from "@/lib/utils";
 import { AdvancedFilterDrawer } from "@/components/filters/AdvancedFilterDrawer";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useI18n } from "@/components/i18n/I18nProvider";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/ui";
 
 const PAGE_SIZE = 4;
 
@@ -53,13 +55,12 @@ export default function OrdersPage() {
   const searchParams = useSearchParams();
   const { localizePath } = useI18n();
 
-  const { address } = useWalletStore();
+  const { activeAddress: address } = useUnifiedWallet();
   const ownerAddress = address ?? DEMO_ORDER_OWNER;
   const { seedMockOrders } = useMockOrders();
   const orders = useOrderBookStore((state) => state.orders);
   const updateOrder = useOrderBookStore((state) => state.updateOrder);
 
-  const [page, setPage] = useState(1);
   const [query, setQuery] = useState(() => searchParams.get("ord_q") ?? "");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>(
     () => (searchParams.get("ord_status") as FilterStatus) ?? "all"
@@ -135,10 +136,6 @@ export default function OrdersPage() {
   }, [assetFilter, chainFilter, myOrders, query, rangeFilter, statusFilter]);
 
   useEffect(() => {
-    setPage(1);
-  }, [query, statusFilter, chainFilter, assetFilter, rangeFilter]);
-
-  useEffect(() => {
     setQuery(searchParams.get("ord_q") ?? "");
     setStatusFilter((searchParams.get("ord_status") as FilterStatus) ?? "all");
     setChainFilter(searchParams.get("ord_chain") ?? "all");
@@ -171,8 +168,8 @@ export default function OrdersPage() {
     }
   }, [assetFilter, chainFilter, pathname, query, rangeFilter, router, searchParams, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visibleOrders = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagination = usePagination(filtered.length, PAGE_SIZE);
+  const visibleOrders = filtered.slice(pagination.offset, pagination.limit);
   const hasAnyOrders = myOrders.length > 0;
 
   const chainOptions = useMemo(
@@ -389,30 +386,20 @@ export default function OrdersPage() {
         )}
       </div>
 
-      <div className="mt-6 flex items-center justify-between rounded-2xl border border-border bg-surface-overlay/30 p-4">
+      <div className="mt-6 space-y-3">
         <div className="flex items-center gap-3 text-sm text-text-secondary">
           <Clock3 className="h-4 w-4 text-brand-500" />
           <span>
-            Page {page} of {totalPages}
+            Showing {visibleOrders.length} of {filtered.length} filtered orders
           </span>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            disabled={page <= 1}
-            onClick={() => setPage((current) => current - 1)}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={page >= totalPages}
-            onClick={() => setPage((current) => current + 1)}
-            icon={<RefreshCw className="h-4 w-4" />}
-          >
-            Next
-          </Button>
-        </div>
+        <PaginationControls
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          hasPrevious={pagination.hasPrevious}
+          hasNext={pagination.hasNext}
+          onPageChange={pagination.setPage}
+        />
       </div>
 
       <ToastContainer

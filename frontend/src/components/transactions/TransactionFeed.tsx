@@ -26,6 +26,8 @@ import {
 } from "@/lib/transactionLifecycle";
 import { AdvancedFilterDrawer } from "@/components/filters/AdvancedFilterDrawer";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useToast } from "@/hooks/useToast";
+import { useInfiniteList } from "@/hooks/useInfiniteList";
 
 interface TransactionFeedProps {
   transactions: Transaction[];
@@ -70,6 +72,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const updateTransaction = useTransactionStore((state) => state.updateTransaction);
+  const toast = useToast();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -108,6 +111,9 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
 
     return result;
   }, [transactions, search, statusFilter, chainFilter, assetFilter, rangeFilter]);
+  const infinite = useInfiniteList(filteredTransactions.length, 8);
+  const visibleTransactions = filteredTransactions.slice(0, infinite.visibleCount);
+  const resetInfinite = infinite.reset;
 
   useEffect(() => {
     setSearch(searchParams.get("tx_q") ?? "");
@@ -178,6 +184,10 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
     });
   }
 
+  useEffect(() => {
+    resetInfinite();
+  }, [assetFilter, chainFilter, rangeFilter, resetInfinite, search, statusFilter]);
+
   if (!isHydrated) {
     return <TransactionFeedSkeleton rows={6} />;
   }
@@ -217,15 +227,20 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
   }
 
   const exportData = (format: "csv" | "json") => {
+    if (filteredTransactions.length === 0) {
+      toast.info("Nothing to export", "Adjust filters or date range to include transactions.");
+      return;
+    }
+
     const data = filteredTransactions.map((tx) => ({
-      date: new Date(tx.timestamp).toLocaleString(),
       chain: tx.chain,
       hash: tx.hash,
-      type: tx.type,
       amount: tx.amount,
       token: tx.token,
       status: tx.status,
-      confirmations: `${tx.confirmations}/${tx.requiredConfirmations}`,
+      timestamp_iso: tx.timestamp,
+      timestamp_local: new Date(tx.timestamp).toLocaleString(),
+      type: tx.type,
     }));
 
     let blob: Blob;
@@ -242,11 +257,20 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
     }
 
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      toast.success(
+        "Export complete",
+        `${filteredTransactions.length} transaction records exported for ${rangeFilter === "all" ? "all time" : rangeFilter}.`
+      );
+    } catch {
+      toast.error("Export failed", "Unable to create file download in this browser session.");
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   };
 
   return (
@@ -330,7 +354,7 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {filteredTransactions.map((tx) => (
+                {visibleTransactions.map((tx) => (
                   <TransactionRow key={tx.id} tx={tx} onSelect={() => setSelectedId(tx.id)} />
                 ))}
               </tbody>
@@ -360,6 +384,23 @@ export function TransactionFeed({ transactions, isLoading }: TransactionFeedProp
           </div>
         )}
       </div>
+
+      {filteredTransactions.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-sm text-text-secondary">
+            Showing {visibleTransactions.length} of {filteredTransactions.length} matching
+            transactions
+          </p>
+          {infinite.hasMore && (
+            <div className="flex justify-center">
+              <Button variant="secondary" onClick={infinite.showMore}>
+                Load more
+              </Button>
+            </div>
+          )}
+          <div ref={infinite.sentinelRef} className="h-1" aria-hidden />
+        </div>
+      )}
 
       {selectedTx && (
         <TransactionDetailModal

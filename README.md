@@ -22,7 +22,7 @@ Current cross-chain solutions have major issues:
 - **Centralized Bridges**: Single points of failure, hacks, and censorship
 - **High Fees**: Multiple transactions and bridge fees add up
 - **Slow**: Often take hours or days for cross-chain transfers
-- **Complex**: Poor UX requiring multiple steps and wallets
+- **Complex**: Poor UX requiring multiple steps and wallets.
 
 ## The Solution
 

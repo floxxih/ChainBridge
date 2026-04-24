@@ -7,6 +7,7 @@ import { RealTimeManager } from "@/components/RealTimeManager";
 import { SettingsEffects } from "@/components/SettingsEffects";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { I18nProvider } from "@/components/i18n/I18nProvider";
+import { UnifiedWalletProvider } from "@/components/wallet/UnifiedWalletProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <SettingsEffects />
         <RealTimeManager />
         <ToastProvider />
-        <I18nProvider>{children}</I18nProvider>
+        <UnifiedWalletProvider>
+          <I18nProvider>{children}</I18nProvider>
+        </UnifiedWalletProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

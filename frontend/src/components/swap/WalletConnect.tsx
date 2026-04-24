@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useWalletStore } from "@/hooks/useWallet";
 import { useToast } from "@/hooks/useToast";
-import { Button, Modal, Badge, Card } from "@/components/ui";
-import { Wallet, LogOut, ChevronRight, ShieldCheck, AlertTriangle } from "lucide-react";
-import { truncateAddress, CHAIN_BG, formatAmount } from "@/lib/utils";
+import { Button, Badge } from "@/components/ui";
+import { Wallet, LogOut, AlertTriangle } from "lucide-react";
+import { truncateAddress, formatAmount } from "@/lib/utils";
 import { ChainType } from "@/types/wallet";
 import config from "@/lib/config";
+import { WalletConnectionModal } from "@/components/wallet/WalletConnectionModal";
 
 function formatNetworkLabel(network: string | null | undefined): string {
   if (!network) return "Network unavailable";
@@ -33,17 +33,17 @@ function formatNetworkLabel(network: string | null | undefined): string {
 
 export function WalletConnect() {
   const {
-    address,
-    chain,
+    activeAddress,
+    activeChain,
     network,
     walletName,
     isUnsupportedNetwork,
     isConnected,
     isConnecting,
-    connect,
-    disconnect,
+    connectByChain,
+    disconnectActiveWallet,
     balance,
-  } = useWalletStore();
+  } = useUnifiedWallet();
   const [isOpen, setIsOpen] = useState(false);
   const toast = useToast();
 
@@ -53,10 +53,9 @@ export function WalletConnect() {
 
   const handleConnect = async (targetChain: ChainType) => {
     try {
-      await connect(targetChain);
-      const walletState = useWalletStore.getState();
+      await connectByChain(targetChain);
 
-      if (walletState.isUnsupportedNetwork) {
+      if (targetChain === "stellar" && isUnsupportedNetwork) {
         toast.warning(
           targetChain === "stellar" ? "Unsupported Stellar network" : "Unsupported Ethereum network",
           targetChain === "stellar"
@@ -67,7 +66,7 @@ export function WalletConnect() {
         toast.success(
           "Wallet connected",
           targetChain === "stellar"
-            ? `${walletState.walletName || "Freighter"} connected on ${formatNetworkLabel(walletState.network)}.`
+            ? `${walletName || "Freighter"} connected on ${formatNetworkLabel(network)}.`
             : "Your wallet is ready to use."
         );
       }
@@ -82,42 +81,42 @@ export function WalletConnect() {
     }
   };
 
-  if (isConnected && address) {
+  if (isConnected && activeAddress) {
     return (
       <div className="flex flex-col items-end gap-2">
         <div className="flex items-center gap-2">
           <div className="hidden flex-col items-end sm:flex">
             <span className="text-xs font-medium text-text-primary">
-              {balance ? `${formatAmount(balance, 4)} ${chain?.toUpperCase()}` : "..."}
+              {balance ? `${formatAmount(balance, 4)} ${activeChain?.toUpperCase()}` : "..."}
             </span>
             <span className="text-[10px] text-text-muted">
-              {`${walletName || chain?.toUpperCase()} | ${truncateAddress(address)}`}
+              {`${walletName || activeChain?.toUpperCase()} | ${truncateAddress(activeAddress)}`}
             </span>
-            {chain === "stellar" && (
+            {activeChain === "stellar" && (
               <span className="text-[10px] text-text-muted">Network: {networkLabel}</span>
             )}
             {chain === "ethereum" && (
               <span className="text-[10px] text-text-muted">Network: {networkLabel}</span>
             )}
           </div>
-          <Badge variant="chain" chain={chain || ""}>
-            {chain?.toUpperCase()}
+          <Badge variant="chain" chain={activeChain || ""}>
+            {activeChain?.toUpperCase()}
           </Badge>
-          {(chain === "stellar" || chain === "ethereum") && (
+          {activeChain === "stellar" && (
             <Badge variant={isUnsupportedNetwork ? "warning" : "info"}>{networkLabel}</Badge>
           )}
           <Button
             variant="secondary"
             size="sm"
             className="h-9 w-9 p-0"
-            onClick={() => void disconnect()}
+            onClick={() => void disconnectActiveWallet()}
             title="Disconnect Wallet"
           >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
 
-        {chain === "stellar" && isUnsupportedNetwork && (
+        {activeChain === "stellar" && isUnsupportedNetwork && (
           <div className="flex max-w-xs items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
@@ -150,74 +149,12 @@ export function WalletConnect() {
         Connect Wallet
       </Button>
 
-      <Modal
+      <WalletConnectionModal
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Connect Wallet"
-        description="Select a network to connect your preferred wallet."
-        size="sm"
-      >
-        <div className="grid gap-3">
-          <WalletOption
-            chain="stellar"
-            name="Freighter"
-            description={`Stellar ${expectedNetworkLabel}`}
-            onClick={() => handleConnect("stellar")}
-          />
-          <WalletOption
-            chain="ethereum"
-            name="MetaMask"
-            description="Ethereum & L2s"
-            onClick={() => handleConnect("ethereum")}
-          />
-          <WalletOption
-            chain="bitcoin"
-            name="Xverse / Leather"
-            description="Bitcoin Network"
-            onClick={() => handleConnect("bitcoin")}
-          />
-        </div>
-
-        <div className="mt-6 flex items-start gap-3 rounded-xl bg-surface-overlay p-3 text-[11px] text-text-secondary">
-          <ShieldCheck className="h-4 w-4 shrink-0 text-brand-500" />
-          <p>
-            ChainBridge is non-custodial. Your keys never leave your wallet, and transactions are
-            signed locally.
-          </p>
-        </div>
-      </Modal>
+        isConnecting={isConnecting}
+        onConnect={handleConnect}
+      />
     </>
-  );
-}
-
-function WalletOption({
-  chain,
-  name,
-  description,
-  onClick,
-}: {
-  chain: string;
-  name: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <Card
-      variant="default"
-      hover
-      className="flex items-center justify-between p-4"
-      onClick={onClick}
-    >
-      <div className="flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${CHAIN_BG[chain]}`}>
-          <Wallet className="h-5 w-5" />
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-text-primary">{name}</h4>
-          <p className="text-xs text-text-secondary">{description}</p>
-        </div>
-      </div>
-      <ChevronRight className="h-4 w-4 text-text-muted" />
-    </Card>
   );
 }

@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Badge, Button, EmptyState, Modal, Input } from "@/components/ui";
 import { History, ExternalLink, ArrowRight, Filter } from "lucide-react";
 import { SwapStatus } from "@/types";
-import { useWalletStore } from "@/hooks/useWallet";
 import { createDispute } from "@/lib/disputesApi";
 import { useMockSwaps, useSwapHistoryStore } from "@/hooks/useSwapHistory";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 export default function HistoryPage() {
-  const { isConnected, address } = useWalletStore();
+  const { isConnected, activeAddress: address } = useUnifiedWallet();
   const swaps = useSwapHistoryStore((state) => state.swaps);
   const { seedMockSwaps } = useMockSwaps();
 

@@ -10,3 +10,4 @@ export type { ToastType } from "./toast";
 export { ToastProvider } from "./ToastProvider";
 export { CopyButton } from "./CopyButton";
 export { EmptyState } from "./empty-state";
+export { PaginationControls } from "./PaginationControls";

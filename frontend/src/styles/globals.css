@@ -4,6 +4,30 @@
 
 /* ===== LIGHT THEME TOKENS ===== */
 :root {
+  /* Design primitives */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-sm: 0 1px 2px 0 hsl(220 20% 10% / 0.08);
+  --shadow-md: 0 8px 24px hsl(220 20% 10% / 0.1);
+  --shadow-lg: 0 16px 40px hsl(220 20% 10% / 0.14);
+
   --surface: 220 13% 97%;
   --surface-raised: 0 0% 100%;
   --surface-overlay: 220 13% 94%;
@@ -21,7 +45,15 @@
   --brand: 174 72% 40%;
   --brand-foreground: 0 0% 100%;
 
-  --radius: 0.75rem;
+  /* Semantic aliases (light/dark ready) */
+  --color-bg-primary: var(--background);
+  --color-bg-secondary: var(--surface);
+  --color-bg-tertiary: var(--surface-raised);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-default: var(--border);
+  --shadow-card: var(--shadow-md);
+  --radius: var(--radius-md);
 }
 
 /* ===== DARK THEME TOKENS ===== */
@@ -42,6 +74,18 @@
 
   --brand: 174 72% 50%;
   --brand-foreground: 0 0% 5%;
+
+  --shadow-sm: 0 1px 2px 0 hsl(210 40% 2% / 0.45);
+  --shadow-md: 0 8px 24px hsl(210 40% 2% / 0.5);
+  --shadow-lg: 0 16px 40px hsl(210 40% 2% / 0.6);
+
+  --color-bg-primary: var(--background);
+  --color-bg-secondary: var(--surface);
+  --color-bg-tertiary: var(--surface-raised);
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-default: var(--border);
+  --shadow-card: var(--shadow-md);
 }
 
 /* ===== BASE RESETS ===== */
