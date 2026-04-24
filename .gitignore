@@ -62,3 +62,6 @@ coverage/
 *.tmp
 issue.md
 pr.md.venv/
+
+*storybook.log
+storybook-static

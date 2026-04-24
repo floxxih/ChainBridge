@@ -1,7 +1,7 @@
 const CACHE_NAME = "chainbridge-v1";
 
 // Static assets to pre-cache on install.
-const PRECACHE_URLS = ["/", "/manifest.json"];
+const PRECACHE_URLS = ["/", "/manifest.json", "/offline"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -42,16 +42,23 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(event.request).then((response) => {
-        // Only cache successful opaque-safe responses.
-        if (!response || response.status !== 200 || response.type === "opaque") {
-          return response;
-        }
+      return fetch(event.request)
+        .then((response) => {
+          // Only cache successful opaque-safe responses.
+          if (!response || response.status !== 200 || response.type === "opaque") {
+            return response;
+          }
 
-        const toCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, toCache));
-        return response;
-      });
+          const toCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, toCache));
+          return response;
+        })
+        .catch(() => {
+          // If fetch fails (offline), and it's a navigation request, show the offline page.
+          if (event.request.mode === "navigate") {
+            return caches.match("/offline");
+          }
+        });
     })
   );
 });

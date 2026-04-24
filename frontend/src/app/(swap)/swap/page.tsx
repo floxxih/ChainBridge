@@ -1,14 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowRightLeft, Info, Settings, Share2, Vote, Waves } from "lucide-react";
 
 import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from "@/components/ui";
-import { QuotePreviewCard } from "@/components/swap/QuotePreviewCard";
-import { TimelockConfigurator } from "@/components/swap/TimelockConfigurator";
+
+const QuotePreviewCard = dynamic(() =>
+  import("@/components/swap/QuotePreviewCard").then(mod => mod.QuotePreviewCard),
+  { loading: () => <div className="h-32 animate-pulse bg-surface-raised rounded-xl" /> }
+);
+
+const TimelockConfigurator = dynamic(() =>
+  import("@/components/swap/TimelockConfigurator").then(mod => mod.TimelockConfigurator),
+  { loading: () => <div className="h-24 animate-pulse bg-surface-raised rounded-xl" /> }
+);
+
+const FeeWarningBanner = dynamic(() =>
+  import("@/components/fees/FeeWarningBanner").then(mod => mod.FeeWarningBanner),
+  { loading: () => <div className="h-12 animate-pulse bg-surface-raised rounded-xl" /> }
+);
+
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
-import { FeeWarningBanner } from "@/components/fees/FeeWarningBanner";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
@@ -107,9 +121,9 @@ export default function SwapPage() {
 
   const toAmount = quote?.rateQuote.to_amount
     ? quote.rateQuote.to_amount.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 8,
-      })
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8,
+    })
     : "";
 
   return (
@@ -268,11 +282,10 @@ export default function SwapPage() {
                   key={mode}
                   type="button"
                   onClick={() => setOrderType(mode as "market" | "limit" | "twap")}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                    orderType === mode
-                      ? "border-brand-500 bg-brand-500/10 text-brand-500"
-                      : "border-border bg-surface-overlay/30 text-text-secondary"
-                  }`}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${orderType === mode
+                    ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                    : "border-border bg-surface-overlay/30 text-text-secondary"
+                    }`}
                 >
                   {mode === "twap" ? "TWAP schedule" : `${mode} order`}
                 </button>
