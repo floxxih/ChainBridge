@@ -16,7 +16,7 @@ import {
   sleep,
 } from "@/lib/transactionLifecycle";
 import { getExplorerUrl } from "@/lib/explorers";
-import { useWalletStore } from "@/hooks/useWallet";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 function fundingChainForOrder(order: Order) {
   return order.side === "buy" ? order.chainOut : order.chainIn;
@@ -33,7 +33,7 @@ function fundingTokenForOrder(order: Order) {
 export default function MarketplacePage() {
   const { orders, updateOrder } = useOrderBookStore();
   const { seedMockOrders } = useMockOrders();
-  const { address } = useWalletStore();
+  const { activeAddress: address } = useUnifiedWallet();
   const transactions = useTransactionStore((state) => state.transactions);
   const addTransaction = useTransactionStore((state) => state.addTransaction);
   const updateTransaction = useTransactionStore((state) => state.updateTransaction);

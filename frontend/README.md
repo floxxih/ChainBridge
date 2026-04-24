@@ -171,6 +171,24 @@ Use Tailwind CSS classes:
 - Use `useLocalStorage` for persistent state
 - Context API for global state (wallet, swap data)
 
+### Theme Tokens and Design Primitives
+
+Global design tokens are defined in `src/styles/globals.css` and split into:
+
+- **Primitives**: spacing (`--space-*`), typography scale (`--font-size-*`), radii (`--radius-*`), and shadows (`--shadow-*`)
+- **Semantic tokens**: `--color-bg-*`, `--color-text-*`, `--color-border-*`, and component aliases like `--shadow-card`
+
+For components, prefer semantic tokens over hardcoded values so light/dark themes can be adjusted centrally.
+
+### Unified Wallet Provider and Reconnect Strategy
+
+`UnifiedWalletProvider` wraps the app in `src/app/providers.tsx` and exposes typed chain-aware wallet state/actions.
+
+- Connect actions are normalized with `connectByChain(chain)`
+- Active wallet disconnect is exposed with `disconnectActiveWallet()`
+- Session restore is best-effort on mount using persisted wallet metadata from `zustand` storage
+- If a wallet extension is unavailable or the network changed, restore failure is non-blocking and users can reconnect manually
+
 ## Testing
 
 ```bash

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useWalletStore } from "@/hooks/useWallet";
 import { useToast } from "@/hooks/useToast";
 import { Button, Modal, Badge, Card } from "@/components/ui";
 import { Wallet, LogOut, ChevronRight, ShieldCheck, AlertTriangle } from "lucide-react";
 import { truncateAddress, CHAIN_BG, formatAmount } from "@/lib/utils";
 import { ChainType } from "@/types/wallet";
 import config from "@/lib/config";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 function formatNetworkLabel(network: string | null | undefined): string {
   if (!network) return "Network unavailable";
@@ -26,17 +26,17 @@ function formatNetworkLabel(network: string | null | undefined): string {
 
 export function WalletConnect() {
   const {
-    address,
-    chain,
+    activeAddress,
+    activeChain,
     network,
     walletName,
     isUnsupportedNetwork,
     isConnected,
     isConnecting,
-    connect,
-    disconnect,
+    connectByChain,
+    disconnectActiveWallet,
     balance,
-  } = useWalletStore();
+  } = useUnifiedWallet();
   const [isOpen, setIsOpen] = useState(false);
   const toast = useToast();
 
@@ -45,10 +45,9 @@ export function WalletConnect() {
 
   const handleConnect = async (targetChain: ChainType) => {
     try {
-      await connect(targetChain);
-      const walletState = useWalletStore.getState();
+      await connectByChain(targetChain);
 
-      if (targetChain === "stellar" && walletState.isUnsupportedNetwork) {
+      if (targetChain === "stellar" && isUnsupportedNetwork) {
         toast.warning(
           "Unsupported Stellar network",
           `Switch Freighter to ${expectedNetworkLabel} to continue with ChainBridge.`
@@ -57,7 +56,7 @@ export function WalletConnect() {
         toast.success(
           "Wallet connected",
           targetChain === "stellar"
-            ? `${walletState.walletName || "Freighter"} connected on ${formatNetworkLabel(walletState.network)}.`
+            ? `${walletName || "Freighter"} connected on ${formatNetworkLabel(network)}.`
             : "Your wallet is ready to use."
         );
       }
@@ -72,39 +71,39 @@ export function WalletConnect() {
     }
   };
 
-  if (isConnected && address) {
+  if (isConnected && activeAddress) {
     return (
       <div className="flex flex-col items-end gap-2">
         <div className="flex items-center gap-2">
           <div className="hidden flex-col items-end sm:flex">
             <span className="text-xs font-medium text-text-primary">
-              {balance ? `${formatAmount(balance, 4)} ${chain?.toUpperCase()}` : "..."}
+              {balance ? `${formatAmount(balance, 4)} ${activeChain?.toUpperCase()}` : "..."}
             </span>
             <span className="text-[10px] text-text-muted">
-              {`${walletName || chain?.toUpperCase()} | ${truncateAddress(address)}`}
+              {`${walletName || activeChain?.toUpperCase()} | ${truncateAddress(activeAddress)}`}
             </span>
-            {chain === "stellar" && (
+            {activeChain === "stellar" && (
               <span className="text-[10px] text-text-muted">Network: {networkLabel}</span>
             )}
           </div>
-          <Badge variant="chain" chain={chain || ""}>
-            {chain?.toUpperCase()}
+          <Badge variant="chain" chain={activeChain || ""}>
+            {activeChain?.toUpperCase()}
           </Badge>
-          {chain === "stellar" && (
+          {activeChain === "stellar" && (
             <Badge variant={isUnsupportedNetwork ? "warning" : "info"}>{networkLabel}</Badge>
           )}
           <Button
             variant="secondary"
             size="sm"
             className="h-9 w-9 p-0"
-            onClick={() => void disconnect()}
+            onClick={() => void disconnectActiveWallet()}
             title="Disconnect Wallet"
           >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
 
-        {chain === "stellar" && isUnsupportedNetwork && (
+        {activeChain === "stellar" && isUnsupportedNetwork && (
           <div className="flex max-w-xs items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>

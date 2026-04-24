@@ -15,8 +15,8 @@ import { Badge, Button } from "@/components/ui";
 import { SigningProgressStepper } from "@/components/transactions/SigningProgressStepper";
 import { cn } from "@/lib/utils";
 import { getExplorerUrl } from "@/lib/explorers";
-import { useWalletStore } from "@/hooks/useWallet";
 import { Order, OrderSide, Transaction, TransactionStatus } from "@/types";
+import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 
 interface OrderTakeModalProps {
   order: Order | null;
@@ -51,7 +51,7 @@ export function OrderTakeModal({
   workflowTx,
 }: OrderTakeModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const { address, chain, isConnected } = useWalletStore();
+  const { activeAddress: address, activeChain: chain, isConnected } = useUnifiedWallet();
   const [reviewArmed, setReviewArmed] = useState(false);
 
   useEffect(() => {
