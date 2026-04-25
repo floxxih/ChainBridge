@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -8,8 +9,12 @@ import { SettingsEffects } from "@/components/SettingsEffects";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { I18nProvider } from "@/components/i18n/I18nProvider";
 import { UnifiedWalletProvider } from "@/components/wallet/UnifiedWalletProvider";
+import { initErrorMonitor } from "@/lib/errorMonitor";
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    initErrorMonitor();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider

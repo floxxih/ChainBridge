@@ -14,11 +14,70 @@ Development: http://localhost:8000
 
 ## Authentication
 
-Currently, the API uses public endpoints. Future versions will include:
+Protected endpoints require an `X-API-Key` header. Keys are prefixed with `cb_`.
 
-- API Key authentication for high-volume users
-- OAuth 2.0 for wallet-based authentication
-- Rate limiting per IP/API key
+```
+X-API-Key: cb_<your-api-key>
+```
+
+### Obtain an API Key
+
+```http
+POST /api/v1/auth/api-keys
+Content-Type: application/json
+
+{
+  "name": "my-integration",
+  "owner": "your-identifier"
+}
+```
+
+Response:
+
+```json
+{
+  "id": "key-uuid",
+  "key": "cb_xxxxxxxxxxxxxxxxxxxxx",
+  "name": "my-integration",
+  "owner": "your-identifier",
+  "is_active": true,
+  "created_at": "2026-04-25T10:00:00Z"
+}
+```
+
+> **Save the key immediately — it is only shown once.**
+
+### Exchange Key for JWT
+
+For session-based flows, exchange your API key for a short-lived JWT:
+
+```http
+POST /api/v1/auth/token
+X-API-Key: cb_xxxxxxxxxxxxxxxxxxxxx
+```
+
+Response:
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+Use the token in subsequent requests:
+
+```
+Authorization: Bearer eyJ...
+```
+
+### Revoke a Key
+
+```http
+DELETE /api/v1/auth/api-keys/{key_id}
+X-API-Key: cb_xxxxxxxxxxxxxxxxxxxxx
+```
 
 ## Response Format
 
@@ -482,6 +541,92 @@ Verify a cross-chain proof.
 
 ---
 
+### Market Data & Fees
+
+#### GET /api/v1/market/fees/{chain}
+
+Get current fee estimate for a chain.
+
+**Path Parameters:** `chain` — one of `stellar`, `bitcoin`, `ethereum`, `solana`
+
+**Response:**
+
+```json
+{
+  "chain": "stellar",
+  "base_fee": 100,
+  "fee_unit": "stroops",
+  "estimated_seconds": 5
+}
+```
+
+#### POST /api/v1/market/fees/estimate
+
+Estimate the full fee breakdown for a swap.
+
+**Request:**
+
+```json
+{
+  "from_chain": "stellar",
+  "to_chain": "bitcoin",
+  "from_amount": "1000000000"
+}
+```
+
+**Response:**
+
+```json
+{
+  "network_fees": { "stellar": 100, "bitcoin": 2500 },
+  "protocol_fee_bps": 10,
+  "total_fee_usd": "0.42"
+}
+```
+
+#### GET /api/v1/market/rate
+
+Get current exchange rate between two assets.
+
+**Query Parameters:** `from_asset`, `to_asset`
+
+---
+
+### Assets
+
+#### GET /api/v1/assets
+
+List supported assets.
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| chain | string | Filter by chain |
+| symbol | string | Filter by symbol (partial match) |
+| verified | boolean | Only verified assets |
+| search | string | Search name or symbol |
+| limit | integer | Max results (default 50, max 100) |
+| offset | integer | Pagination offset |
+
+**Response:**
+
+```json
+[
+  {
+    "id": "asset-uuid",
+    "chain": "stellar",
+    "symbol": "XLM",
+    "name": "Stellar Lumens",
+    "decimals": 7,
+    "is_verified": true,
+    "is_active": true
+  }
+]
+```
+
+---
+
 ### Analytics
 
 #### GET /analytics/volume
@@ -719,6 +864,96 @@ export SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 - HTLC creation, claim, and refund
 - Cross-chain proof verification
 - WebSocket event streaming
+
+---
+
+---
+
+## Integration Guide
+
+### Complete Swap Walkthrough
+
+The typical integration flow for an atomic swap:
+
+```
+1. GET  /api/v1/assets                 → discover supported assets
+2. POST /api/v1/market/fees/estimate   → get fee breakdown before quoting
+3. POST /api/v1/orders                 → create a swap order
+4. [Wait for counterparty match via WebSocket]
+5. POST /api/v1/htlcs                  → lock funds on source chain
+6. POST /api/v1/swaps                  → register the swap
+7. POST /api/v1/htlcs/{id}/claim       → claim with secret once counterparty locks
+8. GET  /api/v1/swaps/{swap_id}        → confirm final status
+```
+
+### TypeScript Client Example
+
+```typescript
+const BASE = "https://api.chainbridge.io/api/v1";
+const headers = { "Content-Type": "application/json", "X-API-Key": "cb_..." };
+
+async function getQuote(fromChain: string, toChain: string, amount: string) {
+  const res = await fetch(`${BASE}/market/fees/estimate`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ from_chain: fromChain, to_chain: toChain, from_amount: amount }),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+async function createOrder(payload: object) {
+  const res = await fetch(`${BASE}/orders`, { method: "POST", headers, body: JSON.stringify(payload) });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+// WebSocket for real-time order status
+const ws = new WebSocket("wss://api.chainbridge.io/ws");
+ws.onopen = () => ws.send(JSON.stringify({ action: "subscribe", channel: "swaps" }));
+ws.onmessage = (e) => console.log("event", JSON.parse(e.data));
+```
+
+### Error Handling Best Practices
+
+```typescript
+async function apiCall<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  const body = await res.json();
+  if (!res.ok) {
+    // body.detail is FastAPI's error format
+    throw new Error(body.detail ?? `HTTP ${res.status}`);
+  }
+  return body as T;
+}
+```
+
+Retry on `429 Too Many Requests` with exponential backoff. Do not retry `4xx` errors other than `429`.
+
+---
+
+## Source Maps & Error Monitoring
+
+Frontend source maps are generated during `next build` and stored in `.next/`.
+
+**Upload process:**
+
+1. Build: `npm run build` — source maps in `.next/static/chunks/`
+2. Upload maps to your error-monitoring service before deploying:
+   ```bash
+   # Example with a generic upload (adapt to your provider)
+   for map in .next/static/chunks/*.map; do
+     curl -F "file=@$map" https://errors.example.com/sourcemaps/upload \
+          -H "Authorization: Bearer $ERROR_SERVICE_TOKEN"
+   done
+   ```
+3. Set `NEXT_PUBLIC_ERROR_REPORT_URL` in production to enable automatic error capture.
+
+**PII-safe error context strategy:**
+
+- All error reports are scrubbed of keys matching: `address`, `wallet`, `email`, `key`, `secret`, `token`, `seed`, `mnemonic` before transmission (see `src/lib/errorMonitor.ts`).
+- Never pass raw user input or wallet addresses as error context — pass anonymised identifiers (e.g., chain name, order ID) instead.
+- Error payloads contain: `message`, `stack`, `url` (path only — query strings stripped), `timestamp`.
 
 ---
 
