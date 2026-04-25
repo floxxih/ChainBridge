@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { WalletConnect } from "../swap/WalletConnect";
 import { useSettingsStore } from "@/hooks/useSettings";
-import { Layers, Menu, X } from "lucide-react";
+import { Layers, Menu } from "lucide-react";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { NAV_LINKS } from "@/components/layout/navigation";
 import { SUPPORTED_LOCALES, stripLocaleFromPathname } from "@/lib/i18n/config";
 import { CommandPalette } from "./CommandPalette";
+import { MobileNavDrawer } from "./MobileNavDrawer";
+
 
 export function Navbar() {
   const pathname = usePathname();
@@ -116,63 +118,17 @@ export function Navbar() {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-overlay text-text-primary md:hidden"
-              aria-label="Toggle navigation menu"
+              aria-label="Open navigation menu"
               aria-expanded={isOpen}
-              aria-controls="mobile-nav"
+              aria-haspopup="dialog"
             >
-              {isOpen ? (
-                <X className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <Menu className="h-5 w-5" aria-hidden="true" />
-              )}
+              <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
-      <div
-        id="mobile-nav"
-        className={cn(
-          "absolute left-0 right-0 top-16 z-50 overflow-hidden border-b border-border bg-background/95 backdrop-blur-xl transition-all duration-300 ease-in-out md:hidden",
-          isOpen ? "max-h-[400px] py-4 shadow-xl" : "max-h-0 py-0 border-none"
-        )}
-        aria-hidden={!isOpen}
-      >
-        <div className="container mx-auto px-4 space-y-2">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={localizePath(link.href)}
-              onClick={() => setIsOpen(false)}
-              aria-current={normalizedPathname === link.href ? "page" : undefined}
-              className={cn(
-                "flex items-center rounded-xl px-4 py-3 text-base font-medium transition-all",
-                normalizedPathname === link.href
-                  ? "bg-brand-500/10 text-brand-500"
-                  : "text-text-secondary active:bg-surface-overlay"
-              )}
-            >
-              {t(link.key)}
-              {normalizedPathname === link.href && (
-                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-500" />
-              )}
-            </Link>
-          ))}
-          <div className="pt-4 pb-2">
-            <div className="flex items-center justify-between border-t border-border pt-4">
-              <span className="text-sm font-medium text-text-secondary">Theme Control</span>
-              <DarkModeToggle />
-            </div>
-            <div className="mt-4 sm:hidden">
-              <div className="mb-3">
-                <CommandPalette />
-              </div>
-              <WalletConnect />
-            </div>
-          </div>
-        </div>
-      </div>
+      <MobileNavDrawer open={isOpen} onClose={() => setIsOpen(false)} />
     </nav>
   );
 }
