@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { captureError } from "@/lib/errorMonitor";
 
 interface Props {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[ErrorBoundary]", error, info.componentStack);
+    captureError(error, { componentStack: info.componentStack ?? "" });
   }
 
   handleReset = () => {
