@@ -5,6 +5,8 @@ import config from "@/lib/config";
 
 type FreighterApi = {
   isConnected?: () => Promise<boolean | { isConnected?: boolean; error?: string }>;
+  isAllowed?: () => Promise<boolean>;
+  setAllowed?: () => Promise<boolean>;
   getPublicKey?: () => Promise<string>;
   getNetwork?: () => Promise<string | { network?: string; networkPassphrase?: string }>;
   signTransaction?: (xdr: string, options: { network: string }) => Promise<any>;
@@ -31,14 +33,28 @@ export class StellarAdapter implements WalletAdapter {
   }
 
   async connect() {
+    if (!freighterApi.getPublicKey) {
+      throw new Error("Freighter wallet not found");
+    }
+
     const connectionState = await freighterApi.isConnected?.();
-    const connected =
+    const extensionConnected =
       typeof connectionState === "boolean"
         ? connectionState
         : Boolean(connectionState?.isConnected);
 
-    if (!connected || !freighterApi.getPublicKey) {
-      throw new Error("Freighter wallet not found or disconnected");
+    if (!extensionConnected) {
+      throw new Error("Freighter extension is not available");
+    }
+
+    if (freighterApi.isAllowed && freighterApi.setAllowed) {
+      const isAllowed = await freighterApi.isAllowed();
+      if (!isAllowed) {
+        const approved = await freighterApi.setAllowed();
+        if (!approved) {
+          throw new Error("Freighter connection request was declined");
+        }
+      }
     }
 
     const publicKey = await freighterApi.getPublicKey();
