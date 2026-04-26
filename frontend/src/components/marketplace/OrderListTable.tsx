@@ -6,6 +6,7 @@ import { Button, PaginationControls, StatusBadge } from "@/components/ui";
 import { usePagination } from "@/hooks/usePagination";
 import { Order, OrderStatus } from "@/types";
 import { cn } from "@/lib/utils";
+import { OrderCard } from "./OrderCard";
 
 export type OrderSortKey = "price" | "amount" | "timestamp";
 export type OrderSortDirection = "asc" | "desc";
@@ -94,8 +95,7 @@ function defaultColumns(onViewDetails: (order: Order) => void, onTakeOrder: (ord
         <StatusBadge
           size="sm"
           showIcon={false}
-          variant={order.status === OrderStatus.OPEN ? "success" : order.status === OrderStatus.FILLED ? "info" : "cancelled"}
-          label={order.status.toUpperCase()}
+          orderStatus={order.status}
         />
       ),
     },
@@ -188,7 +188,8 @@ export function OrderListTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-border bg-background/50 overflow-hidden backdrop-blur-sm shadow-xl">
+      {/* Desktop View (Table) */}
+      <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -257,6 +258,35 @@ export function OrderListTable({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile View (Cards) */}
+      <div className="flex flex-col gap-4 md:hidden">
+        {loading ? (
+          loadingRows.map((_, index) => (
+            <div key={`loading-card-${index}`} className="h-48 w-full animate-pulse rounded-2xl bg-surface-overlay/80 border border-border" />
+          ))
+        ) : visibleOrders.length > 0 ? (
+          visibleOrders.map((order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onTakeOrder={onTakeOrder}
+              onViewDetails={onViewDetails}
+              takeButtonDisabled={takeButtonDisabled?.(order)}
+            />
+          ))
+        ) : (
+          <div className="rounded-2xl border border-border bg-background/50 p-12 text-center backdrop-blur-sm shadow-xl">
+              <p className="font-medium text-text-secondary">{emptyTitle}</p>
+              <p className="text-sm text-text-muted">{emptyDescription}</p>
+              {onClearFilters && (
+                <Button variant="ghost" size="sm" onClick={onClearFilters} className="mt-4">
+                  Clear Filters
+                </Button>
+              )}
+          </div>
+        )}
       </div>
 
       {!loading && sortedOrders.length > 0 && (
