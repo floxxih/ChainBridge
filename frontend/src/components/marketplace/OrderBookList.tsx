@@ -4,9 +4,10 @@ import { useMemo, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Order, OrderSide, OrderStatus } from "@/types";
 import { Badge, Button, Modal } from "@/components/ui";
-import { ArrowUpDown, Filter, Search, Zap, Eye, X } from "lucide-react";
+import { Search, Zap, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
+import { OrderListTable, OrderSortKey } from "@/components/marketplace/OrderListTable";
 
 interface OrderBookListProps {
   orders: Order[];
@@ -95,7 +96,7 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
   const [assetFilter, setAssetFilter] = useState(() => searchParams.get("asset") ?? "all");
   const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
   const [sortConfig, setSortConfig] = useState<{
-    key: "price" | "amount" | "timestamp";
+    key: OrderSortKey;
     direction: "asc" | "desc";
   }>({ key: "timestamp", direction: "desc" });
 
@@ -140,10 +141,6 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
     setAssetFilter(searchParams.get("asset") ?? "all");
   }, [searchParams]);
 
-  function parseNumericValue(value: string) {
-    return Number(value.replace(/,/g, "")) || 0;
-  }
-
   const filteredOrders = useMemo(() => {
     return orders
       .filter((o) => {
@@ -166,32 +163,14 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
           o.status === OrderStatus.OPEN &&
           notExpired
         );
-      })
-      .sort((a, b) => {
-        const direction = sortConfig.direction === "asc" ? 1 : -1;
-
-        if (sortConfig.key === "timestamp") {
-          return (
-            (new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) * direction
-          );
-        }
-
-        if (sortConfig.key === "price") {
-          return (parseNumericValue(a.price) - parseNumericValue(b.price)) * direction;
-        }
-
-        return (parseNumericValue(a.amount) - parseNumericValue(b.amount)) * direction;
       });
-  }, [assetFilter, chainPairFilter, orders, search, sideFilter, sortConfig]);
+  }, [assetFilter, chainPairFilter, orders, search, sideFilter]);
 
-  const handleSort = (key: "price" | "amount" | "timestamp") => {
-    let direction: "asc" | "desc" = "desc";
-    if (sortConfig.key === key && sortConfig.direction === "desc") {
-      direction = "asc";
-    } else if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+  const handleSort = (key: OrderSortKey) => {
+    setSortConfig((current) => {
+      if (current.key !== key) return { key, direction: "desc" };
+      return { key, direction: current.direction === "desc" ? "asc" : "desc" };
+    });
   };
 
   const resetFilters = () => {
@@ -241,6 +220,7 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
             Sells
           </Button>
           <select
+            aria-label="Filter by chain route"
             value={chainPairFilter}
             onChange={(event) => setChainPairFilter(event.target.value)}
             className="h-8 rounded-xl border border-border bg-surface-raised px-3 text-xs text-text-primary"
@@ -253,6 +233,7 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
             ))}
           </select>
           <select
+            aria-label="Filter by asset"
             value={assetFilter}
             onChange={(event) => setAssetFilter(event.target.value)}
             className="h-8 rounded-xl border border-border bg-surface-raised px-3 text-xs text-text-primary"
@@ -278,130 +259,18 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-background/50 overflow-hidden backdrop-blur-sm shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-overlay/50 border-b border-border">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Pair
-                </th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Side
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-primary"
-                  onClick={() => handleSort("amount")}
-                >
-                  <div className="flex items-center gap-2">
-                    Amount <ArrowUpDown size={12} />
-                  </div>
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-primary"
-                  onClick={() => handleSort("price")}
-                >
-                  <div className="flex items-center gap-2">
-                    Price <ArrowUpDown size={12} />
-                  </div>
-                </th>
-                <th
-                  className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted cursor-pointer hover:text-text-primary"
-                  onClick={() => handleSort("timestamp")}
-                >
-                  <div className="flex items-center gap-2">
-                    Created <ArrowUpDown size={12} />
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Total
-                </th>
-                <th className="px-4 py-4"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="group hover:bg-surface-overlay/30 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-text-primary">{order.pair}</span>
-                        <span className="text-[10px] text-text-muted uppercase tracking-tighter">
-                          {order.chainIn} ↔ {order.chainOut}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={order.side === OrderSide.BUY ? "success" : "error"}>
-                        {order.side.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-text-primary">
-                      {order.amount} {order.tokenIn}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-sm text-text-secondary">
-                      {order.price}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-text-secondary">
-                      {new Date(order.timestamp).toLocaleString([], {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap font-mono text-sm font-bold text-text-primary">
-                      {order.total} {order.tokenOut}
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setDetailsOrder(order)}
-                          icon={<Eye size={14} />}
-                        >
-                          Details
-                        </Button>
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          className="shadow-glow-sm hover:shadow-glow-md"
-                          onClick={() => onTakeOrder(order)}
-                          icon={<Zap size={14} />}
-                        >
-                          Take
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-surface-overlay flex items-center justify-center border border-border">
-                        <Filter className="text-text-muted" />
-                      </div>
-                      <p className="text-text-secondary font-medium">
-                        No active orders matching filters.
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetFilters}
-                      >
-                        Clear Filters
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <OrderListTable
+        orders={filteredOrders}
+        sortKey={sortConfig.key}
+        sortDirection={sortConfig.direction}
+        onSort={handleSort}
+        onTakeOrder={onTakeOrder}
+        onViewDetails={setDetailsOrder}
+        onClearFilters={hasActiveFilters ? resetFilters : undefined}
+        emptyTitle="No active orders matching filters."
+        emptyDescription="Adjust filters or clear them to browse all open orders."
+        pageSize={8}
+      />
 
       <OrderDetailsModal
         order={detailsOrder}
