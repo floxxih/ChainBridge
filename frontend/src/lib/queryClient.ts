@@ -1,14 +1,29 @@
 import { QueryClient } from "@tanstack/react-query";
 
+function isRetryableError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const status = (error as { response?: { status?: number }; code?: string }).response?.status;
+  if (status === undefined) return true;
+  return status >= 500;
+}
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
-      retry: 2,
       refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        if (failureCount > 3) return false;
+        return isRetryableError(error);
+      },
+      retryDelay: (attemptIndex: number) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
     },
     mutations: {
-      retry: 1,
+      retry: (failureCount, error) => {
+        if (failureCount > 2) return false;
+        return isRetryableError(error);
+      },
+      retryDelay: (attemptIndex: number) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
     },
   },
 });
