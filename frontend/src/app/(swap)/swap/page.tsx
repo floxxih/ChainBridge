@@ -7,28 +7,26 @@ import { AlertCircle, ArrowRightLeft, Info, Settings, Share2, Vote, Waves } from
 
 import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from "@/components/ui";
 
-const QuotePreviewCard = dynamic(() =>
-  import("@/components/swap/QuotePreviewCard").then(mod => mod.QuotePreviewCard),
+const QuotePreviewCard = dynamic(
+  () => import("@/components/swap/QuotePreviewCard").then((mod) => mod.QuotePreviewCard),
   { loading: () => <div className="h-32 animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
-const TimelockConfigurator = dynamic(() =>
-  import("@/components/swap/TimelockConfigurator").then(mod => mod.TimelockConfigurator),
+const TimelockConfigurator = dynamic(
+  () => import("@/components/swap/TimelockConfigurator").then((mod) => mod.TimelockConfigurator),
   { loading: () => <div className="h-24 animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
-const FeeWarningBanner = dynamic(() =>
-  import("@/components/fees/FeeWarningBanner").then(mod => mod.FeeWarningBanner),
+const FeeWarningBanner = dynamic(
+  () => import("@/components/fees/FeeWarningBanner").then((mod) => mod.FeeWarningBanner),
   { loading: () => <div className="h-12 animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
+import { track } from "@/lib/analytics";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
-import {
-  RiskDisclosureModal,
-  RISK_ACCEPTANCE_KEY,
-} from "@/components/swap/RiskDisclosureModal";
+import { RiskDisclosureModal, RISK_ACCEPTANCE_KEY } from "@/components/swap/RiskDisclosureModal";
 import {
   SlippageExpirationControls,
   SLIPPAGE_DEFAULT,
@@ -38,13 +36,10 @@ import {
 } from "@/components/swap/SlippageExpirationControls";
 import { SwapReviewModal } from "@/components/swap/SwapReviewModal";
 import { SwapSigningModal } from "@/components/swap/SwapSigningModal";
-import {
-  TransactionLifecycle,
-  TransactionStepKey,
-  TransactionStepStatus,
-} from "@/types";
+import { TransactionLifecycle, TransactionStepKey, TransactionStepStatus } from "@/types";
 
 type ChainId = "stellar" | "bitcoin" | "ethereum";
+type SwapFailureCategory = "validation" | "quote" | "submission" | "wallet" | "unknown";
 
 const CHAINS: Array<{ id: ChainId; label: string; tokens: string[] }> = [
   { id: "stellar", label: "Stellar", tokens: ["XLM", "USDC"] },
@@ -153,6 +148,18 @@ export default function SwapPage() {
     }
   }, [destInfo, toAsset]);
 
+  const trackSwapFailure = (category: SwapFailureCategory) => {
+    track("swap.failure", { category });
+  };
+
+  const trackSwapValidate = (status: "pass" | "fail") => {
+    track("swap.validate", {
+      fromChain: sourceChain,
+      toChain: destChain,
+      status,
+    });
+  };
+
   const requestQuote = async () => {
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !fromAsset || !toAsset) {
@@ -177,6 +184,7 @@ export default function SwapPage() {
       setQuote(null);
       setQuoteUpdatedAt(null);
       setQuoteError(error?.response?.data?.detail ?? "Failed to fetch quote preview.");
+      trackSwapFailure("quote");
     } finally {
       setQuoteLoading(false);
     }
@@ -202,9 +210,9 @@ export default function SwapPage() {
 
   const toAmount = quote?.rateQuote.to_amount
     ? quote.rateQuote.to_amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8,
-    })
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 8,
+      })
     : "";
 
   const slippageInvalid =
@@ -212,10 +220,47 @@ export default function SwapPage() {
 
   // --- Modal flow handlers ---
 
-  const openReviewModal = () => setReviewModalOpen(true);
+  const openReviewModal = () => {
+    track("swap.review", {
+      fromChain: sourceChain,
+      toChain: destChain,
+      orderType,
+    });
+    setReviewModalOpen(true);
+  };
+
+  const swapValidationPassed = () => {
+    const parsedAmount = Number(amount);
+    const hasQuote =
+      quote?.rateQuote?.to_amount !== undefined && quote?.rateQuote?.to_amount !== null;
+    return (
+      isConnected &&
+      Number.isFinite(parsedAmount) &&
+      parsedAmount > 0 &&
+      Boolean(fromAsset) &&
+      Boolean(toAsset) &&
+      sourceChain !== destChain &&
+      !slippageInvalid &&
+      !quoteError &&
+      hasQuote
+    );
+  };
 
   /** Called when "Initialize Atomic Swap" is clicked. */
   const handleInitiateSwap = () => {
+    track("swap.start", {
+      fromChain: sourceChain,
+      toChain: destChain,
+      fromAsset,
+      toAsset,
+    });
+    const validationPassed = swapValidationPassed();
+    trackSwapValidate(validationPassed ? "pass" : "fail");
+    if (!validationPassed) {
+      trackSwapFailure(isConnected ? "validation" : "wallet");
+      return;
+    }
+
     let accepted = false;
     if (typeof window !== "undefined") {
       try {
@@ -257,13 +302,24 @@ export default function SwapPage() {
 
   /** Called when the user confirms the swap in the review modal. */
   const handleSwapConfirm = async () => {
-    setIsConfirming(true);
-    await new Promise<void>((r) => setTimeout(r, 400));
-    setIsConfirming(false);
-    setReviewModalOpen(false);
-    setSigningModalOpen(true);
-    const gen = ++signingGenRef.current;
-    void runSigningSimulation(gen);
+    track("swap.submit", {
+      fromChain: sourceChain,
+      toChain: destChain,
+      orderType,
+    });
+
+    try {
+      setIsConfirming(true);
+      await new Promise<void>((r) => setTimeout(r, 400));
+      setIsConfirming(false);
+      setReviewModalOpen(false);
+      setSigningModalOpen(true);
+      const gen = ++signingGenRef.current;
+      void runSigningSimulation(gen);
+    } catch {
+      setIsConfirming(false);
+      trackSwapFailure("submission");
+    }
   };
 
   /** Retry: cancel any running simulation and restart. */
@@ -465,10 +521,11 @@ export default function SwapPage() {
                   key={mode}
                   type="button"
                   onClick={() => setOrderType(mode as "market" | "limit" | "twap")}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${orderType === mode
-                    ? "border-brand-500 bg-brand-500/10 text-brand-500"
-                    : "border-border bg-surface-overlay/30 text-text-secondary"
-                    }`}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                    orderType === mode
+                      ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                      : "border-border bg-surface-overlay/30 text-text-secondary"
+                  }`}
                 >
                   {mode === "twap" ? "TWAP schedule" : `${mode} order`}
                 </button>
@@ -490,7 +547,7 @@ export default function SwapPage() {
         <CardFooter className="bg-surface-overlay/30">
           <Button
             className="w-full h-12 rounded-xl text-lg font-bold"
-            disabled={!isConnected || !amount || !!quoteError || slippageInvalid}
+            disabled={!isConnected || !amount || Boolean(quoteError) || slippageInvalid}
             onClick={handleInitiateSwap}
           >
             {isConnected ? "Initialize Atomic Swap" : "Connect Wallet to Swap"}
