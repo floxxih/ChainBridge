@@ -10,6 +10,7 @@ from .timelock import router as timelock_router
 from .fees import router as fees_router
 from .users import router as users_router
 from .assets import router as assets_router
+from .chains import router as chains_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(htlc_router, prefix="/htlcs", tags=["HTLCs"])
@@ -23,3 +24,4 @@ api_router.include_router(timelock_router, prefix="/timelock", tags=["Timelock"]
 api_router.include_router(fees_router, prefix="/market", tags=["Market Data"])
 api_router.include_router(users_router, tags=["Users"])
 api_router.include_router(assets_router, prefix="/assets", tags=["Assets"])
+api_router.include_router(chains_router, prefix="/chains", tags=["Chains"])

@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
@@ -55,3 +56,24 @@ class HTLCStatusResponse(HTLCResponse):
     can_refund: bool
     phase: str
     timeline: list[HTLCTimelineEvent]
+
+
+# ─── Batch schemas ────────────────────────────────────────────────────────────
+
+class HTLCBatchCreate(BaseModel):
+    items: list[HTLCCreate] = Field(min_length=1, max_length=50)
+
+
+class HTLCBatchItemResult(BaseModel):
+    index: int
+    success: bool
+    data: Optional[HTLCResponse] = None
+    error: Optional[str] = None
+
+
+class HTLCBatchResponse(BaseModel):
+    batch_id: str
+    total: int
+    succeeded: int
+    failed: int
+    items: list[HTLCBatchItemResult]

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -23,3 +23,28 @@ class SwapResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ─── Batch proof schemas ──────────────────────────────────────────────────────
+
+class SwapProofItem(BaseModel):
+    swap_id: str
+    proof: SwapProof
+
+
+class BatchProofRequest(BaseModel):
+    items: list[SwapProofItem] = Field(min_length=1, max_length=50)
+
+
+class BatchProofItemResult(BaseModel):
+    swap_id: str
+    success: bool
+    state: Optional[str] = None
+    error: Optional[str] = None
+
+
+class BatchProofResponse(BaseModel):
+    total: int
+    succeeded: int
+    failed: int
+    items: list[BatchProofItemResult]

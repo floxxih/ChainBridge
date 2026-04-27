@@ -1,5 +1,6 @@
-"""HTLC endpoints: create, list, claim, refund, status (#26, #59)."""
+"""HTLC endpoints: create, list, claim, refund, status, batch (#26, #59, #71)."""
 
+import uuid
 from datetime import datetime, timezone
 
 from typing import Annotated
@@ -12,6 +13,9 @@ from app.config.database import get_db
 from app.config.redis import get_redis, CacheService
 from app.models.htlc import HTLC
 from app.schemas.htlc import (
+    HTLCBatchCreate,
+    HTLCBatchItemResult,
+    HTLCBatchResponse,
     HTLCClaim,
     HTLCCreate,
     HTLCResponse,
@@ -211,3 +215,56 @@ async def get_htlc_status(htlc_id: str, db: AsyncSession = Depends(get_db)):
     if not htlc:
         raise HTTPException(status_code=404, detail="HTLC not found")
     return _serialize_htlc(htlc)
+
+
+@router.post("/batch", response_model=HTLCBatchResponse, status_code=207)
+async def create_htlc_batch(
+    data: HTLCBatchCreate,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(require_api_key),
+):
+    """Create multiple HTLCs atomically. All succeed or all are rolled back."""
+    batch_id = str(uuid.uuid4())
+    results: list[HTLCBatchItemResult] = []
+
+    try:
+        htlcs: list[tuple[int, HTLC]] = []
+        for i, item in enumerate(data.items):
+            htlc = HTLC(
+                sender=item.sender,
+                receiver=item.receiver,
+                amount=item.amount,
+                hash_lock=item.hash_lock,
+                time_lock=item.time_lock,
+                hash_algorithm=item.hash_algorithm,
+                status="active",
+            )
+            db.add(htlc)
+            htlcs.append((i, htlc))
+
+        await db.commit()
+
+        for i, htlc in htlcs:
+            await db.refresh(htlc)
+            results.append(
+                HTLCBatchItemResult(
+                    index=i,
+                    success=True,
+                    data=HTLCResponse.model_validate(htlc),
+                )
+            )
+    except Exception as exc:
+        await db.rollback()
+        results = [
+            HTLCBatchItemResult(index=i, success=False, error=str(exc))
+            for i in range(len(data.items))
+        ]
+
+    succeeded = sum(1 for r in results if r.success)
+    return HTLCBatchResponse(
+        batch_id=batch_id,
+        total=len(data.items),
+        succeeded=succeeded,
+        failed=len(results) - succeeded,
+        items=results,
+    )

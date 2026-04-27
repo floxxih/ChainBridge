@@ -16,9 +16,9 @@ interface ModalProps {
 }
 
 const sizeStyles = {
-  sm: "max-w-sm",
-  md: "max-w-md",
-  lg: "max-w-2xl",
+  sm: "sm:max-w-sm",
+  md: "sm:max-w-md",
+  lg: "sm:max-w-2xl",
 };
 
 /** Returns all keyboard-focusable elements within a container. */
@@ -115,7 +115,7 @@ export function Modal({
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center p-0 sm:p-4"
       onClick={(e) => e.target === overlayRef.current && onClose()}
     >
       {/* Backdrop */}
@@ -132,7 +132,10 @@ export function Modal({
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full animate-slide-up rounded-2xl border border-border bg-surface-raised shadow-card-dark",
+          "relative z-10 w-full animate-slide-up",
+          "rounded-t-2xl sm:rounded-2xl",
+          "border border-border bg-surface-raised shadow-card-dark",
+          "max-h-[90dvh] overflow-y-auto sm:overflow-visible sm:max-h-none",
           "focus:outline-none",
           sizeStyles[size],
           className
