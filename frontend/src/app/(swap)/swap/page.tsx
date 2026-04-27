@@ -9,19 +9,21 @@ import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from 
 
 const QuotePreviewCard = dynamic(() =>
   import("@/components/swap/QuotePreviewCard").then(mod => mod.QuotePreviewCard),
-  { loading: () => <div className="h-32 animate-pulse bg-surface-raised rounded-xl" /> }
+  { loading: () => <div className="h-32 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
 const TimelockConfigurator = dynamic(() =>
   import("@/components/swap/TimelockConfigurator").then(mod => mod.TimelockConfigurator),
-  { loading: () => <div className="h-24 animate-pulse bg-surface-raised rounded-xl" /> }
+  { loading: () => <div className="h-24 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
 const FeeWarningBanner = dynamic(() =>
   import("@/components/fees/FeeWarningBanner").then(mod => mod.FeeWarningBanner),
-  { loading: () => <div className="h-12 animate-pulse bg-surface-raised rounded-xl" /> }
+  { loading: () => <div className="h-12 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
+import { isFeatureEnabled } from "@/lib/featureFlags";
+import { formatFiatEstimate, formatTokenAmount } from "@/lib/format";
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
@@ -201,10 +203,10 @@ export default function SwapPage() {
   const isQuoteStale = quoteUpdatedAt ? clockMs - quoteUpdatedAt > 30_000 : false;
 
   const toAmount = quote?.rateQuote.to_amount
-    ? quote.rateQuote.to_amount.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8,
-    })
+    ? formatTokenAmount(quote.rateQuote.to_amount, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 8,
+      })
     : "";
 
   const slippageInvalid =
@@ -293,7 +295,7 @@ export default function SwapPage() {
     toAmount: toAmount || "~",
     estimatedFees:
       quote?.feeBreakdown.total_usd_estimate != null
-        ? `~$${quote.feeBreakdown.total_usd_estimate.toFixed(2)} USD`
+        ? `~${formatFiatEstimate(quote.feeBreakdown.total_usd_estimate)}`
         : "See quote preview",
     timelockHours,
     route: `${sourceInfo?.label ?? sourceChain} → ${destInfo?.label ?? destChain}`,
@@ -307,7 +309,14 @@ export default function SwapPage() {
 
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text-primary">Create Swap</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-3xl font-bold text-text-primary">Create Swap</h1>
+            {isFeatureEnabled("experimentalSwapUi") && (
+              <Badge variant="info" className="text-xs font-semibold">
+                Labs
+              </Badge>
+            )}
+          </div>
           <p className="mt-1 text-sm text-text-secondary">
             Configure your cross-chain atomic swap.
           </p>

@@ -273,3 +273,33 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* Reduced motion: shorten transitions and disable decorative animations (timeline/skeleton/page flourishes). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  :root {
+    --motion-fast: 0.01ms;
+    --motion-medium: 0.01ms;
+    --motion-slow: 0.01ms;
+    --easing-standard: linear;
+  }
+
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-pulse-glow,
+  .animate-spin-slow,
+  .animate-reverse-spin,
+  .animate-shimmer {
+    animation: none !important;
+  }
+
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

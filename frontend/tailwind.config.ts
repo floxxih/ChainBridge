@@ -108,6 +108,10 @@ const config: Config = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        "reverse-spin": {
+          "0%": { transform: "rotate(360deg)" },
+          "100%": { transform: "rotate(0deg)" },
+        },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
@@ -118,6 +122,7 @@ const config: Config = {
         "slide-up": "slide-up 0.5s ease-out both",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "spin-slow": "spin-slow 3s linear infinite",
+        "reverse-spin": "reverse-spin 4s linear infinite",
         shimmer: "shimmer 2s linear infinite",
         "fade-in-token": "fade-in var(--motion-medium) var(--easing-emphasized) both",
         "slide-up-token": "slide-up var(--motion-slow) var(--easing-emphasized) both",

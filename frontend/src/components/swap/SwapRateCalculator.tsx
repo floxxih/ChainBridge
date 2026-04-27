@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent, formatTokenAmount, formatTokenWithSymbol } from "@/lib/format";
 import { useState } from "react";
 
 interface RateQuote {
@@ -114,15 +115,24 @@ export default function SwapRateCalculator({
           <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-500">Exchange Rate</span>
-              <span className="font-mono">1 {from} = {rate.toFixed(8)} {to}</span>
+              <span className="font-mono">
+                1 {from} = {formatTokenAmount(rate, { maximumFractionDigits: 8 })} {to}
+              </span>
             </div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-500">Slippage ({(slippage * 100).toFixed(1)}%)</span>
-              <span className="font-mono text-yellow-600">-{(amount * rate * slippage).toFixed(8)} {to}</span>
+              <span className="text-gray-500">
+                Slippage ({formatPercent(slippage, { fractionDigits: 1 })})
+              </span>
+              <span className="font-mono text-yellow-600">
+                -
+                {formatTokenWithSymbol(amount * rate * slippage, to, { maximumFractionDigits: 8 })}
+              </span>
             </div>
             <div className="flex justify-between text-sm font-semibold">
               <span>You Receive</span>
-              <span className="font-mono text-green-600">{receiveAmount.toFixed(8)} {to}</span>
+              <span className="font-mono text-green-600">
+                {formatTokenWithSymbol(receiveAmount, to, { maximumFractionDigits: 8 })}
+              </span>
             </div>
           </div>
 
@@ -143,8 +153,10 @@ export default function SwapRateCalculator({
               </div>
               <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between text-xs">
                 <span className="font-medium">ChainBridge</span>
-                <span>{(slippage * 100).toFixed(1)}%</span>
-                <span className="font-mono">{receiveAmount.toFixed(6)}</span>
+                <span>{formatPercent(slippage, { fractionDigits: 1 })}</span>
+                <span className="font-mono">
+                  {formatTokenAmount(receiveAmount, { maximumFractionDigits: 6 })}
+                </span>
                 <span className="text-green-600">-</span>
               </div>
               {cexComparisons.map((cex) => (
@@ -154,9 +166,12 @@ export default function SwapRateCalculator({
                 >
                   <span>{cex.exchange}</span>
                   <span>{cex.fee_percent}%</span>
-                  <span className="font-mono">{cex.total_receive.toFixed(6)}</span>
+                  <span className="font-mono">
+                    {formatTokenAmount(cex.total_receive, { maximumFractionDigits: 6 })}
+                  </span>
                   <span className={cex.savings > 0 ? "text-green-600" : "text-red-500"}>
-                    {cex.savings > 0 ? "+" : ""}{cex.savings.toFixed(6)}
+                    {cex.savings > 0 ? "+" : ""}
+                    {formatTokenAmount(cex.savings, { maximumFractionDigits: 6 })}
                   </span>
                 </div>
               ))}

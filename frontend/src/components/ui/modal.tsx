@@ -120,7 +120,7 @@ export function Modal({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-fade-in"
         aria-hidden="true"
       />
       {/* Dialog panel */}
@@ -132,7 +132,7 @@ export function Modal({
         aria-describedby={description ? descId : undefined}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full animate-slide-up",
+          "relative z-10 w-full motion-safe:animate-slide-up",
           "rounded-t-2xl sm:rounded-2xl",
           "border border-border bg-surface-raised shadow-card-dark",
           "max-h-[90dvh] overflow-y-auto sm:overflow-visible sm:max-h-none",

@@ -3,6 +3,7 @@
 import { RefreshCw } from "lucide-react";
 
 import { Badge, Button, Card } from "@/components/ui";
+import { formatPercent, formatTokenAmount, formatTokenWithSymbol } from "@/lib/format";
 import type { QuotePreview } from "@/lib/quoteApi";
 
 interface QuotePreviewCardProps {
@@ -13,13 +14,6 @@ interface QuotePreviewCardProps {
   isStale: boolean;
   error: string | null;
   onRefresh: () => void;
-}
-
-function formatAmount(value: number, symbol: string) {
-  return `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 8,
-  })} ${symbol}`;
 }
 
 function sumComponentsByName(
@@ -129,11 +123,21 @@ export function QuotePreviewCard({
           <div className="rounded-xl border border-border bg-surface-overlay/40 p-3">
             <div className="flex items-center justify-between">
               <span className="text-text-muted">Gross receive</span>
-              <span className="font-semibold text-text-primary">{formatAmount(grossReceive, toAsset)}</span>
+              <span className="font-semibold text-text-primary">
+                {formatTokenWithSymbol(grossReceive, toAsset, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 8,
+                })}
+              </span>
             </div>
             <div className="mt-1 flex items-center justify-between">
               <span className="text-text-muted">Estimated net receive</span>
-              <span className="font-semibold text-emerald-400">{formatAmount(netReceive, toAsset)}</span>
+              <span className="font-semibold text-emerald-400">
+                {formatTokenWithSymbol(netReceive, toAsset, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 8,
+                })}
+              </span>
             </div>
           </div>
 
@@ -141,12 +145,14 @@ export function QuotePreviewCard({
             <div className="mb-2 flex items-center justify-between">
               <span className="text-text-muted">Rate</span>
               <span className="font-medium text-text-primary">
-                1 {fromAsset} ~= {quote.rateQuote.effective_rate.toFixed(8)} {toAsset}
+                {`1 ${fromAsset} ≈ ${formatTokenAmount(quote.rateQuote.effective_rate, { maximumFractionDigits: 8 })} ${toAsset}`}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-text-muted">Slippage estimate</span>
-              <span className="text-text-primary">{(quote.rateQuote.slippage_estimate * 100).toFixed(2)}%</span>
+              <span className="text-text-primary">
+                {formatPercent(quote.rateQuote.slippage_estimate, { fractionDigits: 2 })}
+              </span>
             </div>
           </div>
 
@@ -156,13 +162,17 @@ export function QuotePreviewCard({
               {networkFees.map((fee, index) => (
                 <div key={`network-${index}`} className="flex items-center justify-between text-text-secondary">
                   <span>Network: {fee.asset}</span>
-                  <span>{fee.amount.toFixed(8)} {fee.asset}</span>
+                  <span>
+                    {formatTokenWithSymbol(fee.amount, fee.asset, { maximumFractionDigits: 8 })}
+                  </span>
                 </div>
               ))}
               {protocolFees.map((fee, index) => (
                 <div key={`protocol-${index}`} className="flex items-center justify-between text-text-secondary">
                   <span>Protocol: {fee.name.replace("_", " ")}</span>
-                  <span>{fee.amount.toFixed(8)} {fee.asset}</span>
+                  <span>
+                    {formatTokenWithSymbol(fee.amount, fee.asset, { maximumFractionDigits: 8 })}
+                  </span>
                 </div>
               ))}
             </div>

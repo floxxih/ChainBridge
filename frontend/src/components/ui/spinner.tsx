@@ -41,14 +41,21 @@ export function LoadingState({ label = "Loading…", size = "md", className }: L
       className={cn("flex flex-col items-center justify-center gap-3 py-12 text-center", className)}
     >
       <Spinner size={size} />
-      <p className="text-sm text-text-muted animate-pulse" aria-hidden="true">{label}</p>
+      <p className="text-sm text-text-muted motion-safe:animate-pulse" aria-hidden="true">{label}</p>
     </div>
   );
 }
 
 /** Skeleton shimmer block for placeholder loading */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-lg bg-surface-overlay", className)} />;
+  return (
+    <div
+      className={cn(
+        "rounded-lg bg-surface-overlay motion-safe:animate-pulse motion-reduce:opacity-90",
+        className
+      )}
+    />
+  );
 }
 
 /** Card skeleton placeholder */

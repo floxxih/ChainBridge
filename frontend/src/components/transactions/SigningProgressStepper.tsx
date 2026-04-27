@@ -23,7 +23,7 @@ function stepIcon(step: TransactionStep) {
     <Clock3
       className={cn(
         "h-4 w-4",
-        step.status === "active" ? "text-brand-500 animate-pulse" : "text-text-muted"
+        step.status === "active" ? "text-brand-500 motion-safe:animate-pulse" : "text-text-muted"
       )}
     />
   );

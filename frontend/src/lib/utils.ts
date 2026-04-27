@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { formatTokenAmount } from "@/lib/format";
+
 /** Merge class names with Tailwind conflict resolution */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,14 +14,12 @@ export function truncateAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
-/** Format a token amount with decimals */
+/** Format a token amount with decimals — delegates to shared {@link formatTokenAmount}. */
 export function formatAmount(amount: string | number, decimals = 7): string {
-  const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(num)) return "0";
-  return new Intl.NumberFormat("en-US", {
+  return formatTokenAmount(amount, {
     minimumFractionDigits: 0,
     maximumFractionDigits: decimals,
-  }).format(num);
+  });
 }
 
 /** Format a date to a relative time string */

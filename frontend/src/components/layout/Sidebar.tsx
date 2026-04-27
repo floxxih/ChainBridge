@@ -57,7 +57,9 @@ export function Sidebar() {
                     )} />
                     {t(link.key)}
                   </div>
-                  {isActive && <ChevronRight size={14} className="animate-in slide-in-from-left-1 duration-300" />}
+                  {isActive && (
+                    <ChevronRight size={14} className="animate-in slide-in-from-left-1 duration-300" />
+                  )}
                 </Link>
               </li>
             );
