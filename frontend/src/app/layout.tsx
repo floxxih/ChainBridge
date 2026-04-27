@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { EnvValidationWrapper } from "@/components/EnvValidationWrapper";
 import { cn } from "@/lib/utils";
+import { AppLayoutErrorBoundary } from "@/components/layout/AppLayoutErrorBoundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -93,26 +94,28 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <EnvValidationWrapper>
-          <Providers>
-            <ServiceWorkerRegistrar />
-            <div className="flex min-h-screen">
-              {/* Desktop Sidebar */}
-              <Sidebar />
+        <AppLayoutErrorBoundary>
+          <EnvValidationWrapper>
+            <Providers>
+              <ServiceWorkerRegistrar />
+              <div className="flex min-h-screen">
+                {/* Desktop Sidebar */}
+                <Sidebar />
 
-              {/* Main Shell */}
-              <div className="relative flex flex-1 flex-col lg:pl-64">
-                <Navbar />
-                <main id="main-content" className="flex-1" tabIndex={-1}>
-                  <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    {children}
-                  </div>
-                </main>
-                <Footer />
+                {/* Main Shell */}
+                <div className="relative flex flex-1 flex-col lg:pl-64">
+                  <Navbar />
+                  <main id="main-content" className="flex-1" tabIndex={-1}>
+                    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                      {children}
+                    </div>
+                  </main>
+                  <Footer />
+                </div>
               </div>
-            </div>
-          </Providers>
-        </EnvValidationWrapper>
+            </Providers>
+          </EnvValidationWrapper>
+        </AppLayoutErrorBoundary>
       </body>
     </html>
   );

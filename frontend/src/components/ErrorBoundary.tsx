@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { captureError } from "@/lib/errorMonitor";
 
@@ -9,6 +10,8 @@ interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   className?: string;
+  resetKeys?: unknown[];
+  contextName?: string;
 }
 
 interface State {
@@ -27,8 +30,25 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info.componentStack);
-    captureError(error, { componentStack: info.componentStack ?? "" });
+    const contextName = this.props.contextName ?? "UnknownBoundary";
+    console.error(`[ErrorBoundary:${contextName}]`, error, info.componentStack);
+    captureError(error, {
+      errorBoundary: contextName,
+      componentStack: info.componentStack ?? "",
+    });
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    const { resetKeys } = this.props;
+    if (!this.state.hasError || !resetKeys || !prevProps.resetKeys) return;
+
+    const hasResetKeyChanged =
+      resetKeys.length !== prevProps.resetKeys.length ||
+      resetKeys.some((key, index) => !Object.is(key, prevProps.resetKeys?.[index]));
+
+    if (hasResetKeyChanged) {
+      this.handleReset();
+    }
   }
 
   handleReset = () => {
@@ -42,7 +62,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div
           className={cn(
-            "flex flex-col items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/5 p-10 text-center",
+            "mx-auto flex w-full max-w-lg flex-col items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/5 p-10 text-center",
             this.props.className
           )}
         >
@@ -53,13 +73,22 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <p className="mb-6 max-w-sm text-sm text-text-secondary">
             {this.state.error?.message ?? "An unexpected error occurred."}
           </p>
-          <button
-            onClick={this.handleReset}
-            className="flex items-center gap-2 rounded-xl bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Try again
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={this.handleReset}
+              className="flex items-center gap-2 rounded-xl bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Try again
+            </button>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover"
+            >
+              <Home className="h-4 w-4" />
+              Go home
+            </Link>
+          </div>
         </div>
       );
     }
