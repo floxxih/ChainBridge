@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowRightLeft, Info, Settings, Share2, Vote, Waves } from "lucide-react";
 
 import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from "@/components/ui";
@@ -25,6 +25,24 @@ const FeeWarningBanner = dynamic(() =>
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
+import {
+  RiskDisclosureModal,
+  RISK_ACCEPTANCE_KEY,
+} from "@/components/swap/RiskDisclosureModal";
+import {
+  SlippageExpirationControls,
+  SLIPPAGE_DEFAULT,
+  SLIPPAGE_MIN,
+  SLIPPAGE_MAX,
+  EXPIRATION_DEFAULT_MINUTES,
+} from "@/components/swap/SlippageExpirationControls";
+import { SwapReviewModal } from "@/components/swap/SwapReviewModal";
+import { SwapSigningModal } from "@/components/swap/SwapSigningModal";
+import {
+  TransactionLifecycle,
+  TransactionStepKey,
+  TransactionStepStatus,
+} from "@/types";
 
 type ChainId = "stellar" | "bitcoin" | "ethereum";
 
@@ -33,6 +51,57 @@ const CHAINS: Array<{ id: ChainId; label: string; tokens: string[] }> = [
   { id: "bitcoin", label: "Bitcoin", tokens: ["BTC"] },
   { id: "ethereum", label: "Ethereum", tokens: ["ETH", "USDC"] },
 ];
+
+function buildSigningLifecycle(
+  current: TransactionStepKey,
+  signStatus: TransactionStepStatus,
+  broadcastStatus: TransactionStepStatus,
+  confirmStatus: TransactionStepStatus,
+  retryable = false
+): TransactionLifecycle {
+  const desc = (base: string, active: string, done: string, status: TransactionStepStatus) =>
+    status === "active" ? active : status === "completed" ? done : base;
+
+  return {
+    currentStep: current,
+    retryable,
+    steps: [
+      {
+        key: "sign",
+        label: "Sign Transaction",
+        status: signStatus,
+        description: desc(
+          "Sign the transaction in your wallet",
+          "Waiting for wallet signature…",
+          "Transaction signed",
+          signStatus
+        ),
+      },
+      {
+        key: "broadcast",
+        label: "Broadcast",
+        status: broadcastStatus,
+        description: desc(
+          "Submit transaction to network",
+          "Submitting to network…",
+          "Transaction broadcast",
+          broadcastStatus
+        ),
+      },
+      {
+        key: "confirm",
+        label: "Confirm",
+        status: confirmStatus,
+        description: desc(
+          "Awaiting on-chain confirmation",
+          "Awaiting on-chain confirmation…",
+          "Confirmed on-chain",
+          confirmStatus
+        ),
+      },
+    ],
+  };
+}
 
 export default function SwapPage() {
   const { isConnected } = useUnifiedWallet();
@@ -49,6 +118,18 @@ export default function SwapPage() {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteUpdatedAt, setQuoteUpdatedAt] = useState<number | null>(null);
   const [clockMs, setClockMs] = useState(Date.now());
+
+  // Slippage & expiration controls (issue #201)
+  const [slippage, setSlippage] = useState(SLIPPAGE_DEFAULT);
+  const [expirationMinutes, setExpirationMinutes] = useState(EXPIRATION_DEFAULT_MINUTES);
+
+  // Modal state (issues #165, #203, #204)
+  const [riskModalOpen, setRiskModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [signingModalOpen, setSigningModalOpen] = useState(false);
+  const [signingLifecycle, setSigningLifecycle] = useState<TransactionLifecycle | null>(null);
+  const signingGenRef = useRef(0);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClockMs(Date.now()), 1000);
@@ -125,6 +206,100 @@ export default function SwapPage() {
       maximumFractionDigits: 8,
     })
     : "";
+
+  const slippageInvalid =
+    Number.isNaN(slippage) || slippage < SLIPPAGE_MIN || slippage > SLIPPAGE_MAX;
+
+  // --- Modal flow handlers ---
+
+  const openReviewModal = () => setReviewModalOpen(true);
+
+  /** Called when "Initialize Atomic Swap" is clicked. */
+  const handleInitiateSwap = () => {
+    let accepted = false;
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(RISK_ACCEPTANCE_KEY);
+        accepted = stored ? JSON.parse(stored)?.accepted === true : false;
+      } catch {
+        accepted = false;
+      }
+    }
+    if (!accepted) {
+      setRiskModalOpen(true);
+    } else {
+      openReviewModal();
+    }
+  };
+
+  /** Called when the user accepts the risk disclosure. */
+  const handleRiskAccepted = () => {
+    setRiskModalOpen(false);
+    openReviewModal();
+  };
+
+  /** Runs the simulated signing flow. Uses a generation counter so stale runs self-abort. */
+  const runSigningSimulation = async (gen: number) => {
+    setSigningLifecycle(buildSigningLifecycle("sign", "active", "idle", "idle"));
+
+    await new Promise<void>((r) => setTimeout(r, 2000));
+    if (signingGenRef.current !== gen) return;
+    setSigningLifecycle(buildSigningLifecycle("broadcast", "completed", "active", "idle"));
+
+    await new Promise<void>((r) => setTimeout(r, 2000));
+    if (signingGenRef.current !== gen) return;
+    setSigningLifecycle(buildSigningLifecycle("confirm", "completed", "completed", "active"));
+
+    await new Promise<void>((r) => setTimeout(r, 2000));
+    if (signingGenRef.current !== gen) return;
+    setSigningLifecycle(buildSigningLifecycle("confirm", "completed", "completed", "completed"));
+  };
+
+  /** Called when the user confirms the swap in the review modal. */
+  const handleSwapConfirm = async () => {
+    setIsConfirming(true);
+    await new Promise<void>((r) => setTimeout(r, 400));
+    setIsConfirming(false);
+    setReviewModalOpen(false);
+    setSigningModalOpen(true);
+    const gen = ++signingGenRef.current;
+    void runSigningSimulation(gen);
+  };
+
+  /** Retry: cancel any running simulation and restart. */
+  const handleSigningRetry = () => {
+    const gen = ++signingGenRef.current;
+    void runSigningSimulation(gen);
+  };
+
+  /** Cancel signing: abort simulation and close. */
+  const handleSigningCancel = () => {
+    signingGenRef.current++;
+    setSigningModalOpen(false);
+    setSigningLifecycle(null);
+  };
+
+  const handleSigningClose = () => {
+    setSigningModalOpen(false);
+    setSigningLifecycle(null);
+  };
+
+  const reviewSwapDetails = {
+    fromAsset,
+    fromChain: sourceInfo?.label ?? sourceChain,
+    fromAmount: amount || "0",
+    toAsset,
+    toChain: destInfo?.label ?? destChain,
+    toAmount: toAmount || "~",
+    estimatedFees:
+      quote?.feeBreakdown.total_usd_estimate != null
+        ? `~$${quote.feeBreakdown.total_usd_estimate.toFixed(2)} USD`
+        : "See quote preview",
+    timelockHours,
+    route: `${sourceInfo?.label ?? sourceChain} → ${destInfo?.label ?? destChain}`,
+    slippage,
+    expirationMinutes,
+  };
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12 md:py-20 animate-fade-in">
@@ -271,6 +446,14 @@ export default function SwapPage() {
             onTimelockChange={setTimelockHours}
           />
 
+          {/* Slippage & expiration controls (issue #201) */}
+          <SlippageExpirationControls
+            slippage={slippage}
+            expirationMinutes={expirationMinutes}
+            onSlippageChange={setSlippage}
+            onExpirationChange={setExpirationMinutes}
+          />
+
           <div className="rounded-xl border border-border bg-background/60 p-4">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-sm font-medium text-text-primary">Advanced Execution</span>
@@ -307,7 +490,8 @@ export default function SwapPage() {
         <CardFooter className="bg-surface-overlay/30">
           <Button
             className="w-full h-12 rounded-xl text-lg font-bold"
-            disabled={!isConnected || !amount || !!quoteError}
+            disabled={!isConnected || !amount || !!quoteError || slippageInvalid}
+            onClick={handleInitiateSwap}
           >
             {isConnected ? "Initialize Atomic Swap" : "Connect Wallet to Swap"}
           </Button>
@@ -358,12 +542,37 @@ export default function SwapPage() {
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500/10 text-brand-500">
             <Share2 className="h-5 w-5" />
           </div>
-          <h3 className="font-semibold text-text-primary">Share & Earn</h3>
+          <h3 className="font-semibold text-text-primary">Share &amp; Earn</h3>
           <p className="mt-2 text-sm text-text-secondary">
             Generate referral links, QR codes, and performance analytics.
           </p>
         </Link>
       </div>
+
+      {/* Risk disclosure modal — shown before first swap (issue #165) */}
+      <RiskDisclosureModal
+        open={riskModalOpen}
+        onAccept={handleRiskAccepted}
+        onClose={() => setRiskModalOpen(false)}
+      />
+
+      {/* Swap review modal — confirmation before signing (issue #203) */}
+      <SwapReviewModal
+        open={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        onConfirm={() => void handleSwapConfirm()}
+        isConfirming={isConfirming}
+        swapDetails={reviewSwapDetails}
+      />
+
+      {/* Transaction signing modal — progress, timeout, retry (issue #204) */}
+      <SwapSigningModal
+        open={signingModalOpen}
+        onClose={handleSigningClose}
+        onCancel={handleSigningCancel}
+        onRetry={handleSigningRetry}
+        lifecycle={signingLifecycle}
+      />
     </div>
   );
 }
