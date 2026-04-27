@@ -3,6 +3,8 @@
  * All variables are validated at startup to surface misconfiguration early.
  */
 
+import { featureFlags as resolvedFeatureFlags } from "./featureFlags";
+
 function getEnv(key: string, fallback?: string): string {
   const value = process.env[key];
   if (!value && fallback === undefined) {
@@ -43,12 +45,8 @@ export const config = {
     rpcUrl: getEnv("NEXT_PUBLIC_ETHEREUM_RPC_URL", ""),
   },
 
-  features: {
-    ordersEnabled: getEnv("NEXT_PUBLIC_FEATURE_ORDERS_ENABLED", "true") === "true",
-    swapsEnabled: getEnv("NEXT_PUBLIC_FEATURE_SWAPS_ENABLED", "true") === "true",
-    swapWebsocketEnabled:
-      getEnv("NEXT_PUBLIC_FEATURE_SWAP_WS_ENABLED", "false") === "true",
-  },
+  /** See `featureFlags.ts` for keys, env mapping, and test overrides. */
+  features: resolvedFeatureFlags,
 } as const;
 
 export type AppConfig = typeof config;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { formatFiatEstimate, formatTokenWithSymbol } from "@/lib/format";
 
 type Chain = "stellar" | "bitcoin" | "ethereum" | "solana";
 
@@ -53,31 +53,31 @@ export default function FeeDisplay({ sourceChain, destChain, amount }: FeeDispla
         <div className="flex justify-between">
           <span className="text-gray-500">Source ({sourceChain})</span>
           <span className="font-mono">
-            {srcTotal.toFixed(6)} {srcFee.asset}
+            {formatTokenWithSymbol(srcTotal, srcFee.asset, { maximumFractionDigits: 6 })}
           </span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Network fee</span>
-          <span>{srcFee.base_fee.toFixed(6)} {srcFee.asset}</span>
+          <span>{formatTokenWithSymbol(srcFee.base_fee, srcFee.asset, { maximumFractionDigits: 6 })}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Contract fee</span>
-          <span>{srcFee.contract_fee.toFixed(6)} {srcFee.asset}</span>
+          <span>{formatTokenWithSymbol(srcFee.contract_fee, srcFee.asset, { maximumFractionDigits: 6 })}</span>
         </div>
 
         <div className="flex justify-between">
           <span className="text-gray-500">Destination ({destChain})</span>
           <span className="font-mono">
-            {dstTotal.toFixed(6)} {dstFee.asset}
+            {formatTokenWithSymbol(dstTotal, dstFee.asset, { maximumFractionDigits: 6 })}
           </span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Network fee</span>
-          <span>{dstFee.base_fee.toFixed(6)} {dstFee.asset}</span>
+          <span>{formatTokenWithSymbol(dstFee.base_fee, dstFee.asset, { maximumFractionDigits: 6 })}</span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Contract fee</span>
-          <span>{dstFee.contract_fee.toFixed(6)} {dstFee.asset}</span>
+          <span>{formatTokenWithSymbol(dstFee.contract_fee, dstFee.asset, { maximumFractionDigits: 6 })}</span>
         </div>
 
         {amount && amount > 0 && (
@@ -85,7 +85,7 @@ export default function FeeDisplay({ sourceChain, destChain, amount }: FeeDispla
             <hr className="border-gray-200 dark:border-gray-600" />
             <div className="flex justify-between">
               <span className="text-gray-500">Relayer fee (0.1%)</span>
-              <span className="font-mono">${relayerFee.toFixed(2)} USD</span>
+              <span className="font-mono">{formatFiatEstimate(relayerFee)}</span>
             </div>
           </>
         )}
