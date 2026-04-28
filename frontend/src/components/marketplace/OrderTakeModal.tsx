@@ -2,14 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  Clock3,
-  ShieldCheck,
-  Wallet,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Clock3, ShieldCheck, Wallet } from "lucide-react";
 
 import { Badge, Button } from "@/components/ui";
 import { SigningProgressStepper } from "@/components/transactions/SigningProgressStepper";
@@ -109,7 +102,7 @@ export function OrderTakeModal({
   const receiveAmount = order.side === OrderSide.BUY ? order.amount : order.total;
   const explorerUrl =
     workflowTx?.hash && workflowTx.hash !== "pending"
-      ? workflowTx.explorerUrl ?? getExplorerUrl(workflowTx.chain, workflowTx.hash)
+      ? (workflowTx.explorerUrl ?? getExplorerUrl(workflowTx.chain, workflowTx.hash))
       : null;
 
   return createPortal(
@@ -169,8 +162,14 @@ export function OrderTakeModal({
           <div className="grid gap-3 sm:grid-cols-2">
             <MetaCard label="Maker" value={shortAddress(order.maker)} />
             <MetaCard label="Order Type" value={order.orderType ?? "limit"} />
-            <MetaCard label="Expiry" value={order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"} />
-            <MetaCard label="Partial Fills" value={order.allowPartialFills ? "Allowed" : "Disabled"} />
+            <MetaCard
+              label="Expiry"
+              value={order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}
+            />
+            <MetaCard
+              label="Partial Fills"
+              value={order.allowPartialFills ? "Allowed" : "Disabled"}
+            />
             <MetaCard label="Minimum Fill" value={order.minFillAmount ?? "Full size only"} />
             <MetaCard label="Amendments" value={String(order.amendmentCount ?? 0)} />
           </div>
@@ -188,7 +187,9 @@ export function OrderTakeModal({
                   ) : (
                     <AlertCircle className="mt-0.5 h-4 w-4 text-amber-400" />
                   )}
-                  <p className={cn("text-sm", item.ok ? "text-text-primary" : "text-text-secondary")}>
+                  <p
+                    className={cn("text-sm", item.ok ? "text-text-primary" : "text-text-secondary")}
+                  >
                     {item.label}
                   </p>
                 </div>
@@ -217,9 +218,16 @@ export function OrderTakeModal({
                 Final Review
               </p>
               <div className="mt-3 grid gap-2 text-sm text-text-secondary">
-                <p>You will lock {fundingAmount} {fundingToken} on {fundingChain}.</p>
-                <p>You expect to receive {receiveAmount} {receiveToken} from {receiveChain}.</p>
-                <p>Order expiry: {order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}.</p>
+                <p>
+                  You will lock {fundingAmount} {fundingToken} on {fundingChain}.
+                </p>
+                <p>
+                  You expect to receive {receiveAmount} {receiveToken} from {receiveChain}.
+                </p>
+                <p>
+                  Order expiry:{" "}
+                  {order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}.
+                </p>
               </div>
             </div>
           )}
@@ -230,7 +238,9 @@ export function OrderTakeModal({
 
           {workflowTx?.status === TransactionStatus.COMPLETED && explorerUrl && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="text-sm font-semibold text-emerald-400">Match submitted successfully.</p>
+              <p className="text-sm font-semibold text-emerald-400">
+                Match submitted successfully.
+              </p>
               <a
                 href={explorerUrl}
                 target="_blank"

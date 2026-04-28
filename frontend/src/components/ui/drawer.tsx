@@ -107,16 +107,24 @@ export function Drawer({
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
       if (e.key === "Tab" && panelRef.current) {
         const focusable = getFocusable(panelRef.current);
-        if (!focusable.length) { e.preventDefault(); return; }
+        if (!focusable.length) {
+          e.preventDefault();
+          return;
+        }
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
         if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault(); last.focus();
+          e.preventDefault();
+          last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault(); first.focus();
+          e.preventDefault();
+          first.focus();
         }
       }
     };
@@ -127,7 +135,9 @@ export function Drawer({
   // Body scroll lock
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   // Swipe-to-close (touch events on the panel)
@@ -136,25 +146,28 @@ export function Drawer({
     touchStartRef.current = { x: t.clientX, y: t.clientY };
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStartRef.current.x;
-    const dy = t.clientY - touchStartRef.current.y;
-    touchStartRef.current = null;
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartRef.current.x;
+      const dy = t.clientY - touchStartRef.current.y;
+      touchStartRef.current = null;
 
-    const swipeRight = dx > SWIPE_THRESHOLD && Math.abs(dy) < Math.abs(dx);
-    const swipeLeft = dx < -SWIPE_THRESHOLD && Math.abs(dy) < Math.abs(dx);
-    const swipeDown = dy > SWIPE_THRESHOLD && Math.abs(dx) < Math.abs(dy);
+      const swipeRight = dx > SWIPE_THRESHOLD && Math.abs(dy) < Math.abs(dx);
+      const swipeLeft = dx < -SWIPE_THRESHOLD && Math.abs(dy) < Math.abs(dx);
+      const swipeDown = dy > SWIPE_THRESHOLD && Math.abs(dx) < Math.abs(dy);
 
-    if (
-      (side === "right" && swipeRight) ||
-      (side === "left" && swipeLeft) ||
-      (side === "bottom" && swipeDown)
-    ) {
-      onClose();
-    }
-  }, [side, onClose]);
+      if (
+        (side === "right" && swipeRight) ||
+        (side === "left" && swipeLeft) ||
+        (side === "bottom" && swipeDown)
+      ) {
+        onClose();
+      }
+    },
+    [side, onClose]
+  );
 
   if (typeof document === "undefined") return null;
 
@@ -200,8 +213,8 @@ export function Drawer({
         )}
 
         {/* Header slot */}
-        {header ?? (
-          (title || description) && (
+        {header ??
+          ((title || description) && (
             <div className="flex-shrink-0 border-b border-border px-6 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -225,16 +238,13 @@ export function Drawer({
                 </button>
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* Body slot */}
         <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
 
         {/* Footer slot */}
-        {footer && (
-          <div className="flex-shrink-0 border-t border-border px-6 py-4">{footer}</div>
-        )}
+        {footer && <div className="flex-shrink-0 border-t border-border px-6 py-4">{footer}</div>}
       </div>
     </div>,
     document.body

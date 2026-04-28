@@ -80,17 +80,17 @@ export const useWalletStore = create<WalletStore>()(
             ethereumAccountsListener = (accounts: string[]) => {
               const currentState = useWalletStore.getState();
               const nextAddress = accounts[0] ?? null;
-              
+
               if (!nextAddress) {
                 void useWalletStore.getState().disconnect();
                 return;
               }
-              
+
               if (currentState.address && currentState.address !== nextAddress) {
                 void useWalletStore.getState().disconnect();
                 return;
               }
-              
+
               set({
                 address: nextAddress,
                 publicKey: nextAddress,
@@ -124,17 +124,17 @@ export const useWalletStore = create<WalletStore>()(
             unisatAccountsListener = (accounts: string[]) => {
               const currentState = useWalletStore.getState();
               const nextAddress = accounts[0] ?? null;
-              
+
               if (!nextAddress) {
                 void useWalletStore.getState().disconnect();
                 return;
               }
-              
+
               if (currentState.address && currentState.address !== nextAddress) {
                 void useWalletStore.getState().disconnect();
                 return;
               }
-              
+
               set({
                 address: nextAddress,
                 publicKey: nextAddress,

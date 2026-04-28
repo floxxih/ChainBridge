@@ -66,7 +66,9 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
           className="rounded-lg border border-border bg-surface-overlay px-2 py-1 text-xs text-text-secondary"
         >
           {SUPPORTED_LOCALES.map((locale) => (
-            <option key={locale} value={locale}>{locale.toUpperCase()}</option>
+            <option key={locale} value={locale}>
+              {locale.toUpperCase()}
+            </option>
           ))}
         </select>
       </div>
@@ -110,7 +112,10 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
                 >
                   {t(link.key)}
                   {active && (
-                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-500" aria-hidden="true" />
+                    <div
+                      className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-500"
+                      aria-hidden="true"
+                    />
                   )}
                 </Link>
               </li>

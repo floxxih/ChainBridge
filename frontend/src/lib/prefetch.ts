@@ -34,15 +34,15 @@ export function getPrefetchRoutesForPath(pathname: string): PrefetchConfig[] {
 
 export function shouldPrefetch(href: string, currentPathname: string): boolean {
   const normalizedHref = href.split("?")[0];
-  
+
   if (normalizedHref === currentPathname) {
     return false;
   }
-  
+
   const swapFlowRoutes = ["/swap", "/orders", "/transactions", "/htlcs"];
   if (swapFlowRoutes.includes(normalizedHref)) {
     return true;
   }
-  
+
   return false;
 }

@@ -109,6 +109,7 @@ npm run lint
 ```
 
 **ESLint Rules**:
+
 - No `var` statements (use `const`/`let`)
 - Prefer `const` over `let`
 - No unused variables (prefix with `_` to suppress)

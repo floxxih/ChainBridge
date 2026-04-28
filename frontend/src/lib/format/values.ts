@@ -20,7 +20,10 @@ function toNumber(value: string | number): number {
 }
 
 /** Formats a numeric token/crypto amount with configurable decimal bounds. */
-export function formatTokenAmount(value: string | number, options: FormatTokenAmountOptions = {}): string {
+export function formatTokenAmount(
+  value: string | number,
+  options: FormatTokenAmountOptions = {}
+): string {
   const n = toNumber(value);
   if (!Number.isFinite(n)) return "0";
 
@@ -54,7 +57,10 @@ export type FormatFiatEstimateOptions = Omit<FormatTokenAmountOptions, "notation
 };
 
 /** Formats a fiat estimate using Intl currency (USD by default). */
-export function formatFiatEstimate(value: string | number, options: FormatFiatEstimateOptions = {}): string {
+export function formatFiatEstimate(
+  value: string | number,
+  options: FormatFiatEstimateOptions = {}
+): string {
   const n = toNumber(value);
   if (!Number.isFinite(n)) return "—";
 
@@ -85,7 +91,10 @@ export type FormatCompactValueOptions = {
  * Displays very large numbers in compact notation and very small numbers with
  * scientific notation so they remain readable in tables and cards.
  */
-export function formatCompactValue(value: string | number, options: FormatCompactValueOptions = {}): string {
+export function formatCompactValue(
+  value: string | number,
+  options: FormatCompactValueOptions = {}
+): string {
   const n = toNumber(value);
   if (!Number.isFinite(n)) return "0";
 

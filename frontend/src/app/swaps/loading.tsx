@@ -36,7 +36,10 @@ export default function SwapsLoading() {
             <Skeleton className="h-5 w-32 mb-4" />
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-border bg-surface-overlay">
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 rounded-xl border border-border bg-surface-overlay"
+                >
                   <Skeleton className="h-5 w-40" />
                   <Skeleton className="h-5 w-20 rounded-full" />
                 </div>

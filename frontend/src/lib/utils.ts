@@ -25,12 +25,12 @@ export function formatAmount(amount: string | number, decimals = 7): string {
 /** Format a date to a relative time string */
 export function formatRelativeTime(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
+
   // Handle invalid dates
   if (isNaN(d.getTime())) {
     return "Invalid date";
   }
-  
+
   const diff = Date.now() - d.getTime();
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -46,24 +46,24 @@ export function formatRelativeTime(date: string | Date): string {
 /** Format a date to absolute UTC timestamp */
 export function formatAbsoluteUTC(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
+
   // Handle invalid dates
   if (isNaN(d.getTime())) {
     return "Invalid date";
   }
-  
+
   return d.toISOString().replace("T", " ").substring(0, 19) + " UTC";
 }
 
 /** Format a date to absolute local timestamp */
 export function formatAbsoluteLocal(date: string | Date): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  
+
   // Handle invalid dates
   if (isNaN(d.getTime())) {
     return "Invalid date";
   }
-  
+
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
@@ -84,18 +84,18 @@ export function formatTimestamp(
   } = {}
 ): string {
   const { mode = "relative", timezone = "local" } = options;
-  
+
   const d = typeof date === "string" ? new Date(date) : date;
-  
+
   // Handle invalid dates
   if (isNaN(d.getTime())) {
     return "Invalid date";
   }
-  
+
   if (mode === "relative") {
     return formatRelativeTime(d);
   }
-  
+
   return timezone === "utc" ? formatAbsoluteUTC(d) : formatAbsoluteLocal(d);
 }
 

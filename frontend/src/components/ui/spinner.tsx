@@ -41,7 +41,9 @@ export function LoadingState({ label = "Loading…", size = "md", className }: L
       className={cn("flex flex-col items-center justify-center gap-3 py-12 text-center", className)}
     >
       <Spinner size={size} />
-      <p className="text-sm text-text-muted motion-safe:animate-pulse" aria-hidden="true">{label}</p>
+      <p className="text-sm text-text-muted motion-safe:animate-pulse" aria-hidden="true">
+        {label}
+      </p>
     </div>
   );
 }
@@ -74,7 +76,12 @@ export function CardSkeleton({ className }: { className?: string }) {
 /** List item skeleton placeholder */
 export function ListItemSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-4 rounded-2xl border border-border bg-surface-raised p-4", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-4 rounded-2xl border border-border bg-surface-raised p-4",
+        className
+      )}
+    >
       <Skeleton className="h-10 w-10 rounded-full shrink-0" />
       <div className="flex-1 space-y-2 min-w-0">
         <Skeleton className="h-4 w-3/4" />
@@ -139,7 +146,13 @@ export function TableRowSkeleton({ cols = 5, className }: { cols?: number; class
 }
 
 /** Avatar skeleton placeholder */
-export function AvatarSkeleton({ size = "md", className }: { size?: "sm" | "md" | "lg"; className?: string }) {
+export function AvatarSkeleton({
+  size = "md",
+  className,
+}: {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
   const sizeStyles = { sm: "h-8 w-8", md: "h-10 w-10", lg: "h-14 w-14" };
   return <Skeleton className={cn("rounded-full", sizeStyles[size], className)} />;
 }

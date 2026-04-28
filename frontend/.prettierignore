@@ -16,3 +16,5 @@ yarn-error.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+package-lock.json
+coverage

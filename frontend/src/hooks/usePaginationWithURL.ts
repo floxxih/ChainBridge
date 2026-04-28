@@ -23,7 +23,8 @@ export function usePaginationWithURL(
 
   const pageParam = searchParams.get(paramName);
   const pageFromUrl = pageParam ? parseInt(pageParam, 10) : initialPage;
-  const safePageFromUrl = Number.isFinite(pageFromUrl) && pageFromUrl > 0 ? pageFromUrl : initialPage;
+  const safePageFromUrl =
+    Number.isFinite(pageFromUrl) && pageFromUrl > 0 ? pageFromUrl : initialPage;
 
   const pagination = usePagination(totalItems, pageSize, safePageFromUrl);
 

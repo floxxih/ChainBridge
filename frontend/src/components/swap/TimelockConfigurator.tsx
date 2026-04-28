@@ -105,7 +105,9 @@ export function TimelockConfigurator({
       return;
     }
     if (parsed < MIN_TIMELOCK_HOURS || parsed > MAX_TIMELOCK_HOURS) {
-      setCustomError(`Custom timelock must be between ${MIN_TIMELOCK_HOURS} and ${MAX_TIMELOCK_HOURS} hours.`);
+      setCustomError(
+        `Custom timelock must be between ${MIN_TIMELOCK_HOURS} and ${MAX_TIMELOCK_HOURS} hours.`
+      );
       return;
     }
     setCustomError(null);
@@ -183,7 +185,9 @@ export function TimelockConfigurator({
 
       <p className="mt-4 text-xs text-text-secondary">{helperText}</p>
 
-      {isValidating && <p className="mt-3 text-xs text-text-muted">Validating timelock safety...</p>}
+      {isValidating && (
+        <p className="mt-3 text-xs text-text-muted">Validating timelock safety...</p>
+      )}
 
       {!isValidating && validation?.warnings?.length ? (
         <div className="mt-3 space-y-2">
@@ -193,7 +197,9 @@ export function TimelockConfigurator({
               className={`rounded-xl border p-3 text-xs ${LEVEL_STYLES[warning.level] || LEVEL_STYLES.info}`}
             >
               <p className="font-semibold">{warning.message}</p>
-              {warning.recommendation && <p className="mt-1 opacity-90">{warning.recommendation}</p>}
+              {warning.recommendation && (
+                <p className="mt-1 opacity-90">{warning.recommendation}</p>
+              )}
             </div>
           ))}
         </div>

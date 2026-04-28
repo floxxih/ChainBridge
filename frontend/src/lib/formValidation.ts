@@ -96,10 +96,7 @@ export const maxValue = (max: number, message?: string) =>
     message ?? `Must be no more than ${max}`
   );
 
-export const email = pattern(
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  "Please enter a valid email address"
-);
+export const email = pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please enter a valid email address");
 
 export const url = pattern(
   /^https?:\/\/.+/,
@@ -170,10 +167,7 @@ export function getFirstError(
   return errors[keys[0]];
 }
 
-export function formatValidationMessage(
-  result: ValidationResult,
-  fieldLabel?: string
-): string {
+export function formatValidationMessage(result: ValidationResult, fieldLabel?: string): string {
   if (result.valid) return "";
   if (!result.message) return `Invalid value for ${fieldLabel || "field"}`;
   if (fieldLabel) {

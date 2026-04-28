@@ -5,14 +5,10 @@ export interface UseDebounceOptions {
   leading?: boolean;
 }
 
-export function useDebounce<T>(
-  value: T,
-  delay?: number,
-  options?: UseDebounceOptions
-): T {
+export function useDebounce<T>(value: T, delay?: number, options?: UseDebounceOptions): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   const leading = options?.leading ?? false;
-  
+
   useEffect(() => {
     if (leading) {
       setDebouncedValue(value);

@@ -245,7 +245,7 @@ export interface FeeEstimateRequest {
   from_asset: string;
   to_asset: string;
   amount: number;
-  urgency?: 'low' | 'medium' | 'high';
+  urgency?: "low" | "medium" | "high";
 }
 
 /**
@@ -331,8 +331,8 @@ export interface CEXComparisonRequest {
 export interface RateAlertRequest {
   pair: string;
   threshold_rate: number;
-  direction: 'above' | 'below';
-  notification_method: 'email' | 'webhook';
+  direction: "above" | "below";
+  notification_method: "email" | "webhook";
 }
 
 /**
@@ -406,18 +406,24 @@ export interface ChainBridgeApiClient {
   createHTLC(data: HTLCCreate): Promise<ApiResponse<HTLCResponse>>;
   claimHTLC(id: string, data: HTLCClaim): Promise<ApiResponse<HTLCResponse>>;
   getHTLC(id: string): Promise<ApiResponse<HTLCStatusResponse>>;
-  listHTLCS(params?: { page?: number; limit?: number }): Promise<ApiResponse<PaginatedResponse<HTLCResponse>>>;
-  
+  listHTLCS(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<PaginatedResponse<HTLCResponse>>>;
+
   // Order operations
   createOrder(data: OrderCreate): Promise<ApiResponse<OrderResponse>>;
   matchOrder(id: string, data: OrderMatch): Promise<ApiResponse<OrderResponse>>;
   getOrder(id: string): Promise<ApiResponse<OrderResponse>>;
-  listOrders(params?: { page?: number; limit?: number }): Promise<ApiResponse<PaginatedResponse<OrderResponse>>>;
-  
+  listOrders(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<PaginatedResponse<OrderResponse>>>;
+
   // Fee operations
   estimateFees(data: FeeEstimateRequest): Promise<ApiResponse<SwapFeeBreakdownResponse>>;
   getExchangeRates(data: ExchangeRateRequest): Promise<ApiResponse<RateQuoteResponse>>;
-  
+
   // Auth operations
   createApiKey(data: APIKeyCreate): Promise<ApiResponse<APIKeyResponse>>;
   refreshToken(token: string): Promise<ApiResponse<TokenResponse>>;

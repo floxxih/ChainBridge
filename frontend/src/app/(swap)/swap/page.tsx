@@ -7,18 +7,18 @@ import { AlertCircle, ArrowRightLeft, Info, Settings, Share2, Vote, Waves } from
 
 import { Badge, Button, Card, CardContent, CardFooter, CardHeader, Input } from "@/components/ui";
 
-const QuotePreviewCard = dynamic(() =>
-  import("@/components/swap/QuotePreviewCard").then(mod => mod.QuotePreviewCard),
+const QuotePreviewCard = dynamic(
+  () => import("@/components/swap/QuotePreviewCard").then((mod) => mod.QuotePreviewCard),
   { loading: () => <div className="h-32 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
-const TimelockConfigurator = dynamic(() =>
-  import("@/components/swap/TimelockConfigurator").then(mod => mod.TimelockConfigurator),
+const TimelockConfigurator = dynamic(
+  () => import("@/components/swap/TimelockConfigurator").then((mod) => mod.TimelockConfigurator),
   { loading: () => <div className="h-24 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
-const FeeWarningBanner = dynamic(() =>
-  import("@/components/fees/FeeWarningBanner").then(mod => mod.FeeWarningBanner),
+const FeeWarningBanner = dynamic(
+  () => import("@/components/fees/FeeWarningBanner").then((mod) => mod.FeeWarningBanner),
   { loading: () => <div className="h-12 motion-safe:animate-pulse bg-surface-raised rounded-xl" /> }
 );
 
@@ -27,10 +27,7 @@ import { formatFiatEstimate, formatTokenAmount } from "@/lib/format";
 import { fetchQuotePreview, type QuotePreview } from "@/lib/quoteApi";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
-import {
-  RiskDisclosureModal,
-  RISK_ACCEPTANCE_KEY,
-} from "@/components/swap/RiskDisclosureModal";
+import { RiskDisclosureModal, RISK_ACCEPTANCE_KEY } from "@/components/swap/RiskDisclosureModal";
 import {
   SlippageExpirationControls,
   SLIPPAGE_DEFAULT,
@@ -40,11 +37,7 @@ import {
 } from "@/components/swap/SlippageExpirationControls";
 import { SwapReviewModal } from "@/components/swap/SwapReviewModal";
 import { SwapSigningModal } from "@/components/swap/SwapSigningModal";
-import {
-  TransactionLifecycle,
-  TransactionStepKey,
-  TransactionStepStatus,
-} from "@/types";
+import { TransactionLifecycle, TransactionStepKey, TransactionStepStatus } from "@/types";
 
 type ChainId = "stellar" | "bitcoin" | "ethereum";
 
@@ -474,10 +467,11 @@ export default function SwapPage() {
                   key={mode}
                   type="button"
                   onClick={() => setOrderType(mode as "market" | "limit" | "twap")}
-                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${orderType === mode
-                    ? "border-brand-500 bg-brand-500/10 text-brand-500"
-                    : "border-border bg-surface-overlay/30 text-text-secondary"
-                    }`}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                    orderType === mode
+                      ? "border-brand-500 bg-brand-500/10 text-brand-500"
+                      : "border-border bg-surface-overlay/30 text-text-secondary"
+                  }`}
                 >
                   {mode === "twap" ? "TWAP schedule" : `${mode} order`}
                 </button>

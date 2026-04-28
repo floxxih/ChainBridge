@@ -142,10 +142,7 @@ export interface AnalyticsEvent<K extends AnalyticsEventName = AnalyticsEventNam
 
 const ENABLED = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "false";
 
-export function track<K extends AnalyticsEventName>(
-  name: K,
-  payload: AnalyticsEventMap[K]
-): void {
+export function track<K extends AnalyticsEventName>(name: K, payload: AnalyticsEventMap[K]): void {
   if (!ENABLED) return;
 
   const event: AnalyticsEvent<K> = {

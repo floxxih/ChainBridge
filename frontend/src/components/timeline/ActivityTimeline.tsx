@@ -50,9 +50,7 @@ export function ActivityTimeline({
   return (
     <div className={clsx("space-y-3", className)}>
       {title && (
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-          {title}
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{title}</p>
       )}
 
       {events.length === 0 ? (

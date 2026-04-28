@@ -40,7 +40,12 @@ function parseNumeric(value: string) {
   return Number(value.replace(/,/g, "")) || 0;
 }
 
-function compareOrders(a: Order, b: Order, sortKey: OrderSortKey, sortDirection: OrderSortDirection) {
+function compareOrders(
+  a: Order,
+  b: Order,
+  sortKey: OrderSortKey,
+  sortDirection: OrderSortDirection
+) {
   const multiplier = sortDirection === "asc" ? 1 : -1;
 
   if (sortKey === "timestamp") {
@@ -72,7 +77,11 @@ function SortIndicator({
   return <ArrowDown size={12} className="text-brand-500" aria-hidden="true" />;
 }
 
-function defaultColumns(onViewDetails: (order: Order) => void, onTakeOrder: (order: Order) => void, takeButtonDisabled?: (order: Order) => boolean): OrderListColumn[] {
+function defaultColumns(
+  onViewDetails: (order: Order) => void,
+  onTakeOrder: (order: Order) => void,
+  takeButtonDisabled?: (order: Order) => boolean
+): OrderListColumn[] {
   return [
     {
       key: "pair",
@@ -91,13 +100,7 @@ function defaultColumns(onViewDetails: (order: Order) => void, onTakeOrder: (ord
       key: "status",
       label: "Status",
       className: "px-6 py-4",
-      render: (order) => (
-        <StatusBadge
-          size="sm"
-          showIcon={false}
-          orderStatus={order.status}
-        />
-      ),
+      render: (order) => <StatusBadge size="sm" showIcon={false} orderStatus={order.status} />,
     },
     {
       key: "amount",
@@ -232,7 +235,10 @@ export function OrderListTable({
                 ))
               ) : visibleOrders.length > 0 ? (
                 visibleOrders.map((order) => (
-                  <tr key={order.id} className="group hover:bg-surface-overlay/30 transition-colors">
+                  <tr
+                    key={order.id}
+                    className="group hover:bg-surface-overlay/30 transition-colors"
+                  >
                     {resolvedColumns.map((column) => (
                       <td key={`${order.id}-${column.key}`} className={column.className}>
                         {column.render(order)}
@@ -264,7 +270,10 @@ export function OrderListTable({
       <div className="flex flex-col gap-4 md:hidden">
         {loading ? (
           loadingRows.map((_, index) => (
-            <div key={`loading-card-${index}`} className="h-48 w-full animate-pulse rounded-2xl bg-surface-overlay/80 border border-border" />
+            <div
+              key={`loading-card-${index}`}
+              className="h-48 w-full animate-pulse rounded-2xl bg-surface-overlay/80 border border-border"
+            />
           ))
         ) : visibleOrders.length > 0 ? (
           visibleOrders.map((order) => (
@@ -278,13 +287,13 @@ export function OrderListTable({
           ))
         ) : (
           <div className="rounded-2xl border border-border bg-background/50 p-12 text-center backdrop-blur-sm shadow-xl">
-              <p className="font-medium text-text-secondary">{emptyTitle}</p>
-              <p className="text-sm text-text-muted">{emptyDescription}</p>
-              {onClearFilters && (
-                <Button variant="ghost" size="sm" onClick={onClearFilters} className="mt-4">
-                  Clear Filters
-                </Button>
-              )}
+            <p className="font-medium text-text-secondary">{emptyTitle}</p>
+            <p className="text-sm text-text-muted">{emptyDescription}</p>
+            {onClearFilters && (
+              <Button variant="ghost" size="sm" onClick={onClearFilters} className="mt-4">
+                Clear Filters
+              </Button>
+            )}
           </div>
         )}
       </div>

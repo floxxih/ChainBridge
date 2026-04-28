@@ -3,7 +3,7 @@
  * Provides type-safe API calls with automatic error handling
  */
 
-import { createApiClient, getUserApiHeaders } from './client';
+import { createApiClient, getUserApiHeaders } from "./client";
 
 // Import generated types (will be available after running npm run types:generate)
 import type {
@@ -26,14 +26,14 @@ import type {
   ApiResponse,
   PaginatedResponse,
   ChainBridgeApiClient,
-} from '@/types/api';
+} from "@/types/api";
 
 export class ChainBridgeApi implements ChainBridgeApiClient {
   private client: ReturnType<typeof createApiClient>;
 
   constructor() {
     this.client = createApiClient({
-      basePath: '',
+      basePath: "",
       getHeaders: getUserApiHeaders,
       timeoutMs: 30000,
     });
@@ -42,7 +42,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // HTLC Operations
   async createHTLC(data: HTLCCreate): Promise<ApiResponse<HTLCResponse>> {
     try {
-      const response = await this.client.post<HTLCResponse>('/htlc', data);
+      const response = await this.client.post<HTLCResponse>("/htlc", data);
       return {
         success: true,
         data: response,
@@ -85,9 +85,12 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
     }
   }
 
-  async listHTLCS(params?: { page?: number; limit?: number }): Promise<ApiResponse<PaginatedResponse<HTLCResponse>>> {
+  async listHTLCS(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<PaginatedResponse<HTLCResponse>>> {
     try {
-      const response = await this.client.get<PaginatedResponse<HTLCResponse>>('/htlc', { params });
+      const response = await this.client.get<PaginatedResponse<HTLCResponse>>("/htlc", { params });
       return {
         success: true,
         data: response,
@@ -103,7 +106,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // Order Operations
   async createOrder(data: OrderCreate): Promise<ApiResponse<OrderResponse>> {
     try {
-      const response = await this.client.post<OrderResponse>('/orders', data);
+      const response = await this.client.post<OrderResponse>("/orders", data);
       return {
         success: true,
         data: response,
@@ -146,9 +149,14 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
     }
   }
 
-  async listOrders(params?: { page?: number; limit?: number }): Promise<ApiResponse<PaginatedResponse<OrderResponse>>> {
+  async listOrders(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<PaginatedResponse<OrderResponse>>> {
     try {
-      const response = await this.client.get<PaginatedResponse<OrderResponse>>('/orders', { params });
+      const response = await this.client.get<PaginatedResponse<OrderResponse>>("/orders", {
+        params,
+      });
       return {
         success: true,
         data: response,
@@ -164,7 +172,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // Fee Operations
   async estimateFees(data: FeeEstimateRequest): Promise<ApiResponse<SwapFeeBreakdownResponse>> {
     try {
-      const response = await this.client.post<SwapFeeBreakdownResponse>('/fees/estimate', data);
+      const response = await this.client.post<SwapFeeBreakdownResponse>("/fees/estimate", data);
       return {
         success: true,
         data: response,
@@ -179,7 +187,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
 
   async getExchangeRates(data: ExchangeRateRequest): Promise<ApiResponse<RateQuoteResponse>> {
     try {
-      const response = await this.client.post<RateQuoteResponse>('/fees/rates', data);
+      const response = await this.client.post<RateQuoteResponse>("/fees/rates", data);
       return {
         success: true,
         data: response,
@@ -195,7 +203,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // Auth Operations
   async createApiKey(data: APIKeyCreate): Promise<ApiResponse<APIKeyResponse>> {
     try {
-      const response = await this.client.post<APIKeyResponse>('/auth/api-keys', data);
+      const response = await this.client.post<APIKeyResponse>("/auth/api-keys", data);
       return {
         success: true,
         data: response,
@@ -210,7 +218,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
 
   async refreshToken(token: string): Promise<ApiResponse<TokenResponse>> {
     try {
-      const response = await this.client.post<TokenResponse>('/auth/refresh', { token });
+      const response = await this.client.post<TokenResponse>("/auth/refresh", { token });
       return {
         success: true,
         data: response,
@@ -226,14 +234,14 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // Additional utility methods
   private normalizeError(error: unknown) {
     // Import the normalizeApiError function from client
-    const { normalizeApiError } = require('./client');
+    const { normalizeApiError } = require("./client");
     return normalizeApiError(error);
   }
 
   // Health check
   async healthCheck(): Promise<ApiResponse<{ status: string; timestamp: string }>> {
     try {
-      const response = await this.client.get<{ status: string; timestamp: string }>('/health');
+      const response = await this.client.get<{ status: string; timestamp: string }>("/health");
       return {
         success: true,
         data: response,
@@ -249,7 +257,7 @@ export class ChainBridgeApi implements ChainBridgeApiClient {
   // Get supported chains
   async getSupportedChains(): Promise<ApiResponse<{ chains: string[] }>> {
     try {
-      const response = await this.client.get<{ chains: string[] }>('/chains');
+      const response = await this.client.get<{ chains: string[] }>("/chains");
       return {
         success: true,
         data: response,
@@ -291,31 +299,29 @@ export function useApiClient() {
 export const apiQueryKeys = {
   // HTLC queries
   htlc: {
-    all: ['htlc'] as const,
-    list: (params?: { page?: number; limit?: number }) => 
-      ['htlc', 'list', params] as const,
-    detail: (id: string) => ['htlc', 'detail', id] as const,
+    all: ["htlc"] as const,
+    list: (params?: { page?: number; limit?: number }) => ["htlc", "list", params] as const,
+    detail: (id: string) => ["htlc", "detail", id] as const,
   },
-  
+
   // Order queries
   orders: {
-    all: ['orders'] as const,
-    list: (params?: { page?: number; limit?: number }) => 
-      ['orders', 'list', params] as const,
-    detail: (id: string) => ['orders', 'detail', id] as const,
+    all: ["orders"] as const,
+    list: (params?: { page?: number; limit?: number }) => ["orders", "list", params] as const,
+    detail: (id: string) => ["orders", "detail", id] as const,
   },
-  
+
   // Fee queries
   fees: {
-    estimate: (request: FeeEstimateRequest) => ['fees', 'estimate', request] as const,
-    rates: (request: ExchangeRateRequest) => ['fees', 'rates', request] as const,
+    estimate: (request: FeeEstimateRequest) => ["fees", "estimate", request] as const,
+    rates: (request: ExchangeRateRequest) => ["fees", "rates", request] as const,
   },
-  
+
   // System queries
   system: {
-    health: ['system', 'health'] as const,
-    chains: ['system', 'chains'] as const,
-    assets: (asset: string) => ['system', 'assets', asset] as const,
+    health: ["system", "health"] as const,
+    chains: ["system", "chains"] as const,
+    assets: (asset: string) => ["system", "assets", asset] as const,
   },
 } as const;
 
@@ -323,25 +329,27 @@ export const apiQueryKeys = {
 export const apiMutationKeys = {
   // HTLC mutations
   htlc: {
-    create: ['htlc', 'create'] as const,
-    claim: (id: string) => ['htlc', 'claim', id] as const,
+    create: ["htlc", "create"] as const,
+    claim: (id: string) => ["htlc", "claim", id] as const,
   },
-  
+
   // Order mutations
   orders: {
-    create: ['orders', 'create'] as const,
-    match: (id: string) => ['orders', 'match', id] as const,
+    create: ["orders", "create"] as const,
+    match: (id: string) => ["orders", "match", id] as const,
   },
-  
+
   // Auth mutations
   auth: {
-    createApiKey: ['auth', 'createApiKey'] as const,
-    refreshToken: ['auth', 'refreshToken'] as const,
+    createApiKey: ["auth", "createApiKey"] as const,
+    refreshToken: ["auth", "refreshToken"] as const,
   },
 } as const;
 
 // Error handling utilities
-export function isApiError<T>(response: ApiResponse<T>): response is ApiResponse<T> & { error: NonNullable<ApiResponse<T>['error']> } {
+export function isApiError<T>(
+  response: ApiResponse<T>
+): response is ApiResponse<T> & { error: NonNullable<ApiResponse<T>["error"]> } {
   return !response.success && response.error !== undefined;
 }
 
@@ -349,7 +357,7 @@ export function getErrorMessage<T>(response: ApiResponse<T>): string {
   if (isApiError(response)) {
     return response.error.message;
   }
-  return 'Unknown error occurred';
+  return "Unknown error occurred";
 }
 
 export function getErrorCode<T>(response: ApiResponse<T>): string | undefined {
@@ -365,7 +373,7 @@ export function validateApiResponse<T>(response: ApiResponse<T>): T {
     throw new Error(getErrorMessage(response));
   }
   if (!response.data) {
-    throw new Error('No data in successful response');
+    throw new Error("No data in successful response");
   }
   return response.data;
 }
@@ -379,20 +387,18 @@ export class BatchApiClient {
   }
 
   async createMultipleHTLCS(htlcs: HTLCCreate[]): Promise<ApiResponse<HTLCResponse[]>> {
-    const results = await Promise.allSettled(
-      htlcs.map(htlc => this.apiClient.createHTLC(htlc))
-    );
+    const results = await Promise.allSettled(htlcs.map((htlc) => this.apiClient.createHTLC(htlc)));
 
     const successful: HTLCResponse[] = [];
     const errors: any[] = [];
 
     results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value.success) {
+      if (result.status === "fulfilled" && result.value.success) {
         successful.push(result.value.data!);
       } else {
         errors.push({
           index,
-          error: result.status === 'rejected' ? result.reason : getErrorMessage(result.value),
+          error: result.status === "rejected" ? result.reason : getErrorMessage(result.value),
         });
       }
     });
@@ -401,7 +407,7 @@ export class BatchApiClient {
       return {
         success: false,
         error: {
-          code: 'BATCH_PARTIAL_FAILURE',
+          code: "BATCH_PARTIAL_FAILURE",
           message: `Batch operation partially failed. ${successful.length}/${htlcs.length} succeeded.`,
           details: { successful, errors },
         },
@@ -415,21 +421,19 @@ export class BatchApiClient {
   }
 
   async getMultipleHTLCS(ids: string[]): Promise<ApiResponse<HTLCStatusResponse[]>> {
-    const results = await Promise.allSettled(
-      ids.map(id => this.apiClient.getHTLC(id))
-    );
+    const results = await Promise.allSettled(ids.map((id) => this.apiClient.getHTLC(id)));
 
     const successful: HTLCStatusResponse[] = [];
     const errors: any[] = [];
 
     results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value.success) {
+      if (result.status === "fulfilled" && result.value.success) {
         successful.push(result.value.data!);
       } else {
         errors.push({
           index,
           id: ids[index],
-          error: result.status === 'rejected' ? result.reason : getErrorMessage(result.value),
+          error: result.status === "rejected" ? result.reason : getErrorMessage(result.value),
         });
       }
     });
@@ -438,7 +442,7 @@ export class BatchApiClient {
       return {
         success: false,
         error: {
-          code: 'BATCH_PARTIAL_FAILURE',
+          code: "BATCH_PARTIAL_FAILURE",
           message: `Batch operation partially failed. ${successful.length}/${ids.length} succeeded.`,
           details: { successful, errors },
         },
