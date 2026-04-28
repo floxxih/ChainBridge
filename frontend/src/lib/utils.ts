@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-import { formatTokenAmount } from "@/lib/format";
+import { formatTokenAmount, shortenHash } from "@/lib/format";
 
 /** Merge class names with Tailwind conflict resolution */
 export function cn(...inputs: ClassValue[]) {
@@ -10,8 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Truncate a blockchain address to show first/last N chars */
 export function truncateAddress(address: string, chars = 4): string {
-  if (address.length <= chars * 2 + 3) return address;
-  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+  return shortenHash(address, { prefixLength: chars, suffixLength: chars });
 }
 
 /** Format a token amount with decimals — delegates to shared {@link formatTokenAmount}. */

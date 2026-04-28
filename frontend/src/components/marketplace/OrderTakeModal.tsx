@@ -7,6 +7,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Clock3, ShieldCheck, Wallet } fr
 import { Badge, Button } from "@/components/ui";
 import { SigningProgressStepper } from "@/components/transactions/SigningProgressStepper";
 import { cn } from "@/lib/utils";
+import { shortenHash } from "@/lib/format";
 import { getExplorerUrl } from "@/lib/explorers";
 import { Order, OrderSide, Transaction, TransactionStatus } from "@/types";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
@@ -20,8 +21,7 @@ interface OrderTakeModalProps {
 }
 
 function shortAddress(value: string) {
-  if (value.length <= 18) return value;
-  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+  return shortenHash(value, { prefixLength: 8, suffixLength: 6 });
 }
 
 function requiredFundingChain(order: Order) {

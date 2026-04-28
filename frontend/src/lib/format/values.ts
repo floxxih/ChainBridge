@@ -137,3 +137,32 @@ export function formatPercent(
     maximumFractionDigits: fractionDigits,
   }).format(fraction);
 }
+
+export type ShortenHashOptions = {
+  /** Number of leading characters to keep (default 6). */
+  prefixLength?: number;
+  /** Number of trailing characters to keep (default 4). */
+  suffixLength?: number;
+};
+
+/**
+ * Shorten a transaction hash or blockchain address for display.
+ *
+ * Returns `"0xAbCd…7890"` style output. If the value is short enough to
+ * display in full it is returned unchanged.
+ *
+ * @example
+ * shortenHash("0x1234567890abcdef1234567890abcdef12345678") // "0x1234…5678"
+ * shortenHash("GDRXE2BQUC3AZN…", { prefixLength: 4, suffixLength: 4 })
+ */
+export function shortenHash(hash: string, options: ShortenHashOptions = {}): string {
+  const { prefixLength = 6, suffixLength = 4 } = options;
+
+  if (!hash) return "";
+
+  // If the hash is already short enough, return it as-is.
+  const minLength = prefixLength + suffixLength + 3; // 3 = "…".length visually
+  if (hash.length <= minLength) return hash;
+
+  return `${hash.slice(0, prefixLength)}…${hash.slice(-suffixLength)}`;
+}

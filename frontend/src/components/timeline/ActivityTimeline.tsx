@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui";
+import { Badge, TruncatedHash } from "@/components/ui";
 import { clsx } from "clsx";
 import { AlertCircle, CheckCircle2, Clock3, ExternalLink } from "lucide-react";
 
@@ -98,8 +98,8 @@ export function ActivityTimeline({
 
                 {event.txHash && (
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted">
-                    <span className="font-mono text-text-primary">
-                      {event.txHash.slice(0, 12)}...{event.txHash.slice(-8)}
+                    <span className="text-text-primary">
+                      <TruncatedHash hash={event.txHash} label="tx hash" copiable={false} shortenOptions={{ prefixLength: 12, suffixLength: 8 }} />
                     </span>
                     {event.href && (
                       <a

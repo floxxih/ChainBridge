@@ -15,6 +15,7 @@ import {
 import { Button, Card, EmptyState, Input, Modal, ToastContainer } from "@/components/ui";
 import { claimHTLC, fetchHTLCs, HTLCRecord, refundHTLC } from "@/lib/htlcApi";
 import { cn } from "@/lib/utils";
+import { shortenHash } from "@/lib/format";
 import { SigningProgressStepper } from "@/components/transactions/SigningProgressStepper";
 import { useTransactionStore } from "@/hooks/useTransactions";
 import { TransactionStatus } from "@/types";
@@ -68,8 +69,7 @@ function formatRemaining(seconds: number) {
 }
 
 function shortAddress(value: string) {
-  if (value.length <= 16) return value;
-  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+  return shortenHash(value, { prefixLength: 8, suffixLength: 6 });
 }
 
 export default function HTLCStatusPage() {

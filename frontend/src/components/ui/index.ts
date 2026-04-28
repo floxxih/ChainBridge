@@ -46,3 +46,4 @@ export { StatusBadge, StatusPill, StatusDot } from "./StatusBadge";
 export type { StatusVariant, StatusSize } from "./StatusBadge";
 export { ChainAssetSelector } from "./ChainAssetSelector";
 export type { Asset, Chain } from "./ChainAssetSelector";
+export { TruncatedHash } from "./TruncatedHash";
