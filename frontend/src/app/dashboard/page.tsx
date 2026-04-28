@@ -1,15 +1,30 @@
 "use client";
 
 import { Button, Input, Select, CopyButton } from "@/components/ui";
-import { useSettingsStore } from "@/hooks/useSettings";
 import Link from "next/link";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { RefreshCw } from "lucide-react";
 
 export default function DashboardPage() {
-  const settings = useSettingsStore();
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
-      <h1 className="text-3xl font-bold text-text-primary">User Dashboard</h1>
+    <div className="space-y-8">
+      <PageHeader
+        title="User Dashboard"
+        subtitle="Manage your profile, preferences, and view your swap history"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Dashboard" },
+        ]}
+        primaryAction={
+          <Button variant="primary">Save Changes</Button>
+        }
+        secondaryActions={[
+          <Button key="refresh" variant="secondary" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>,
+        ]}
+      />
       
       <div className="rounded-xl border border-border bg-surface-overlay p-6 space-y-6">
         <h2 className="text-xl font-semibold text-text-primary">Profile</h2>
