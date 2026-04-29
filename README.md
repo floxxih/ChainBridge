@@ -449,6 +449,7 @@ docker-compose ps
 - [HTLC Protocol Specification](./docs/HTLC.md)
 - [Relayer Setup Guide](./docs/RELAYER.md)
 - [API Reference](./docs/API.md)
+- [Frontend Accessibility](./docs/ACCESSIBILITY.md) — axe-core CI gate + reports
 - [Security Considerations](./docs/SECURITY.md)
 
 ---

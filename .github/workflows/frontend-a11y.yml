@@ -1,0 +1,145 @@
+name: Frontend Accessibility
+
+on:
+  push:
+    branches: [master, main, develop]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-a11y.yml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-a11y.yml"
+    types: [opened, synchronize, reopened]
+
+# Cancel any in-flight a11y run for the same ref when a new commit lands.
+concurrency:
+  group: a11y-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe:
+    name: axe-core (key pages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app
+        run: npm run build
+
+      # Playwright's webServer config in playwright.config.ts will start
+      # the app for us; we just run the a11y project. Failures here cause
+      # the job to fail, which blocks merge via the required-check rule.
+      - name: Run accessibility tests
+        id: axe
+        run: npm run test:a11y:ci
+        env:
+          BASE_URL: http://localhost:3000
+          CI: "true"
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-playwright-report
+          path: frontend/playwright-report/
+          retention-days: 14
+
+      - name: Upload markdown summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-summaries
+          path: frontend/playwright-report/a11y/*.md
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Publish summary
+        if: always()
+        run: |
+          if [ -d "playwright-report/a11y" ]; then
+            echo "## Accessibility Report" >> "$GITHUB_STEP_SUMMARY"
+            for f in playwright-report/a11y/*.md; do
+              [ -f "$f" ] || continue
+              cat "$f" >> "$GITHUB_STEP_SUMMARY"
+              echo "" >> "$GITHUB_STEP_SUMMARY"
+              echo "---" >> "$GITHUB_STEP_SUMMARY"
+            done
+          else
+            echo "No accessibility summaries were produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Comment PR with summary
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+            const dir = "frontend/playwright-report/a11y";
+            if (!fs.existsSync(dir)) {
+              core.info("No a11y summaries to post");
+              return;
+            }
+            const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
+            if (files.length === 0) return;
+
+            const status = "${{ steps.axe.outcome }}" === "success" ? "✅ Passed" : "❌ Failed";
+            const sections = files.map((f) => {
+              const body = fs.readFileSync(path.join(dir, f), "utf8");
+              return `<details><summary>${f.replace(/\.md$/, "")}</summary>\n\n${body}\n\n</details>`;
+            });
+
+            const body = [
+              "## ♿ Accessibility checks " + status,
+              "",
+              "axe-core was run against every key page. Failures block merge on " +
+                "`serious` or `critical` severities — the table below names every " +
+                "impacted element.",
+              "",
+              `[Full HTML report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              "",
+              ...sections,
+            ].join("\n");
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(
+              (c) => c.user?.type === "Bot" && c.body?.includes("♿ Accessibility checks"),
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
