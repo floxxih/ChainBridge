@@ -1,4 +1,9 @@
 import { createApiClient, getUserApiHeaders } from "@/lib/api/client";
+import {
+  ApiHTLCBaseRecordSchema,
+  ApiHTLCRecordSchema,
+  ApiHTLCListSchema,
+} from "@/lib/api/schemas";
 import type {
   ApiHTLCBaseRecord,
   ApiHTLCRecord,
@@ -13,25 +18,35 @@ const htlcsClient = createApiClient({
 });
 
 export function listHTLCs(params: ListHTLCsParams = {}) {
-  return htlcsClient.get<ApiHTLCRecord[]>("/", { params });
+  return htlcsClient.get<ApiHTLCRecord[]>("/", { params }, ApiHTLCListSchema);
 }
 
 export function getHTLC(htlcId: string) {
-  return htlcsClient.get<ApiHTLCRecord>(`/${htlcId}`);
+  return htlcsClient.get<ApiHTLCRecord>(`/${htlcId}`, undefined, ApiHTLCRecordSchema);
 }
 
 export function getHTLCStatus(htlcId: string) {
-  return htlcsClient.get<ApiHTLCRecord>(`/${htlcId}/status`);
+  return htlcsClient.get<ApiHTLCRecord>(`/${htlcId}/status`, undefined, ApiHTLCRecordSchema);
 }
 
 export function createHTLC(payload: CreateHTLCPayload) {
-  return htlcsClient.post<ApiHTLCBaseRecord>("/", payload);
+  return htlcsClient.post<ApiHTLCBaseRecord>("/", payload, undefined, ApiHTLCBaseRecordSchema);
 }
 
 export function claimHTLC(htlcId: string, payload: ClaimHTLCPayload) {
-  return htlcsClient.post<ApiHTLCBaseRecord>(`/${htlcId}/claim`, payload);
+  return htlcsClient.post<ApiHTLCBaseRecord>(
+    `/${htlcId}/claim`,
+    payload,
+    undefined,
+    ApiHTLCBaseRecordSchema
+  );
 }
 
 export function refundHTLC(htlcId: string) {
-  return htlcsClient.post<ApiHTLCBaseRecord>(`/${htlcId}/refund`, {});
+  return htlcsClient.post<ApiHTLCBaseRecord>(
+    `/${htlcId}/refund`,
+    {},
+    undefined,
+    ApiHTLCBaseRecordSchema
+  );
 }
