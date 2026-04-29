@@ -1,17 +1,23 @@
 "use client";
 
 import { BellRing, MonitorCog, Network, RotateCcw, Settings2 } from "lucide-react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Breadcrumb, Button, Card } from "@/components/ui";
 import { defaultSettings, useSettingsStore } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/useToast";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 export default function SettingsPage() {
   const { settings, updateDisplay, updateNotifications, updateNetwork, resetSettings } =
     useSettingsStore();
   const { success } = useToast();
+  const breadcrumbs = useBreadcrumbs();
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12 md:py-20">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6">
+        <Breadcrumb items={breadcrumbs} />
+      </div>
       <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-500">

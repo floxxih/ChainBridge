@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ActivityTimeline, type ActivityTimelineEvent } from "@/components/timeline/ActivityTimeline";
-import { Badge, Button, Card, EmptyState, InlineError } from "@/components/ui";
+import { Badge, Breadcrumb, Button, Card, EmptyState, InlineError } from "@/components/ui";
 import { getExplorerUrl } from "@/lib/explorers";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, ArrowRight, ExternalLink, History, Link2, RefreshCw } from "lucide-react";
 import { SwapStatus } from "@/types";
 import { useMockSwaps, useSwapHistoryStore } from "@/hooks/useSwapHistory";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 type TimelineStepKey = "initiated" | "source_locked" | "destination_locked" | "settled";
 
@@ -79,6 +80,7 @@ export default function TrackSwapsPage() {
   const { isConnected, activeAddress: address } = useUnifiedWallet();
   const swaps = useSwapHistoryStore((state) => state.swaps);
   const { seedMockSwaps } = useMockSwaps();
+  const breadcrumbs = useBreadcrumbs();
 
   const [selectedSwapId, setSelectedSwapId] = useState<string>("");
 
@@ -104,6 +106,10 @@ export default function TrackSwapsPage() {
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-12 md:py-20 animate-fade-in">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6">
+        <Breadcrumb items={breadcrumbs} />
+      </div>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-overlay border border-border font-bold text-text-primary">

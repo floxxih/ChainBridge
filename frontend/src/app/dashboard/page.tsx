@@ -1,14 +1,18 @@
 "use client";
 
-import { Button, Input, Select, CopyButton } from "@/components/ui";
+import { Breadcrumb, Button, Input, Select, CopyButton } from "@/components/ui";
 import { useSettingsStore } from "@/hooks/useSettings";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const settings = useSettingsStore();
+  const breadcrumbs = useBreadcrumbs();
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb items={breadcrumbs} />
       <h1 className="text-3xl font-bold text-text-primary">User Dashboard</h1>
       
       <div className="rounded-xl border border-border bg-surface-overlay p-6 space-y-6">
