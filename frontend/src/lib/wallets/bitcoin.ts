@@ -206,9 +206,7 @@ export class BitcoinAdapter implements WalletAdapter {
   private detectProvider(): BitcoinProviderAdapter {
     const available = PROVIDERS.find((p) => p.isAvailable());
     if (!available) {
-      throw new Error(
-        "No Bitcoin wallet detected. Please install Xverse, Unisat, or Leather."
-      );
+      throw new Error("No Bitcoin wallet detected. Please install Xverse, Unisat, or Leather.");
     }
     return available;
   }

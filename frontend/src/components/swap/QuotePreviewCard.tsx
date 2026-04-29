@@ -157,10 +157,15 @@ export function QuotePreviewCard({
           </div>
 
           <div className="rounded-xl border border-border bg-surface-overlay/40 p-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">Fees</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+              Fees
+            </p>
             <div className="space-y-1 text-xs">
               {networkFees.map((fee, index) => (
-                <div key={`network-${index}`} className="flex items-center justify-between text-text-secondary">
+                <div
+                  key={`network-${index}`}
+                  className="flex items-center justify-between text-text-secondary"
+                >
                   <span>Network: {fee.asset}</span>
                   <span>
                     {formatTokenWithSymbol(fee.amount, fee.asset, { maximumFractionDigits: 8 })}
@@ -168,7 +173,10 @@ export function QuotePreviewCard({
                 </div>
               ))}
               {protocolFees.map((fee, index) => (
-                <div key={`protocol-${index}`} className="flex items-center justify-between text-text-secondary">
+                <div
+                  key={`protocol-${index}`}
+                  className="flex items-center justify-between text-text-secondary"
+                >
                   <span>Protocol: {fee.name.replace("_", " ")}</span>
                   <span>
                     {formatTokenWithSymbol(fee.amount, fee.asset, { maximumFractionDigits: 8 })}
@@ -186,7 +194,8 @@ export function QuotePreviewCard({
 
           {unconvertedCount > 0 && (
             <p className="text-xs text-text-muted">
-              {unconvertedCount} fee component(s) could not be converted into {toAsset} for net estimation.
+              {unconvertedCount} fee component(s) could not be converted into {toAsset} for net
+              estimation.
             </p>
           )}
         </div>

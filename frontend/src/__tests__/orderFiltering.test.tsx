@@ -89,7 +89,7 @@ describe("OrderBookList Filtering", () => {
 
   it("filters orders by search query", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const searchInput = screen.getByPlaceholderText("Search pair or address...");
     fireEvent.change(searchInput, { target: { value: "BTC" } });
 
@@ -101,7 +101,7 @@ describe("OrderBookList Filtering", () => {
 
   it("filters orders by side (buy/sell)", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const buysButton = screen.getByText("Buys");
     fireEvent.click(buysButton);
 
@@ -114,7 +114,7 @@ describe("OrderBookList Filtering", () => {
 
   it("filters orders by chain pair", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const chainSelect = screen.getByDisplayValue("All routes");
     fireEvent.change(chainSelect, { target: { value: "Ethereum → Stellar" } });
 
@@ -126,7 +126,7 @@ describe("OrderBookList Filtering", () => {
 
   it("filters orders by asset", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const assetSelect = screen.getByDisplayValue("All assets");
     fireEvent.change(assetSelect, { target: { value: "USDC" } });
 
@@ -139,7 +139,7 @@ describe("OrderBookList Filtering", () => {
 
   it("combines multiple filters", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     // Filter by asset USDC
     const assetSelect = screen.getByDisplayValue("All assets");
     fireEvent.change(assetSelect, { target: { value: "USDC" } });
@@ -157,7 +157,7 @@ describe("OrderBookList Filtering", () => {
 
   it("shows reset button when filters are active", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     // Initially no reset button
     expect(screen.queryByText("Reset")).not.toBeInTheDocument();
 
@@ -173,11 +173,11 @@ describe("OrderBookList Filtering", () => {
 
   it("resets all filters when reset button is clicked", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     // Apply multiple filters
     const searchInput = screen.getByPlaceholderText("Search pair or address...");
     fireEvent.change(searchInput, { target: { value: "BTC" } });
-    
+
     const buysButton = screen.getByText("Buys");
     fireEvent.click(buysButton);
 
@@ -195,7 +195,7 @@ describe("OrderBookList Filtering", () => {
 
   it("updates URL params when filters change", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const searchInput = screen.getByPlaceholderText("Search pair or address...");
     fireEvent.change(searchInput, { target: { value: "BTC" } });
 
@@ -212,14 +212,16 @@ describe("OrderBookList Filtering", () => {
     (useSearchParams as jest.Mock).mockReturnValue(searchParams);
 
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
-    const searchInput = screen.getByPlaceholderText("Search pair or address...") as HTMLInputElement;
+
+    const searchInput = screen.getByPlaceholderText(
+      "Search pair or address..."
+    ) as HTMLInputElement;
     expect(searchInput.value).toBe("ETH");
   });
 
   it("shows empty state when no orders match filters", async () => {
     render(<OrderBookList orders={mockOrders} onTakeOrder={jest.fn()} />);
-    
+
     const searchInput = screen.getByPlaceholderText("Search pair or address...");
     fireEvent.change(searchInput, { target: { value: "NONEXISTENT" } });
 

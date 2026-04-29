@@ -74,7 +74,11 @@ export function ChainSelector({
         className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted"
       >
         {label}
-        {required && <span className="text-status-error ml-1" aria-hidden="true">*</span>}
+        {required && (
+          <span className="text-status-error ml-1" aria-hidden="true">
+            *
+          </span>
+        )}
       </label>
 
       <div className="relative">
@@ -98,7 +102,9 @@ export function ChainSelector({
           aria-label={label}
           aria-haspopup="listbox"
           aria-expanded={false}
-          aria-describedby={error ? "chain-selector-error" : hasDisabledChains ? "chain-selector-note" : undefined}
+          aria-describedby={
+            error ? "chain-selector-error" : hasDisabledChains ? "chain-selector-note" : undefined
+          }
           className={`
             flex h-11 w-full items-center justify-between rounded-xl border bg-surface-raised px-4 
             text-sm transition-colors
@@ -122,11 +128,7 @@ export function ChainSelector({
                     />
                   );
                 })()}
-                <span
-                  className={
-                    selectedChain.disabled ? "text-text-muted" : "text-text-primary"
-                  }
-                >
+                <span className={selectedChain.disabled ? "text-text-muted" : "text-text-primary"}>
                   {selectedChain.name}
                   {selectedChain.disabled && " (Unavailable)"}
                 </span>
@@ -156,11 +158,7 @@ export function ChainSelector({
             {placeholder}
           </option>
           {chains.map((chain) => (
-            <option
-              key={chain.id}
-              value={chain.id}
-              disabled={chain.disabled}
-            >
+            <option key={chain.id} value={chain.id} disabled={chain.disabled}>
               {chain.name}
               {chain.disabled ? ` - ${chain.disabledMessage || "Unavailable"}` : ""}
             </option>

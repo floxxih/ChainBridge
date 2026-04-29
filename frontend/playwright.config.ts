@@ -17,10 +17,17 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: ["**/a11y/**"],
     },
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 5"] },
+      testIgnore: ["**/a11y/**"],
+    },
+    {
+      name: "a11y",
+      testMatch: /a11y\/.*\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
   webServer: {

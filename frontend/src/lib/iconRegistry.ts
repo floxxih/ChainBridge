@@ -1,11 +1,4 @@
-import {
-  Network,
-  Bitcoin,
-  Zap,
-  Coins,
-  HelpCircle,
-  Lightbulb,
-} from "lucide-react";
+import { Network, Bitcoin, Zap, Coins, HelpCircle, Lightbulb } from "lucide-react";
 
 export type IconComponent = React.ComponentType<{ className?: string }>;
 

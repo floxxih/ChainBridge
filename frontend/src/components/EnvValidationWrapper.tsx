@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { EnvValidationError, validateEnv } from "@/lib/envValidation";
 
-export function EnvValidationWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function EnvValidationWrapper({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<EnvValidationError | null>(null);
 
   useEffect(() => {
@@ -50,9 +46,7 @@ export function EnvValidationWrapper({
             </p>
 
             <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-              <h2 className="text-sm font-semibold text-red-900 mb-3">
-                Issues Found:
-              </h2>
+              <h2 className="text-sm font-semibold text-red-900 mb-3">Issues Found:</h2>
               <div className="space-y-2">
                 {error.missingVars.length > 0 && (
                   <div>
@@ -68,9 +62,7 @@ export function EnvValidationWrapper({
                 )}
                 {Object.keys(error.invalidVars).length > 0 && (
                   <div>
-                    <p className="text-xs font-medium text-red-800 mb-1">
-                      Invalid Values:
-                    </p>
+                    <p className="text-xs font-medium text-red-800 mb-1">Invalid Values:</p>
                     <ul className="text-xs text-red-700 space-y-1 ml-4">
                       {Object.entries(error.invalidVars).map(([k, v]) => (
                         <li key={k}>
@@ -84,11 +76,12 @@ export function EnvValidationWrapper({
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-              <h3 className="text-sm font-semibold text-blue-900 mb-2">
-                What to do:
-              </h3>
+              <h3 className="text-sm font-semibold text-blue-900 mb-2">What to do:</h3>
               <ol className="text-xs text-blue-700 space-y-2 list-decimal ml-4">
-                <li>Copy <code className="bg-white px-1 rounded">.env.example</code> to <code className="bg-white px-1 rounded">.env.local</code></li>
+                <li>
+                  Copy <code className="bg-white px-1 rounded">.env.example</code> to{" "}
+                  <code className="bg-white px-1 rounded">.env.local</code>
+                </li>
                 <li>Fill in all required environment variables</li>
                 <li>Ensure URLs are valid and networks match your setup</li>
                 <li>Restart the development server</li>

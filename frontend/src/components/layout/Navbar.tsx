@@ -13,7 +13,6 @@ import { SUPPORTED_LOCALES, stripLocaleFromPathname } from "@/lib/i18n/config";
 import { CommandPalette } from "./CommandPalette";
 import { MobileNavDrawer } from "./MobileNavDrawer";
 
-
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -44,10 +43,10 @@ export function Navbar() {
 
             {/* Network Breadcrumb (Visible on desktop) */}
             <div className="hidden items-center gap-2 lg:flex">
-                <span className="flex items-center gap-2 rounded-lg bg-surface-overlay px-3 py-1.5 text-xs font-semibold text-text-secondary border border-border">
-                  <Globe className="h-3.5 w-3.5 text-brand-500" />
-                  Mainnet Beta
-                </span>
+              <span className="flex items-center gap-2 rounded-lg bg-surface-overlay px-3 py-1.5 text-xs font-semibold text-text-secondary border border-border">
+                <Globe className="h-3.5 w-3.5 text-brand-500" />
+                Mainnet Beta
+              </span>
             </div>
           </div>
 
@@ -77,15 +76,17 @@ export function Navbar() {
 
             <div className="flex h-8 items-center gap-2 rounded-xl bg-surface-overlay px-2 border border-border">
               <div className="hidden md:flex items-center gap-1.5">
-                  <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                  <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted">Stellar Live</span>
+                <div className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted">
+                  Stellar Live
+                </span>
               </div>
               <div className="h-4 w-px bg-border hidden md:block" />
               <div className="flex items-center gap-1.5">
-                  <Cpu className="h-3 w-3 text-text-muted" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
-                    {networkMode}
-                  </span>
+                <Cpu className="h-3 w-3 text-text-muted" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                  {networkMode}
+                </span>
               </div>
             </div>
 

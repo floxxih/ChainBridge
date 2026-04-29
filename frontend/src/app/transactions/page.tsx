@@ -13,10 +13,7 @@ import { Transaction, TransactionStatus } from "@/types";
 import { Activity, ShieldCheck, Zap } from "lucide-react";
 
 import { Badge } from "@/components/ui";
-import {
-  buildCompletedLifecycle,
-  buildTransactionLifecycle,
-} from "@/lib/transactionLifecycle";
+import { buildCompletedLifecycle, buildTransactionLifecycle } from "@/lib/transactionLifecycle";
 import { getExplorerUrl } from "@/lib/explorers";
 
 export default function TransactionsPage() {

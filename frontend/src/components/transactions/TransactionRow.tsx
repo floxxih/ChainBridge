@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
-import { Badge, Button } from "@/components/ui";
+import { Badge, Button, TruncatedHash } from "@/components/ui";
 import { clsx } from "clsx";
 
 interface TransactionRowProps {
@@ -103,8 +103,8 @@ export function TransactionRow({ tx, onSelect }: TransactionRowProps) {
           <span className="text-xs font-bold uppercase tracking-wider text-text-muted md:hidden">
             Hash
           </span>
-          <div className="flex items-center gap-2 font-mono text-xs text-text-secondary">
-            {tx.hash.slice(0, 8)}...{tx.hash.slice(-6)}
+          <div className="flex items-center gap-2 text-text-secondary">
+            <TruncatedHash hash={tx.hash} label="transaction hash" shortenOptions={{ prefixLength: 8, suffixLength: 6 }} />
           </div>
         </div>
       </td>

@@ -1,12 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import {
-  AdvancedOrderType,
-  Order,
-  OrderBookStore,
-  OrderSide,
-  OrderStatus,
-} from "@/types";
+import { AdvancedOrderType, Order, OrderBookStore, OrderSide, OrderStatus } from "@/types";
 import { useCallback } from "react";
 
 export const DEMO_ORDER_OWNER = "cb-local-trader";
@@ -43,7 +37,11 @@ export const useMockOrders = () => {
   const seedMockOrders = useCallback(
     (ownerAddress: string = DEMO_ORDER_OWNER) => {
       const existingIds = new Set(orders.map((order) => order.id));
-      const ownerPrefix = ownerAddress.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "owner";
+      const ownerPrefix =
+        ownerAddress
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "")
+          .slice(0, 12) || "owner";
 
       const mocks: Order[] = [
         {

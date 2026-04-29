@@ -61,9 +61,7 @@ describe("SwapProgressTimeline", () => {
       { key: "source-locked", label: "Source lock created", state: "completed" },
       { key: "refunded", label: "Refunded", state: "current" },
     ];
-    const { container } = render(
-      <SwapProgressTimeline steps={refundSteps} flow="refund" />
-    );
+    const { container } = render(<SwapProgressTimeline steps={refundSteps} flow="refund" />);
     expect(container.querySelector('[data-flow="refund"]')).not.toBeNull();
     expect(screen.getByText("Refunded")).toBeInTheDocument();
   });

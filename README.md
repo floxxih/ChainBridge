@@ -449,7 +449,18 @@ docker-compose ps
 - [HTLC Protocol Specification](./docs/HTLC.md)
 - [Relayer Setup Guide](./docs/RELAYER.md)
 - [API Reference](./docs/API.md)
+- [Developer SDKs](./docs/SDK.md) — TypeScript, Python, Rust client libraries
 - [Security Considerations](./docs/SECURITY.md)
+
+### Developer SDKs
+
+Official client libraries live under [`sdks/`](./sdks):
+
+| Language | Package | Source |
+|----------|---------|--------|
+| TypeScript / JavaScript | `@chainbridge/sdk` | [`sdks/typescript`](./sdks/typescript) |
+| Python | `chainbridge` | [`sdks/python`](./sdks/python) |
+| Rust | `chainbridge-sdk` | [`sdks/rust`](./sdks/rust) |
 
 ---
 

@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 interface ChainIconProps {
   chain: string;
   size?: "sm" | "md" | "lg";
-  className?: string}
+  className?: string;
+}
 
 export function ChainIcon({ chain, size = "md", className }: ChainIconProps) {
   const Icon = getChainIcon(chain);
@@ -17,10 +18,5 @@ export function ChainIcon({ chain, size = "md", className }: ChainIconProps) {
     lg: "h-8 w-8",
   }[size];
 
-  return (
-    <Icon
-      className={cn(sizeClass, className)}
-      aria-label={`${chain} chain icon`}
-    />
-  );
+  return <Icon className={cn(sizeClass, className)} aria-label={`${chain} chain icon`} />;
 }
