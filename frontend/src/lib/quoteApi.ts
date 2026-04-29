@@ -2,6 +2,12 @@ import axios from "axios";
 
 import config from "@/lib/config";
 import type { RateQuote, SwapFeeBreakdown, TimelockValidation } from "@/types";
+import {
+  RateQuoteSchema,
+  SwapFeeBreakdownSchema,
+  TimelockValidationSchema,
+} from "@/lib/api/schemas";
+import { validateApiResponse } from "@/lib/api/validation";
 
 export interface QuoteRequest {
   fromAsset: string;
@@ -17,7 +23,7 @@ export interface QuotePreview {
 }
 
 export async function fetchQuotePreview(request: QuoteRequest): Promise<QuotePreview> {
-  const [rateQuote, feeBreakdown] = await Promise.all([
+  const [rateQuoteResponse, feeBreakdownResponse] = await Promise.all([
     axios.post<RateQuote>(`${config.api.url}/api/v1/market/rates/calculate`, {
       from_asset: request.fromAsset,
       to_asset: request.toAsset,
@@ -33,9 +39,20 @@ export async function fetchQuotePreview(request: QuoteRequest): Promise<QuotePre
     }),
   ]);
 
+  const rateQuote = validateApiResponse(
+    rateQuoteResponse.data,
+    RateQuoteSchema,
+    "/market/rates/calculate"
+  );
+  const feeBreakdown = validateApiResponse(
+    feeBreakdownResponse.data,
+    SwapFeeBreakdownSchema,
+    "/market/fees/estimate"
+  );
+
   return {
-    rateQuote: rateQuote.data,
-    feeBreakdown: feeBreakdown.data,
+    rateQuote,
+    feeBreakdown,
   };
 }
 
@@ -52,5 +69,5 @@ export async function validateTimelock(
       dest_chain: destChain,
     }
   );
-  return data;
+  return validateApiResponse(data, TimelockValidationSchema, "/timelock/validate");
 }

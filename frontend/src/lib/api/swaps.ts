@@ -1,4 +1,9 @@
 import { createApiClient, getUserApiHeaders } from "@/lib/api/client";
+import {
+  ApiSwapRecordSchema,
+  ApiSwapListSchema,
+  VerifySwapProofResponseSchema,
+} from "@/lib/api/schemas";
 import type {
   ApiSwapRecord,
   ListSwapsParams,
@@ -12,13 +17,18 @@ const swapsClient = createApiClient({
 });
 
 export function listSwaps(params: ListSwapsParams = {}) {
-  return swapsClient.get<ApiSwapRecord[]>("/", { params });
+  return swapsClient.get<ApiSwapRecord[]>("/", { params }, ApiSwapListSchema);
 }
 
 export function getSwap(swapId: string) {
-  return swapsClient.get<ApiSwapRecord>(`/${swapId}`);
+  return swapsClient.get<ApiSwapRecord>(`/${swapId}`, undefined, ApiSwapRecordSchema);
 }
 
 export function verifySwapProof(swapId: string, payload: VerifySwapProofPayload) {
-  return swapsClient.post<VerifySwapProofResponse>(`/${swapId}/verify-proof`, payload);
+  return swapsClient.post<VerifySwapProofResponse>(
+    `/${swapId}/verify-proof`,
+    payload,
+    undefined,
+    VerifySwapProofResponseSchema
+  );
 }

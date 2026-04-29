@@ -1,6 +1,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ZodSchema } from "zod";
 import config from "@/lib/config";
 import type { ApiErrorShape } from "@/types/api";
+import { validateApiResponse } from "./validation";
 
 export class ApiClientError extends Error implements ApiErrorShape {
   status: number;
@@ -121,6 +123,7 @@ export interface ApiClientOptions {
   getHeaders?: () => Record<string, string> | undefined;
   timeoutMs?: number;
   retry?: Partial<ApiRetryConfig>;
+  enableValidation?: boolean;
 }
 
 export function createApiClient({
@@ -128,6 +131,7 @@ export function createApiClient({
   getHeaders,
   timeoutMs = DEFAULT_API_TIMEOUT_MS,
   retry,
+  enableValidation = true,
 }: ApiClientOptions) {
   const retryConfig: ApiRetryConfig = { ...DEFAULT_API_RETRY_CONFIG, ...retry };
   const instance = axios.create({
@@ -151,16 +155,36 @@ export function createApiClient({
   return {
     instance,
     retryConfig,
-    get: async <T>(url: string = "/", request?: AxiosRequestConfig) => {
+    enableValidation,
+    get: async <T>(url: string = "/", request?: AxiosRequestConfig, schema?: ZodSchema<T>) => {
       const { data } = await instance.get<T>(url, request);
+      if (enableValidation && schema) {
+        return validateApiResponse(data, schema, `${basePath}${url}`);
+      }
       return data;
     },
-    post: async <T>(url: string, body?: unknown, request?: AxiosRequestConfig) => {
+    post: async <T>(
+      url: string,
+      body?: unknown,
+      request?: AxiosRequestConfig,
+      schema?: ZodSchema<T>
+    ) => {
       const { data } = await instance.post<T>(url, body, request);
+      if (enableValidation && schema) {
+        return validateApiResponse(data, schema, `${basePath}${url}`);
+      }
       return data;
     },
-    patch: async <T>(url: string, body?: unknown, request?: AxiosRequestConfig) => {
+    patch: async <T>(
+      url: string,
+      body?: unknown,
+      request?: AxiosRequestConfig,
+      schema?: ZodSchema<T>
+    ) => {
       const { data } = await instance.patch<T>(url, body, request);
+      if (enableValidation && schema) {
+        return validateApiResponse(data, schema, `${basePath}${url}`);
+      }
       return data;
     },
     delete: async (url: string, request?: AxiosRequestConfig) => {
