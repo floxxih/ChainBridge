@@ -101,7 +101,9 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
   }>({ key: "timestamp", direction: "desc" });
 
   const chainPairOptions = useMemo(() => {
-    return Array.from(new Set(orders.map((order) => `${order.chainIn} → ${order.chainOut}`))).sort();
+    return Array.from(
+      new Set(orders.map((order) => `${order.chainIn} → ${order.chainOut}`))
+    ).sort();
   }, [orders]);
 
   const assetOptions = useMemo(() => {
@@ -142,28 +144,27 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
   }, [searchParams]);
 
   const filteredOrders = useMemo(() => {
-    return orders
-      .filter((o) => {
-        const notExpired = !o.expiresAt || new Date(o.expiresAt).getTime() > Date.now();
-        const matchesSearch =
-          o.pair.toLowerCase().includes(search.toLowerCase()) ||
-          o.maker.toLowerCase().includes(search.toLowerCase()) ||
-          o.tokenIn.toLowerCase().includes(search.toLowerCase()) ||
-          o.tokenOut.toLowerCase().includes(search.toLowerCase());
-        const matchesSide = sideFilter === "all" || o.side === sideFilter;
-        const matchesChainPair =
-          chainPairFilter === "all" || `${o.chainIn} → ${o.chainOut}` === chainPairFilter;
-        const matchesAsset =
-          assetFilter === "all" || o.tokenIn === assetFilter || o.tokenOut === assetFilter;
-        return (
-          matchesSearch &&
-          matchesSide &&
-          matchesChainPair &&
-          matchesAsset &&
-          o.status === OrderStatus.OPEN &&
-          notExpired
-        );
-      });
+    return orders.filter((o) => {
+      const notExpired = !o.expiresAt || new Date(o.expiresAt).getTime() > Date.now();
+      const matchesSearch =
+        o.pair.toLowerCase().includes(search.toLowerCase()) ||
+        o.maker.toLowerCase().includes(search.toLowerCase()) ||
+        o.tokenIn.toLowerCase().includes(search.toLowerCase()) ||
+        o.tokenOut.toLowerCase().includes(search.toLowerCase());
+      const matchesSide = sideFilter === "all" || o.side === sideFilter;
+      const matchesChainPair =
+        chainPairFilter === "all" || `${o.chainIn} → ${o.chainOut}` === chainPairFilter;
+      const matchesAsset =
+        assetFilter === "all" || o.tokenIn === assetFilter || o.tokenOut === assetFilter;
+      return (
+        matchesSearch &&
+        matchesSide &&
+        matchesChainPair &&
+        matchesAsset &&
+        o.status === OrderStatus.OPEN &&
+        notExpired
+      );
+    });
   }, [assetFilter, chainPairFilter, orders, search, sideFilter]);
 
   const handleSort = (key: OrderSortKey) => {
@@ -181,7 +182,10 @@ export function OrderBookList({ orders, onTakeOrder }: OrderBookListProps) {
   };
 
   const hasActiveFilters =
-    search.trim() !== "" || sideFilter !== "all" || chainPairFilter !== "all" || assetFilter !== "all";
+    search.trim() !== "" ||
+    sideFilter !== "all" ||
+    chainPairFilter !== "all" ||
+    assetFilter !== "all";
 
   return (
     <div className="space-y-4">

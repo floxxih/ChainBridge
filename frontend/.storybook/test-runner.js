@@ -13,41 +13,41 @@ const config = {
   },
 
   // Hook to run before each story
-  async preVisit(page: any, context: any) {
+  async preVisit(page, context) {
     // Wait for fonts to load
-    await page.waitForLoadState('networkidle');
-    
+    await page.waitForLoadState("networkidle");
+
     // Wait for any animations to complete
     await page.waitForTimeout(100);
-    
+
     // Ensure consistent theme
     await page.evaluate(() => {
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem("theme", "light");
     });
   },
 
   // Hook to run after each story
-  async postVisit(page: any, context: any) {
+  async postVisit(page, context) {
     // Take screenshot for visual comparison
     const screenshotPath = `visual-tests/${context.kind}/${context.name}.png`;
-    await page.screenshot({ 
+    await page.screenshot({
       path: screenshotPath,
       fullPage: false,
-      clip: { x: 0, y: 0, width: 1280, height: 720 }
+      clip: { x: 0, y: 0, width: 1280, height: 720 },
     });
   },
 
   // Stories to include in visual testing
   stories: {
-    include: ['**/*.stories.@(js|jsx|ts|tsx)'],
-    exclude: ['**/*.stories.mdx'],
+    include: ["**/*.stories.@(js|jsx|ts|tsx)"],
+    exclude: ["**/*.stories.mdx"],
   },
 
   // Configuration for different viewports
   viewports: [
-    { name: 'desktop', width: 1280, height: 720 },
-    { name: 'tablet', width: 768, height: 1024 },
-    { name: 'mobile', width: 375, height: 668 },
+    { name: "desktop", width: 1280, height: 720 },
+    { name: "tablet", width: 768, height: 1024 },
+    { name: "mobile", width: 375, height: 668 },
   ],
 
   // Retry configuration for flaky tests

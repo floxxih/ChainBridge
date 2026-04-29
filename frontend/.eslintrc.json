@@ -2,7 +2,9 @@
   "extends": [
     "next/core-web-vitals",
     "prettier",
-    "plugin:storybook/recommended"
+    "plugin:storybook/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:react-hooks/recommended"
   ],
   "rules": {
     "react/no-unescaped-entities": "off",
@@ -19,16 +21,10 @@
     "no-console": [
       "warn",
       {
-        "allow": [
-          "warn",
-          "error"
-        ]
+        "allow": ["warn", "error"]
       }
     ],
-    "eqeqeq": [
-      "error",
-      "always"
-    ],
+    "eqeqeq": ["error", "always"],
     "no-implicit-coercion": "error",
     "no-nested-ternary": "warn",
     "prefer-template": "warn",

@@ -12,10 +12,7 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
   backoffMultiplier: 2,
 };
 
-export function calculateBackoffDelay(
-  retryCount: number,
-  config: RetryConfig = {}
-): number {
+export function calculateBackoffDelay(retryCount: number, config: RetryConfig = {}): number {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const delay = Math.min(
     cfg.initialDelayMs * Math.pow(cfg.backoffMultiplier, retryCount),
@@ -25,10 +22,7 @@ export function calculateBackoffDelay(
   return Math.round(delay + jitter);
 }
 
-export function getNextRetryTime(
-  retryCount: number,
-  config: RetryConfig = {}
-): number {
+export function getNextRetryTime(retryCount: number, config: RetryConfig = {}): number {
   const delayMs = calculateBackoffDelay(retryCount, config);
   return Date.now() + delayMs;
 }

@@ -100,8 +100,8 @@ function normalizeOrder(raw: Record<string, unknown>): Order | null {
     typeof expiryValue === "number"
       ? new Date(expiryValue * 1000).toISOString()
       : typeof expiryValue === "string"
-      ? expiryValue
-      : undefined;
+        ? expiryValue
+        : undefined;
 
   const fromAmount = getString(raw.amount ?? raw.from_amount, "0");
   const toAmount = getString(raw.total ?? raw.to_amount, "0");

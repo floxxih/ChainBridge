@@ -37,12 +37,7 @@ export function CopyToClipboard({
       className={className}
       aria-label={copied ? "Copied to clipboard" : `Copy ${label ?? "value"} to clipboard`}
     >
-      <CopyButton
-        value={value}
-        label={label}
-        size={size}
-        className={className}
-      />
+      <CopyButton value={value} label={label} size={size} className={className} />
     </button>
   );
 }

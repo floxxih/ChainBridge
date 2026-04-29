@@ -9,6 +9,7 @@ import { Button, Card, EmptyState, Input, ToastContainer } from "@/components/ui
 import { DEMO_ORDER_OWNER, useMockOrders, useOrderBookStore } from "@/hooks/useOrderBook";
 import { Order, OrderStatus } from "@/types";
 import { cn } from "@/lib/utils";
+import { shortenHash } from "@/lib/format";
 import { AdvancedFilterDrawer } from "@/components/filters/AdvancedFilterDrawer";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useI18n } from "@/components/i18n/I18nProvider";
@@ -45,8 +46,7 @@ function deriveStatus(order: Order): OrderStatus {
 }
 
 function shortAddress(value: string) {
-  if (value.length <= 18) return value;
-  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+  return shortenHash(value, { prefixLength: 8, suffixLength: 6 });
 }
 
 export default function OrdersPage() {

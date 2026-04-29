@@ -12,12 +12,19 @@ describe("useAsync", () => {
   it("sets loading while executing", async () => {
     const { result } = renderHook(() => useAsync<string>());
     let resolve!: (v: string) => void;
-    const promise = new Promise<string>((r) => { resolve = r; });
+    const promise = new Promise<string>((r) => {
+      resolve = r;
+    });
 
-    act(() => { result.current.execute(() => promise); });
+    act(() => {
+      result.current.execute(() => promise);
+    });
     expect(result.current.loading).toBe(true);
 
-    await act(async () => { resolve("done"); await promise; });
+    await act(async () => {
+      resolve("done");
+      await promise;
+    });
     expect(result.current.loading).toBe(false);
     expect(result.current.value).toBe("done");
   });

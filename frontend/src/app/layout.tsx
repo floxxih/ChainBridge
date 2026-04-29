@@ -88,10 +88,7 @@ export default function RootLayout({
         )}
       >
         {/* Skip-to-main link — visible on keyboard focus, hidden otherwise */}
-        <a
-          href="#main-content"
-          className="skip-to-main"
-        >
+        <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
         <AppLayoutErrorBoundary>

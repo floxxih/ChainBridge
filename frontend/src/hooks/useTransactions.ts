@@ -3,10 +3,7 @@ import { persist } from "zustand/middleware";
 import { Transaction, TransactionStore, TransactionStatus } from "@/types";
 import { useCallback } from "react";
 
-import {
-  buildCompletedLifecycle,
-  buildTransactionLifecycle,
-} from "@/lib/transactionLifecycle";
+import { buildCompletedLifecycle, buildTransactionLifecycle } from "@/lib/transactionLifecycle";
 import { getExplorerUrl } from "@/lib/explorers";
 
 export const useTransactionStore = create<TransactionStore>()(

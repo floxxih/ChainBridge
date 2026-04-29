@@ -45,9 +45,7 @@ export default function FeeDisplay({ sourceChain, destChain, amount }: FeeDispla
 
   return (
     <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-4">
-      <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-        Fee Breakdown
-      </h4>
+      <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">Fee Breakdown</h4>
 
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
@@ -58,11 +56,15 @@ export default function FeeDisplay({ sourceChain, destChain, amount }: FeeDispla
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Network fee</span>
-          <span>{formatTokenWithSymbol(srcFee.base_fee, srcFee.asset, { maximumFractionDigits: 6 })}</span>
+          <span>
+            {formatTokenWithSymbol(srcFee.base_fee, srcFee.asset, { maximumFractionDigits: 6 })}
+          </span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Contract fee</span>
-          <span>{formatTokenWithSymbol(srcFee.contract_fee, srcFee.asset, { maximumFractionDigits: 6 })}</span>
+          <span>
+            {formatTokenWithSymbol(srcFee.contract_fee, srcFee.asset, { maximumFractionDigits: 6 })}
+          </span>
         </div>
 
         <div className="flex justify-between">
@@ -73,11 +75,15 @@ export default function FeeDisplay({ sourceChain, destChain, amount }: FeeDispla
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Network fee</span>
-          <span>{formatTokenWithSymbol(dstFee.base_fee, dstFee.asset, { maximumFractionDigits: 6 })}</span>
+          <span>
+            {formatTokenWithSymbol(dstFee.base_fee, dstFee.asset, { maximumFractionDigits: 6 })}
+          </span>
         </div>
         <div className="flex justify-between text-xs text-gray-400 ml-4">
           <span>Contract fee</span>
-          <span>{formatTokenWithSymbol(dstFee.contract_fee, dstFee.asset, { maximumFractionDigits: 6 })}</span>
+          <span>
+            {formatTokenWithSymbol(dstFee.contract_fee, dstFee.asset, { maximumFractionDigits: 6 })}
+          </span>
         </div>
 
         {amount && amount > 0 && (

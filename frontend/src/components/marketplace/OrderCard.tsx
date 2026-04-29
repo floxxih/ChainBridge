@@ -1,7 +1,7 @@
 "use client";
 
 import { Order } from "@/types";
-import { Button, StatusBadge } from "@/components/ui";
+import { Button, StatusBadge, TruncatedHash } from "@/components/ui";
 import { formatAmount, formatRelativeTime } from "@/lib/utils";
 import { ArrowRight, Clock, Shield } from "lucide-react";
 
@@ -64,9 +64,7 @@ export function OrderCard({
           </div>
           <div className="flex items-center gap-1.5 text-xs text-text-secondary">
             <Shield size={12} className="text-text-muted" />
-            <span className="truncate max-w-[120px] font-mono opacity-80">
-              {order.maker.slice(0, 6)}...{order.maker.slice(-4)}
-            </span>
+            <TruncatedHash hash={order.maker} label="maker address" className="truncate max-w-[120px] opacity-80" />
           </div>
         </div>
 
