@@ -29,9 +29,9 @@ function getWalletInstallState(): Record<ChainType, boolean> {
   const hasEthereum = Boolean((window as any).ethereum);
   const hasBitcoin = Boolean(
     (window as any).LeatherProvider ||
-      (window as any).XverseProviders ||
-      (window as any).BitcoinProvider ||
-      (window as any).unisat,
+    (window as any).XverseProviders ||
+    (window as any).BitcoinProvider ||
+    (window as any).unisat
   );
   return {
     stellar: hasFreighter,

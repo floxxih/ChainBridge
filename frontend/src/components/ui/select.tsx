@@ -14,8 +14,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const selectId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     const errorId = selectId ? `${selectId}-error` : undefined;
     const hintId = selectId ? `${selectId}-hint` : undefined;
-    const describedBy =
-      (error ? errorId : undefined) ?? (hint ? hintId : undefined);
+    const describedBy = (error ? errorId : undefined) ?? (hint ? hintId : undefined);
 
     return (
       <div className="flex flex-col gap-1.5 w-full">
@@ -41,13 +40,20 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {...props}
           >
             {options.map((opt) => (
-              <option key={opt.value} value={opt.value} className="bg-surface-raised text-text-primary">
+              <option
+                key={opt.value}
+                value={opt.value}
+                className="bg-surface-raised text-text-primary"
+              >
                 {opt.label}
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute right-4 flex items-center text-text-muted" aria-hidden="true">
-             <ChevronDown className="h-4 w-4" />
+          <div
+            className="pointer-events-none absolute right-4 flex items-center text-text-muted"
+            aria-hidden="true"
+          >
+            <ChevronDown className="h-4 w-4" />
           </div>
         </div>
         {error && (

@@ -8,22 +8,22 @@ module.exports = {
   projectToken: process.env.CHROMATIC_PROJECT_TOKEN,
 
   // Build Storybook before running tests
-  buildScriptName: 'build-storybook',
+  buildScriptName: "build-storybook",
 
   // Only run on specific branches to save CI minutes
   onlyChanged: true,
 
   // Auto-accept changes for specific patterns
-  autoAcceptChanges: 'src/**/__tests__/**/*',
+  autoAcceptChanges: "src/**/__tests__/**/*",
 
   // Exit with zero code when changes are detected (for local development)
-  exitZeroOnChanges: process.env.NODE_ENV !== 'ci',
+  exitZeroOnChanges: process.env.NODE_ENV !== "ci",
 
   // Output configuration
-  output: 'chromatic-results',
+  output: "chromatic-results",
 
   // Skip stories that match these patterns
-  skip: ['**/*.stories.mdx', '**/examples/**'],
+  skip: ["**/*.stories.mdx", "**/examples/**"],
 
   // Custom CSS injection for consistent testing
   css: `

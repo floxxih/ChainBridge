@@ -1,38 +1,39 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import type { Meta, StoryObj } from "@storybook/react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 const meta: Meta<typeof StatusBadge> = {
-  title: 'UI/StatusBadge',
+  title: "UI/StatusBadge",
   component: StatusBadge,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
     docs: {
       description: {
-        component: 'Status badge component for displaying transaction and swap states in ChainBridge.',
+        component:
+          "Status badge component for displaying transaction and swap states in ChainBridge.",
       },
     },
   },
   argTypes: {
     status: {
-      control: 'select',
-      options: ['pending', 'completed', 'failed', 'expired', 'cancelled'],
-      description: 'Status type to display',
+      control: "select",
+      options: ["pending", "completed", "failed", "expired", "cancelled"],
+      description: "Status type to display",
     },
     size: {
-      control: 'select',
-      options: ['sm', 'md', 'lg'],
-      description: 'Size of the badge',
+      control: "select",
+      options: ["sm", "md", "lg"],
+      description: "Size of the badge",
     },
     showIcon: {
-      control: 'boolean',
-      description: 'Whether to show status icon',
+      control: "boolean",
+      description: "Whether to show status icon",
     },
     children: {
-      control: 'text',
-      description: 'Custom text to override status label',
+      control: "text",
+      description: "Custom text to override status label",
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -41,7 +42,7 @@ type Story = StoryObj<typeof meta>;
 // Default status badge
 export const Default: Story = {
   args: {
-    status: 'pending',
+    status: "pending",
   },
 };
 
@@ -59,7 +60,7 @@ export const AllStatuses: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'All available status types for different transaction states.',
+        story: "All available status types for different transaction states.",
       },
     },
   },
@@ -77,7 +78,7 @@ export const Sizes: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Different badge sizes for various UI contexts.',
+        story: "Different badge sizes for various UI contexts.",
       },
     },
   },
@@ -95,7 +96,7 @@ export const CustomText: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Status badges with custom text for specific scenarios.',
+        story: "Status badges with custom text for specific scenarios.",
       },
     },
   },
@@ -113,7 +114,7 @@ export const WithoutIcons: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Status badges without icons for minimal design.',
+        story: "Status badges without icons for minimal design.",
       },
     },
   },
@@ -140,7 +141,7 @@ export const ChainBridgeExamples: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Real-world ChainBridge examples showing status badges in context.',
+        story: "Real-world ChainBridge examples showing status badges in context.",
       },
     },
   },

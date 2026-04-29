@@ -22,15 +22,11 @@ test.describe("Swap form — field validation", () => {
 
   test("renders amount input and recipient address field", async ({ page }) => {
     await expect(page.getByRole("spinbutton", { name: /amount/i })).toBeVisible();
-    await expect(
-      page.getByRole("textbox", { name: /recipient address/i })
-    ).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /recipient address/i })).toBeVisible();
   });
 
   test("submit button is disabled when form is empty", async ({ page }) => {
-    const submit = page
-      .getByRole("button", { name: /review swap|confirm|next/i })
-      .first();
+    const submit = page.getByRole("button", { name: /review swap|confirm|next/i }).first();
     await expect(submit).toBeDisabled();
   });
 
@@ -76,23 +72,17 @@ test.describe("Swap form — review step", () => {
   test("proceeds to review step with valid inputs", async ({ page }) => {
     await fillValidSwapForm(page);
 
-    const nextBtn = page
-      .getByRole("button", { name: /review swap|next|continue/i })
-      .first();
+    const nextBtn = page.getByRole("button", { name: /review swap|next|continue/i }).first();
     await expect(nextBtn).toBeEnabled();
     await nextBtn.click();
 
-    await expect(
-      page.getByText(/review|confirm swap|swap details/i).first()
-    ).toBeVisible();
+    await expect(page.getByText(/review|confirm swap|swap details/i).first()).toBeVisible();
   });
 
   test("review step displays entered amount and recipient", async ({ page }) => {
     await fillValidSwapForm(page);
 
-    const nextBtn = page
-      .getByRole("button", { name: /review swap|next|continue/i })
-      .first();
+    const nextBtn = page.getByRole("button", { name: /review swap|next|continue/i }).first();
     await nextBtn.click();
 
     await expect(page.getByText(/10/)).toBeVisible();
@@ -102,9 +92,7 @@ test.describe("Swap form — review step", () => {
   test("can navigate back from review step to edit inputs", async ({ page }) => {
     await fillValidSwapForm(page);
 
-    const nextBtn = page
-      .getByRole("button", { name: /review swap|next|continue/i })
-      .first();
+    const nextBtn = page.getByRole("button", { name: /review swap|next|continue/i }).first();
     await nextBtn.click();
 
     const backBtn = page.getByRole("button", { name: /back|edit/i }).first();
@@ -150,9 +138,7 @@ test.describe("Swap form — accessibility", () => {
         const id = el.getAttribute("id");
         const ariaLabel = el.getAttribute("aria-label");
         const ariaLabelledBy = el.getAttribute("aria-labelledby");
-        const associated = id
-          ? document.querySelector(`label[for="${id}"]`)
-          : null;
+        const associated = id ? document.querySelector(`label[for="${id}"]`) : null;
         return !ariaLabel && !ariaLabelledBy && !associated;
       }).length;
     });

@@ -19,7 +19,8 @@ export default function TrackingPage() {
           Swap Tracking
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
-          This route group hosts transaction tracking pages and execution visibility for active swaps.
+          This route group hosts transaction tracking pages and execution visibility for active
+          swaps.
         </p>
       </div>
 

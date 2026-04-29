@@ -6,20 +6,20 @@ import { Card, Badge, Skeleton } from "@/components/ui";
 
 type VolumePeriod = "24h" | "7d" | "30d";
 
-const LineChart = dynamic(
-  () => import("@/components/charts").then((m) => m.LineChart),
-  { loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />, ssr: false }
-);
+const LineChart = dynamic(() => import("@/components/charts").then((m) => m.LineChart), {
+  loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
+  ssr: false,
+});
 
 const BarChartWrapper = dynamic(
   () => import("@/components/charts").then((m) => m.BarChartWrapper),
   { loading: () => <Skeleton className="h-[200px] w-full rounded-xl" />, ssr: false }
 );
 
-const DonutChart = dynamic(
-  () => import("@/components/charts").then((m) => m.DonutChart),
-  { loading: () => <Skeleton className="h-[160px] w-[160px] rounded-full mx-auto" />, ssr: false }
-);
+const DonutChart = dynamic(() => import("@/components/charts").then((m) => m.DonutChart), {
+  loading: () => <Skeleton className="h-[160px] w-[160px] rounded-full mx-auto" />,
+  ssr: false,
+});
 
 const RAW_DATA: Record<
   VolumePeriod,
@@ -138,9 +138,7 @@ export default function AnalyticsPage() {
         {/* Donut – chain distribution */}
         <Card className="p-6 flex flex-col items-center">
           <p className="text-sm font-semibold text-text-primary mb-4 self-start">Chain Mix</p>
-          <Suspense
-            fallback={<Skeleton className="h-[160px] w-[160px] rounded-full" />}
-          >
+          <Suspense fallback={<Skeleton className="h-[160px] w-[160px] rounded-full" />}>
             <DonutChart
               slices={CHAIN_SLICES}
               size={160}

@@ -106,18 +106,13 @@ export default function TimelockWarnings({
       {validation.warnings.map((warning, idx) => {
         const style = LEVEL_STYLES[warning.level] || LEVEL_STYLES.info;
         return (
-          <div
-            key={idx}
-            className={`p-3 rounded-lg border ${style.bg} ${style.border}`}
-          >
+          <div key={idx} className={`p-3 rounded-lg border ${style.bg} ${style.border}`}>
             <div className={`flex items-start gap-2 ${style.text}`}>
               <span className="text-sm flex-shrink-0">{style.icon}</span>
               <div className="text-sm">
                 <p className="font-medium">{warning.message}</p>
                 {warning.recommendation && (
-                  <p className="text-xs mt-1 opacity-80">
-                    {warning.recommendation}
-                  </p>
+                  <p className="text-xs mt-1 opacity-80">{warning.recommendation}</p>
                 )}
               </div>
             </div>

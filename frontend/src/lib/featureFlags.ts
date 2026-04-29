@@ -41,7 +41,11 @@ export type FeatureFlagId = keyof typeof FEATURE_FLAG_REGISTRY;
 
 export type FeatureFlags = Record<FeatureFlagId, boolean>;
 
-function readBoolEnv(env: Record<string, string | undefined>, key: string, fallback: boolean): boolean {
+function readBoolEnv(
+  env: Record<string, string | undefined>,
+  key: string,
+  fallback: boolean
+): boolean {
   const raw = env[key];
   if (raw === undefined || raw === "") return fallback;
   return raw === "true" || raw === "1";

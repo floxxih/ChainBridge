@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ActivityTimeline, type ActivityTimelineEvent } from "@/components/timeline/ActivityTimeline";
+import {
+  ActivityTimeline,
+  type ActivityTimelineEvent,
+} from "@/components/timeline/ActivityTimeline";
 import { Badge, Button, Card, EmptyState, InlineError } from "@/components/ui";
 import { getExplorerUrl } from "@/lib/explorers";
 import { cn } from "@/lib/utils";
@@ -106,7 +109,12 @@ export default function TrackSwapsPage() {
 
   const timelineEvents = useMemo(() => {
     if (!selectedSwap) return [];
-    return buildTimeline(selectedSwap.id, selectedSwap.status, selectedSwap.date, selectedSwap.otherChainTx);
+    return buildTimeline(
+      selectedSwap.id,
+      selectedSwap.status,
+      selectedSwap.date,
+      selectedSwap.otherChainTx
+    );
   }, [selectedSwap]);
 
   return (
@@ -200,7 +208,8 @@ export default function TrackSwapsPage() {
                           <span>{selectedSwap.to}</span>
                         </div>
                         <p className="mt-2 text-sm text-text-secondary">
-                          {selectedSwap.amount} {selectedSwap.from} to {selectedSwap.toAmount} {selectedSwap.to}
+                          {selectedSwap.amount} {selectedSwap.from} to {selectedSwap.toAmount}{" "}
+                          {selectedSwap.to}
                         </p>
                       </Card>
                     </div>
@@ -239,7 +248,9 @@ export default function TrackSwapsPage() {
                           </Badge>
                         </div>
                         <p className="mt-1 text-xs text-text-secondary">
-                          {event.timestamp ? new Date(event.timestamp).toLocaleString() : "Waiting for update"}
+                          {event.timestamp
+                            ? new Date(event.timestamp).toLocaleString()
+                            : "Waiting for update"}
                         </p>
                       </div>
                     ))}
@@ -277,7 +288,9 @@ export default function TrackSwapsPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
                     Tracking context
                   </p>
-                  <p className="mt-2 text-sm text-text-secondary">Wallet: {address ?? "Not available"}</p>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Wallet: {address ?? "Not available"}
+                  </p>
                   <p className="mt-1 text-sm text-text-secondary">Swaps in view: {swaps.length}</p>
                 </Card>
               </aside>

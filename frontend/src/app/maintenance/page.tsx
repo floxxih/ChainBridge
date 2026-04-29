@@ -3,8 +3,7 @@ import { Wrench, Clock, ArrowUpRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Under Maintenance | ChainBridge",
-  description:
-    "ChainBridge is temporarily down for scheduled maintenance. We'll be back shortly.",
+  description: "ChainBridge is temporarily down for scheduled maintenance. We'll be back shortly.",
   robots: { index: false, follow: false },
 };
 

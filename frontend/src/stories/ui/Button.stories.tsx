@@ -1,42 +1,43 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Button } from '@/components/ui/button';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Button } from "@/components/ui/button";
 
 const meta: Meta<typeof Button> = {
-  title: 'UI/Button',
+  title: "UI/Button",
   component: Button,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
     docs: {
       description: {
-        component: 'Button component with multiple variants and sizes for the ChainBridge interface.',
+        component:
+          "Button component with multiple variants and sizes for the ChainBridge interface.",
       },
     },
   },
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'],
-      description: 'Visual style variant of the button',
+      control: "select",
+      options: ["default", "destructive", "outline", "secondary", "ghost", "link"],
+      description: "Visual style variant of the button",
     },
     size: {
-      control: 'select',
-      options: ['default', 'sm', 'lg', 'icon'],
-      description: 'Size of the button',
+      control: "select",
+      options: ["default", "sm", "lg", "icon"],
+      description: "Size of the button",
     },
     disabled: {
-      control: 'boolean',
-      description: 'Whether the button is disabled',
+      control: "boolean",
+      description: "Whether the button is disabled",
     },
     loading: {
-      control: 'boolean',
-      description: 'Whether to show loading state',
+      control: "boolean",
+      description: "Whether to show loading state",
     },
     children: {
-      control: 'text',
-      description: 'Button content',
+      control: "text",
+      description: "Button content",
     },
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 };
 
 export default meta;
@@ -45,7 +46,7 @@ type Story = StoryObj<typeof meta>;
 // Default button
 export const Default: Story = {
   args: {
-    children: 'Connect Wallet',
+    children: "Connect Wallet",
   },
 };
 
@@ -64,7 +65,7 @@ export const Variants: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'All available button variants for different use cases.',
+        story: "All available button variants for different use cases.",
       },
     },
   },
@@ -87,7 +88,7 @@ export const Sizes: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Different button sizes for various UI contexts.',
+        story: "Different button sizes for various UI contexts.",
       },
     },
   },
@@ -100,13 +101,15 @@ export const States: Story = {
       <Button>Normal</Button>
       <Button disabled>Disabled</Button>
       <Button loading>Loading</Button>
-      <Button disabled loading>Disabled Loading</Button>
+      <Button disabled loading>
+        Disabled Loading
+      </Button>
     </div>
   ),
   parameters: {
     docs: {
       description: {
-        story: 'Different button states including loading and disabled.',
+        story: "Different button states including loading and disabled.",
       },
     },
   },
@@ -118,19 +121,34 @@ export const WithIcons: Story = {
     <div className="flex flex-wrap gap-4">
       <Button>
         <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 7l5 5m0 0l-5 5m5-5H6"
+          />
         </svg>
         Send
       </Button>
       <Button variant="outline">
         <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
         Refresh
       </Button>
       <Button variant="destructive">
         <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
         </svg>
         Delete
       </Button>
@@ -139,7 +157,7 @@ export const WithIcons: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Buttons with icons for better visual communication.',
+        story: "Buttons with icons for better visual communication.",
       },
     },
   },
@@ -148,13 +166,13 @@ export const WithIcons: Story = {
 // Full width
 export const FullWidth: Story = {
   args: {
-    children: 'Full Width Button',
-    className: 'w-full',
+    children: "Full Width Button",
+    className: "w-full",
   },
   parameters: {
     docs: {
       description: {
-        story: 'Button that spans the full width of its container.',
+        story: "Button that spans the full width of its container.",
       },
     },
   },
@@ -165,15 +183,21 @@ export const ChainBridgeExamples: Story = {
   render: () => (
     <div className="flex flex-col gap-4 w-80">
       <Button className="w-full">Create Swap Order</Button>
-      <Button variant="outline" className="w-full">Connect Wallet</Button>
-      <Button variant="secondary" className="w-full">View Transaction History</Button>
-      <Button variant="ghost" className="w-full">Learn More</Button>
+      <Button variant="outline" className="w-full">
+        Connect Wallet
+      </Button>
+      <Button variant="secondary" className="w-full">
+        View Transaction History
+      </Button>
+      <Button variant="ghost" className="w-full">
+        Learn More
+      </Button>
     </div>
   ),
   parameters: {
     docs: {
       description: {
-        story: 'ChainBridge-specific button examples showing real-world usage.',
+        story: "ChainBridge-specific button examples showing real-world usage.",
       },
     },
   },

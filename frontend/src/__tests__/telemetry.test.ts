@@ -14,8 +14,6 @@ describe("startTiming", () => {
 
 describe("reportWebVitals", () => {
   it("does not throw for a valid metric payload", () => {
-    expect(() =>
-      reportWebVitals({ name: "LCP", value: 1200, id: "v3-123" })
-    ).not.toThrow();
+    expect(() => reportWebVitals({ name: "LCP", value: 1200, id: "v3-123" })).not.toThrow();
   });
 });

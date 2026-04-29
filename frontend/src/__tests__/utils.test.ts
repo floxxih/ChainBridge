@@ -8,8 +8,8 @@ describe("truncateAddress", () => {
   it("truncates long addresses", () => {
     const addr = "GDRXE2BQUC3AZNPVFSCEZ76NJ3WWL25FYFK6RGZGIEKWE4SOUJ3LNLRK";
     const result = truncateAddress(addr, 4);
-    expect(result).toBe("GDRX...LRKE".slice(0, -1) + addr.slice(-4));
-    expect(result).toMatch(/^GDRX\.\.\./);
+    expect(result).toBe("GDRX…LRKE");
+    expect(result).toMatch(/^GDRX…/);
     expect(result.endsWith(addr.slice(-4))).toBe(true);
   });
 });
