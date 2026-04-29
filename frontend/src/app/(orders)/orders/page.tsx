@@ -15,6 +15,7 @@ import { useI18n } from "@/components/i18n/I18nProvider";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/ui";
+import { CancelOrderDialog } from "@/components/orders/CancelOrderDialog";
 
 const PAGE_SIZE = 4;
 
@@ -77,6 +78,7 @@ export default function OrdersPage() {
     []
   );
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   useEffect(() => {
@@ -186,7 +188,15 @@ export default function OrdersPage() {
     setToasts((current) => [...current, { id: `${Date.now()}-${Math.random()}`, ...toast }]);
   }
 
-  async function cancelOrder(order: Order) {
+  function requestCancel(order: Order) {
+    setOrderToCancel(order);
+  }
+
+  function dismissCancelDialog() {
+    setOrderToCancel(null);
+  }
+
+  async function confirmCancel(order: { id: string; pair: string }) {
     setPendingCancelId(order.id);
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 900));
@@ -196,12 +206,17 @@ export default function OrdersPage() {
         title: "Order cancelled",
         message: `${order.pair} has been removed from the open book.`,
       });
-    } catch {
+      setOrderToCancel(null);
+    } catch (err) {
       pushToast({
         type: "error",
         title: "Cancel failed",
         message: "The order could not be cancelled. Please try again.",
       });
+      // Re-throw so the dialog renders the inline error and stays open.
+      throw err instanceof Error
+        ? err
+        : new Error("The order could not be cancelled. Please try again.");
     } finally {
       setPendingCancelId(null);
     }
@@ -370,12 +385,14 @@ export default function OrdersPage() {
                   </div>
 
                   <Button
-                    variant="danger"
+                    variant="destructive"
                     className="w-full"
                     icon={<XCircle className="h-4 w-4" />}
                     loading={pendingCancelId === order.id}
                     disabled={order.derivedStatus !== OrderStatus.OPEN}
-                    onClick={() => void cancelOrder(order)}
+                    onClick={() => requestCancel(order)}
+                    aria-haspopup="dialog"
+                    aria-label={`Cancel order ${order.pair} (${order.id})`}
                   >
                     Cancel Order
                   </Button>
@@ -407,6 +424,14 @@ export default function OrdersPage() {
         onDismiss={(id) => {
           setToasts((current) => current.filter((toast) => toast.id !== id));
         }}
+      />
+
+      <CancelOrderDialog
+        open={orderToCancel !== null}
+        order={orderToCancel}
+        loading={pendingCancelId !== null && pendingCancelId === orderToCancel?.id}
+        onConfirm={confirmCancel}
+        onClose={dismissCancelDialog}
       />
 
       <AdvancedFilterDrawer
