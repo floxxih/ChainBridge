@@ -24,11 +24,7 @@ const EXPLORER_URLS: Record<string, ExplorerBaseUrls> = {
   },
 };
 
-export function getExplorerUrl(
-  chain: string,
-  hash: string,
-  type: ExplorerLinkType = "tx"
-): string {
+export function getExplorerUrl(chain: string, hash: string, type: ExplorerLinkType = "tx"): string {
   const normalizedChain = chain.toLowerCase();
   const urls = EXPLORER_URLS[normalizedChain];
 

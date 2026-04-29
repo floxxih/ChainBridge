@@ -19,7 +19,12 @@ interface SwapReviewProps {
   };
 }
 
-export function SwapReviewSummary({ onConfirm, onCancel, isConfirming, swapDetails }: SwapReviewProps) {
+export function SwapReviewSummary({
+  onConfirm,
+  onCancel,
+  isConfirming,
+  swapDetails,
+}: SwapReviewProps) {
   return (
     <div className="flex flex-col gap-6 p-1">
       <div className="text-center space-y-1">
@@ -32,7 +37,9 @@ export function SwapReviewSummary({ onConfirm, onCancel, isConfirming, swapDetai
           <div>
             <p className="text-sm text-text-secondary mb-1">Pay</p>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-text-primary">{swapDetails.fromAmount}</span>
+              <span className="text-2xl font-semibold text-text-primary">
+                {swapDetails.fromAmount}
+              </span>
               <Badge variant="default">{swapDetails.fromAsset}</Badge>
             </div>
             <p className="text-xs text-text-muted mt-1">on {swapDetails.fromChain}</p>
@@ -47,7 +54,9 @@ export function SwapReviewSummary({ onConfirm, onCancel, isConfirming, swapDetai
           <div>
             <p className="text-sm text-text-secondary mb-1">Receive</p>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-semibold text-text-primary">{swapDetails.toAmount}</span>
+              <span className="text-2xl font-semibold text-text-primary">
+                {swapDetails.toAmount}
+              </span>
               <Badge variant="default">{swapDetails.toAsset}</Badge>
             </div>
             <p className="text-xs text-text-muted mt-1">on {swapDetails.toChain}</p>

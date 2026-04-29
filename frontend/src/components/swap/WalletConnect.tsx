@@ -51,7 +51,8 @@ export function WalletConnect() {
 
   const networkLabel = formatNetworkLabel(network);
   const expectedNetworkLabel = formatNetworkLabel(config.stellar.network);
-  const expectedEthereumLabel = config.ethereum.network === "mainnet" ? "Ethereum Mainnet" : "Sepolia";
+  const expectedEthereumLabel =
+    config.ethereum.network === "mainnet" ? "Ethereum Mainnet" : "Sepolia";
 
   const handleConnect = async (targetChain: ChainType) => {
     try {
@@ -59,7 +60,9 @@ export function WalletConnect() {
 
       if (isUnsupportedNetwork) {
         toast.warning(
-          targetChain === "stellar" ? "Unsupported Stellar network" : "Unsupported Ethereum network",
+          targetChain === "stellar"
+            ? "Unsupported Stellar network"
+            : "Unsupported Ethereum network",
           targetChain === "stellar"
             ? `Switch Freighter to ${expectedNetworkLabel} to continue with ChainBridge.`
             : `Switch MetaMask to ${expectedEthereumLabel} to continue with ChainBridge.`
@@ -76,10 +79,7 @@ export function WalletConnect() {
       setIsOpen(false);
     } catch (e) {
       console.error("Connection failed", e);
-      toast.error(
-        "Wallet connection failed",
-        e instanceof Error ? e.message : "Please try again."
-      );
+      toast.error("Wallet connection failed", e instanceof Error ? e.message : "Please try again.");
     }
   };
 

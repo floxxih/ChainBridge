@@ -12,18 +12,12 @@ describe("Empty state presets", () => {
   it("renders NoSwaps with default CTA", () => {
     render(<NoSwapsEmptyState />);
     expect(screen.getByText("No swaps yet")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /start a swap/i })).toHaveAttribute(
-      "href",
-      "/swap"
-    );
+    expect(screen.getByRole("link", { name: /start a swap/i })).toHaveAttribute("href", "/swap");
   });
 
   it("allows overriding the action", () => {
     render(<NoOrdersEmptyState action={{ label: "Custom CTA", href: "/x" }} />);
-    expect(screen.getByRole("link", { name: /custom cta/i })).toHaveAttribute(
-      "href",
-      "/x"
-    );
+    expect(screen.getByRole("link", { name: /custom cta/i })).toHaveAttribute("href", "/x");
   });
 
   it("renders NoHTLCs preset", () => {

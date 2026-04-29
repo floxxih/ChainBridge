@@ -4,6 +4,19 @@
  */
 import axios from "axios";
 import config from "@/lib/config";
+import {
+  AdminStatsSchema,
+  VolumeDataSchema,
+  ActiveHTLCsResponseSchema,
+  ChainHealthResponseSchema,
+  UserMetricsSchema,
+  AlertListSchema,
+  AlertSchema,
+  DisputeListSchema,
+  DisputeStatsSchema,
+  DisputeSchema,
+} from "@/lib/api/schemas";
+import { validateApiResponse } from "@/lib/api/validation";
 
 const ADMIN_KEY_STORAGE = "cb_admin_api_key";
 
@@ -163,44 +176,44 @@ export interface DisputeResolveRequest {
 
 export async function fetchAdminStats(): Promise<AdminStats> {
   const { data } = await adminClient().get<AdminStats>("/stats");
-  return data;
+  return validateApiResponse(data, AdminStatsSchema, "/admin/stats");
 }
 
 export async function fetchAdminVolume(
   period: "1h" | "24h" | "7d" | "30d" = "24h"
 ): Promise<VolumeData> {
   const { data } = await adminClient().get<VolumeData>("/volume", { params: { period } });
-  return data;
+  return validateApiResponse(data, VolumeDataSchema, "/admin/volume");
 }
 
 export async function fetchActiveHTLCs(): Promise<{ active_count: number; htlcs: ActiveHTLC[] }> {
   const { data } = await adminClient().get("/htlcs/active");
-  return data;
+  return validateApiResponse(data, ActiveHTLCsResponseSchema, "/admin/htlcs/active");
 }
 
 export async function fetchChainHealth(): Promise<{ chains: ChainHealth[] }> {
   const { data } = await adminClient().get("/chains");
-  return data;
+  return validateApiResponse(data, ChainHealthResponseSchema, "/admin/chains");
 }
 
 export async function fetchUserMetrics(): Promise<UserMetrics> {
   const { data } = await adminClient().get<UserMetrics>("/users");
-  return data;
+  return validateApiResponse(data, UserMetricsSchema, "/admin/users");
 }
 
 export async function fetchAlerts(): Promise<Alert[]> {
   const { data } = await adminClient().get<Alert[]>("/alerts");
-  return data;
+  return validateApiResponse(data, AlertListSchema, "/admin/alerts");
 }
 
 export async function createAlert(alert: AlertCreate): Promise<Alert> {
   const { data } = await adminClient().post<Alert>("/alerts", alert);
-  return data;
+  return validateApiResponse(data, AlertSchema, "/admin/alerts");
 }
 
 export async function updateAlert(id: string, alert: AlertCreate): Promise<Alert> {
   const { data } = await adminClient().patch<Alert>(`/alerts/${id}`, alert);
-  return data;
+  return validateApiResponse(data, AlertSchema, `/admin/alerts/${id}`);
 }
 
 export async function deleteAlert(id: string): Promise<void> {
@@ -211,12 +224,12 @@ export async function fetchDisputes(status?: string): Promise<Dispute[]> {
   const { data } = await adminClient().get<Dispute[]>("/disputes", {
     params: status ? { status } : {},
   });
-  return data;
+  return validateApiResponse(data, DisputeListSchema, "/admin/disputes");
 }
 
 export async function fetchDisputeStats(): Promise<DisputeStats> {
   const { data } = await adminClient().get<DisputeStats>("/disputes/stats");
-  return data;
+  return validateApiResponse(data, DisputeStatsSchema, "/admin/disputes/stats");
 }
 
 export async function reviewDispute(
@@ -229,12 +242,12 @@ export async function reviewDispute(
     reviewed_by,
     admin_notes,
   });
-  return data;
+  return validateApiResponse(data, DisputeSchema, `/admin/disputes/${id}/review`);
 }
 
 export async function resolveDispute(id: string, payload: DisputeResolveRequest): Promise<Dispute> {
   const { data } = await adminClient().post<Dispute>(`/disputes/${id}/resolve`, payload);
-  return data;
+  return validateApiResponse(data, DisputeSchema, `/admin/disputes/${id}/resolve`);
 }
 
 /** Verify an admin key by hitting the stats endpoint. Returns true if valid + admin. */

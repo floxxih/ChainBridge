@@ -28,10 +28,10 @@ import {
 import { getAdminApiKey, clearAdminApiKey } from "@/lib/adminApi";
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
-const BarChart = dynamic(
-  () => import("@/components/admin/BarChart").then((m) => m.BarChart),
-  { loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />, ssr: false }
-);
+const BarChart = dynamic(() => import("@/components/admin/BarChart").then((m) => m.BarChart), {
+  loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
+  ssr: false,
+});
 
 const HTLCMonitor = dynamic(
   () => import("@/components/admin/HTLCMonitor").then((m) => m.HTLCMonitor),
@@ -158,13 +158,48 @@ function Dashboard({
         >
           {stats.data && (
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-              <StatCard label="Total Swaps" value={stats.data.swaps.total} icon={ArrowRightLeft} accent="brand" />
-              <StatCard label="Executed" value={stats.data.swaps.executed} icon={Layers} accent="emerald" />
-              <StatCard label="Open Orders" value={stats.data.orders.open} icon={BarChart3} accent="indigo" />
-              <StatCard label="Active HTLCs" value={stats.data.htlcs.active} icon={Activity} accent="amber" />
-              <StatCard label="Open Disputes" value={stats.data.disputes.open} icon={Bell} accent="red" />
-              <StatCard label="Volume (24h)" value={stats.data.volume.last_24h.toLocaleString()} icon={BarChart3} accent="brand" />
-              <StatCard label="Unique Users" value={stats.data.users.unique_creators} icon={Users} accent="indigo" />
+              <StatCard
+                label="Total Swaps"
+                value={stats.data.swaps.total}
+                icon={ArrowRightLeft}
+                accent="brand"
+              />
+              <StatCard
+                label="Executed"
+                value={stats.data.swaps.executed}
+                icon={Layers}
+                accent="emerald"
+              />
+              <StatCard
+                label="Open Orders"
+                value={stats.data.orders.open}
+                icon={BarChart3}
+                accent="indigo"
+              />
+              <StatCard
+                label="Active HTLCs"
+                value={stats.data.htlcs.active}
+                icon={Activity}
+                accent="amber"
+              />
+              <StatCard
+                label="Open Disputes"
+                value={stats.data.disputes.open}
+                icon={Bell}
+                accent="red"
+              />
+              <StatCard
+                label="Volume (24h)"
+                value={stats.data.volume.last_24h.toLocaleString()}
+                icon={BarChart3}
+                accent="brand"
+              />
+              <StatCard
+                label="Unique Users"
+                value={stats.data.users.unique_creators}
+                icon={Users}
+                accent="indigo"
+              />
             </div>
           )}
           {stats.loading && (

@@ -44,7 +44,9 @@ function StepIcon({ state, flow }: { state: SwapTimelineState; flow: SwapTimelin
 
 function ringClasses(state: SwapTimelineState, flow: SwapTimelineFlow): string {
   if (state === "completed") {
-    return flow === "refund" ? "border-amber-500/30 bg-amber-500/5" : "border-emerald-500/30 bg-emerald-500/5";
+    return flow === "refund"
+      ? "border-amber-500/30 bg-amber-500/5"
+      : "border-emerald-500/30 bg-emerald-500/5";
   }
   if (state === "current") {
     return "border-brand-500/40 bg-brand-500/10";

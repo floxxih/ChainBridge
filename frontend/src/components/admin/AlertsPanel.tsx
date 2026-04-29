@@ -1,18 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button, Input, Badge } from "@/components/ui";
-import { Bell, Plus, Trash2, Edit2, ToggleLeft, ToggleRight } from "lucide-react";
+import {
+  Bell,
+  Plus,
+  Trash2,
+  Edit2,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import type { Alert, AlertCreate } from "@/lib/adminApi";
 
-interface AlertsPanelProps {
-  alerts: Alert[];
-  onAdd: (alert: AlertCreate) => Promise<void>;
-  onEdit: (id: string, alert: AlertCreate) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  className?: string;
-}
+/* -------------------------------------------------------------------------- */
+/*                                   CONFIG                                   */
+/* -------------------------------------------------------------------------- */
+
+const METRICS = [
+  "active_htlcs",
+  "total_htlcs",
+  "open_orders",
+  "total_orders",
+  "total_swaps",
+  "swap_volume",
+  "blocks_behind",
+  "swap_time_remaining", // NEW
+];
 
 const severityStyle: Record<string, string> = {
   info: "bg-brand-500/10 text-brand-400 border-brand-500/20",
@@ -26,16 +40,6 @@ const conditionLabels: Record<string, string> = {
   eq: "=",
 };
 
-const METRICS = [
-  "active_htlcs",
-  "total_htlcs",
-  "open_orders",
-  "total_orders",
-  "total_swaps",
-  "swap_volume",
-  "blocks_behind",
-];
-
 const BLANK_FORM: AlertCreate = {
   name: "",
   metric: "active_htlcs",
@@ -45,17 +49,90 @@ const BLANK_FORM: AlertCreate = {
   enabled: true,
 };
 
-export function AlertsPanel({ alerts, onAdd, onEdit, onDelete, className }: AlertsPanelProps) {
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+type Swap = {
+  id: string;
+  timeRemaining: number; // seconds
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              WARNING BANNER                                */
+/* -------------------------------------------------------------------------- */
+
+function SwapWarningBanner({
+  alert,
+  onDismiss,
+}: {
+  alert: Alert;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex items-center justify-between animate-fade-in">
+      <div>
+        <p className="text-sm font-medium text-amber-300">{alert.name}</p>
+        <p className="text-xs text-amber-200/80">
+          Swap is approaching timeout ({alert.threshold}s)
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {alert.cta && (
+          <a href={alert.cta.href}>
+            <Button size="sm" variant="outline">
+              {alert.cta.label}
+            </Button>
+          </a>
+        )}
+        <Button size="sm" onClick={onDismiss}>
+          Dismiss
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              MAIN COMPONENT                                */
+/* -------------------------------------------------------------------------- */
+
+interface AlertsPanelProps {
+  alerts: Alert[];
+  swaps: Swap[]; // NEW
+  onAdd: (alert: AlertCreate) => Promise<void>;
+  onEdit: (id: string, alert: AlertCreate) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  className?: string;
+}
+
+export function AlertsPanel({
+  alerts,
+  swaps,
+  onAdd,
+  onEdit,
+  onDelete,
+  className,
+}: AlertsPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<AlertCreate>(BLANK_FORM);
   const [saving, setSaving] = useState(false);
+
+  // alertId -> last triggered timestamp
+  const [activeWarnings, setActiveWarnings] = useState<
+    Record<string, number>
+  >({});
+
+  /* ----------------------------- FORM HANDLING ----------------------------- */
 
   const openNew = () => {
     setForm(BLANK_FORM);
     setEditId(null);
     setShowForm(true);
   };
+
   const openEdit = (a: Alert) => {
     setForm({
       name: a.name,
@@ -64,6 +141,9 @@ export function AlertsPanel({ alerts, onAdd, onEdit, onDelete, className }: Aler
       threshold: a.threshold,
       severity: a.severity,
       enabled: a.enabled,
+      // optional fields preserved if present
+      ...(a.cooldownSeconds && { cooldownSeconds: a.cooldownSeconds }),
+      ...(a.cta && { cta: a.cta }),
     });
     setEditId(a.id);
     setShowForm(true);
@@ -81,8 +161,45 @@ export function AlertsPanel({ alerts, onAdd, onEdit, onDelete, className }: Aler
     }
   };
 
+  /* --------------------------- ALERT EVALUATION ---------------------------- */
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+
+      alerts.forEach((alert) => {
+        if (!alert.enabled || alert.metric !== "swap_time_remaining") return;
+
+        const triggered = swaps.some((s) => {
+          if (alert.condition === "lt") return s.timeRemaining < alert.threshold;
+          if (alert.condition === "gt") return s.timeRemaining > alert.threshold;
+          return s.timeRemaining === alert.threshold;
+        });
+
+        if (!triggered) return;
+
+        const last = activeWarnings[alert.id];
+        const cooldown = (alert.cooldownSeconds ?? 60) * 1000;
+
+        if (!last || now - last > cooldown) {
+          setActiveWarnings((prev) => ({
+            ...prev,
+            [alert.id]: now,
+          }));
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [alerts, swaps, activeWarnings]);
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   RENDER                                   */
+  /* -------------------------------------------------------------------------- */
+
   return (
     <div className={cn("flex flex-col gap-4", className)}>
+      {/* HEADER */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-text-muted" />
@@ -95,90 +212,76 @@ export function AlertsPanel({ alerts, onAdd, onEdit, onDelete, className }: Aler
         </Button>
       </div>
 
-      {/* Form */}
+      {/* WARNING BANNERS */}
+      {Object.keys(activeWarnings).map((id) => {
+        const alert = alerts.find((a) => a.id === id);
+        if (!alert) return null;
+
+        return (
+          <SwapWarningBanner
+            key={id}
+            alert={alert}
+            onDismiss={() =>
+              setActiveWarnings((prev) => {
+                const copy = { ...prev };
+                delete copy[id];
+                return copy;
+              })
+            }
+          />
+        );
+      })}
+
+      {/* FORM */}
       {showForm && (
         <div className="rounded-xl border border-brand-500/20 bg-surface-raised p-4 flex flex-col gap-3 animate-fade-in">
           <Input
             label="Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. High HTLC usage"
           />
 
           <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-text-secondary">Metric</label>
-              <select
-                className="rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus:ring-2 focus:ring-ring"
-                value={form.metric}
-                onChange={(e) => setForm({ ...form, metric: e.target.value })}
-              >
-                {METRICS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-text-secondary">Condition</label>
-              <select
-                className="rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus:ring-2 focus:ring-ring"
-                value={form.condition}
-                onChange={(e) =>
-                  setForm({ ...form, condition: e.target.value as "gt" | "lt" | "eq" })
-                }
-              >
-                <option value="gt">Greater than</option>
-                <option value="lt">Less than</option>
-                <option value="eq">Equal to</option>
-              </select>
-            </div>
+            <select
+              value={form.metric}
+              onChange={(e) => setForm({ ...form, metric: e.target.value })}
+              className="input"
+            >
+              {METRICS.map((m) => (
+                <option key={m}>{m}</option>
+              ))}
+            </select>
+
+            <select
+              value={form.condition}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  condition: e.target.value as "gt" | "lt" | "eq",
+                })
+              }
+              className="input"
+            >
+              <option value="gt">Greater than</option>
+              <option value="lt">Less than</option>
+              <option value="eq">Equal</option>
+            </select>
+
             <Input
-              label="Threshold"
               type="number"
               value={String(form.threshold)}
-              onChange={(e) => setForm({ ...form, threshold: Number(e.target.value) })}
+              onChange={(e) =>
+                setForm({ ...form, threshold: Number(e.target.value) })
+              }
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-text-secondary">Severity</label>
-              <select
-                className="rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary focus:ring-2 focus:ring-ring"
-                value={form.severity}
-                onChange={(e) =>
-                  setForm({ ...form, severity: e.target.value as "info" | "warning" | "critical" })
-                }
-              >
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="critical">Critical</option>
-              </select>
-            </div>
-            <div className="flex items-end pb-0.5">
-              <button
-                className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary"
-                onClick={() => setForm({ ...form, enabled: !form.enabled })}
-              >
-                {form.enabled ? (
-                  <ToggleRight className="h-5 w-5 text-emerald-400" />
-                ) : (
-                  <ToggleLeft className="h-5 w-5 text-text-muted" />
-                )}
-                {form.enabled ? "Enabled" : "Disabled"}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <Button size="sm" onClick={save} disabled={!form.name || saving}>
-              {saving ? "Saving…" : editId ? "Update" : "Create"}
+          <div className="flex gap-2">
+            <Button onClick={save} disabled={!form.name || saving}>
+              {saving ? "Saving…" : "Save"}
             </Button>
             <Button
               variant="outline"
-              size="sm"
               onClick={() => {
                 setShowForm(false);
                 setEditId(null);
@@ -190,46 +293,48 @@ export function AlertsPanel({ alerts, onAdd, onEdit, onDelete, className }: Aler
         </div>
       )}
 
-      {/* Alert list */}
+      {/* EMPTY */}
       {alerts.length === 0 && !showForm && (
-        <p className="text-sm text-text-muted py-6 text-center">No alerts configured</p>
+        <p className="text-sm text-text-muted py-6 text-center">
+          No alerts configured
+        </p>
       )}
 
+      {/* LIST */}
       <div className="flex flex-col gap-2">
         {alerts.map((a) => (
           <div
             key={a.id}
             className="rounded-xl border border-border bg-surface-raised px-4 py-3 flex items-center gap-3"
           >
-            <Badge className={cn("shrink-0", severityStyle[a.severity])}>{a.severity}</Badge>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-text-primary truncate">{a.name}</p>
+            <Badge className={cn(severityStyle[a.severity])}>
+              {a.severity}
+            </Badge>
+
+            <div className="flex-1">
+              <p className="text-sm font-medium">{a.name}</p>
               <p className="text-xs text-text-muted">
-                {a.metric} {conditionLabels[a.condition] ?? a.condition} {a.threshold}
+                {a.metric} {conditionLabels[a.condition]} {a.threshold}
               </p>
             </div>
+
             <span
               className={cn(
-                "text-[10px] font-medium",
-                a.enabled ? "text-emerald-400" : "text-text-muted"
+                "text-xs",
+                a.enabled ? "text-emerald-400" : "text-muted"
               )}
             >
               {a.enabled ? "ON" : "OFF"}
             </span>
-            <button
+
+            <Edit2
+              className="h-4 w-4 cursor-pointer"
               onClick={() => openEdit(a)}
-              className="text-text-muted hover:text-brand-400 transition-colors"
-              aria-label="Edit"
-            >
-              <Edit2 className="h-3.5 w-3.5" />
-            </button>
-            <button
+            />
+            <Trash2
+              className="h-4 w-4 cursor-pointer"
               onClick={() => onDelete(a.id)}
-              className="text-text-muted hover:text-red-400 transition-colors"
-              aria-label="Delete"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
+            />
           </div>
         ))}
       </div>

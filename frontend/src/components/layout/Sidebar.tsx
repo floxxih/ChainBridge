@@ -25,9 +25,7 @@ export function Sidebar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-glow-sm">
             <Layers className="h-5 w-5" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-text-primary">
-            ChainBridge
-          </span>
+          <span className="text-xl font-bold tracking-tight text-text-primary">ChainBridge</span>
         </Link>
       </div>
 
@@ -51,14 +49,21 @@ export function Sidebar() {
                 >
                   <div className="flex items-center gap-3">
                     {/* Visual indicator for active state */}
-                    <div className={cn(
-                      "h-1.5 w-1.5 rounded-full transition-all duration-300",
-                      isActive ? "bg-brand-500 scale-100" : "bg-transparent scale-0 group-hover:bg-text-muted/30 group-hover:scale-100"
-                    )} />
+                    <div
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full transition-all duration-300",
+                        isActive
+                          ? "bg-brand-500 scale-100"
+                          : "bg-transparent scale-0 group-hover:bg-text-muted/30 group-hover:scale-100"
+                      )}
+                    />
                     {t(link.key)}
                   </div>
                   {isActive && (
-                    <ChevronRight size={14} className="animate-in slide-in-from-left-1 duration-300" />
+                    <ChevronRight
+                      size={14}
+                      className="animate-in slide-in-from-left-1 duration-300"
+                    />
                   )}
                 </Link>
               </li>
@@ -70,9 +75,7 @@ export function Sidebar() {
       {/* Sidebar Footer */}
       <div className="border-t border-border p-4">
         <div className="rounded-2xl bg-surface-overlay p-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
-            Status
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Status</p>
           <div className="mt-2 flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-status-success animate-pulse shadow-[0_0_8px_rgba(var(--status-success),0.4)]" />
             <span className="text-xs font-medium text-text-secondary">Network Online</span>

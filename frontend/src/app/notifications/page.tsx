@@ -48,7 +48,7 @@ export default function NotificationsPage() {
 
   const filtered = useMemo(
     () => (filter === "all" ? items : items.filter((item) => item.type === filter)),
-    [filter, items],
+    [filter, items]
   );
 
   const unreadCount = items.filter((item) => item.unread).length;

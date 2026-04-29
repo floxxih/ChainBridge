@@ -1,6 +1,6 @@
 const LEVELS = ["debug", "info", "error"] as const;
 
-type LogLevel = typeof LEVELS[number];
+type LogLevel = (typeof LEVELS)[number];
 
 type Meta = Record<string, any>;
 

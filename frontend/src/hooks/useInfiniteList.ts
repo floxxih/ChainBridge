@@ -9,7 +9,9 @@ export function useInfiniteList(totalItems: number, pageSize: number) {
   const hasMore = visibleCount < totalItems;
 
   useEffect(() => {
-    setVisibleCount((current) => Math.min(Math.max(pageSize, current), Math.max(pageSize, totalItems)));
+    setVisibleCount((current) =>
+      Math.min(Math.max(pageSize, current), Math.max(pageSize, totalItems))
+    );
   }, [pageSize, totalItems]);
 
   const showMore = useCallback(() => {

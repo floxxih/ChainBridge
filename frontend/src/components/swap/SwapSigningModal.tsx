@@ -44,8 +44,7 @@ export function SwapSigningModal({
   const hasError = lifecycle?.steps.some((s) => s.status === "error") ?? false;
   const isActiveStep = lifecycle?.steps.some((s) => s.status === "active") ?? false;
   // After sign step completes, wallet interaction is done
-  const isSigned =
-    lifecycle?.steps.find((s) => s.key === "sign")?.status === "completed" ?? false;
+  const isSigned = lifecycle?.steps.find((s) => s.key === "sign")?.status === "completed" ?? false;
   const isTimedOut = !isCompleted && !hasError && elapsed >= SIGNING_TIMEOUT_SECONDS;
   const remaining = Math.max(0, SIGNING_TIMEOUT_SECONDS - elapsed);
 
@@ -53,11 +52,7 @@ export function SwapSigningModal({
   const canClose = isCompleted || hasError || isTimedOut;
 
   return (
-    <Modal
-      open={open}
-      onClose={canClose ? onClose : () => {}}
-      size="md"
-    >
+    <Modal open={open} onClose={canClose ? onClose : () => {}} size="md">
       <div className="flex flex-col gap-5">
         <div className="text-center space-y-1">
           <h3 className="text-lg font-semibold text-text-primary">Transaction Signing</h3>
@@ -65,8 +60,8 @@ export function SwapSigningModal({
             {isCompleted
               ? "Swap submitted successfully."
               : hasError
-              ? "An error occurred during signing."
-              : "Please review and sign the transaction in your wallet."}
+                ? "An error occurred during signing."
+                : "Please review and sign the transaction in your wallet."}
           </p>
         </div>
 

@@ -82,7 +82,9 @@ export default function SwapRateCalculator({
             className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 text-sm"
           >
             {assets.map((a) => (
-              <option key={a} value={a}>{a}</option>
+              <option key={a} value={a}>
+                {a}
+              </option>
             ))}
           </select>
         </div>
@@ -103,9 +105,13 @@ export default function SwapRateCalculator({
             onChange={(e) => setTo(e.target.value)}
             className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 text-sm"
           >
-            {assets.filter((a) => a !== from).map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
+            {assets
+              .filter((a) => a !== from)
+              .map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
           </select>
         </div>
       </div>
@@ -124,8 +130,7 @@ export default function SwapRateCalculator({
                 Slippage ({formatPercent(slippage, { fractionDigits: 1 })})
               </span>
               <span className="font-mono text-yellow-600">
-                -
-                {formatTokenWithSymbol(amount * rate * slippage, to, { maximumFractionDigits: 8 })}
+                -{formatTokenWithSymbol(amount * rate * slippage, to, { maximumFractionDigits: 8 })}
               </span>
             </div>
             <div className="flex justify-between text-sm font-semibold">

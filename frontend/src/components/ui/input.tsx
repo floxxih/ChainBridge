@@ -14,8 +14,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
     const errorId = inputId ? `${inputId}-error` : undefined;
     const hintId = inputId ? `${inputId}-hint` : undefined;
-    const describedBy =
-      (error ? errorId : undefined) ?? (hint ? hintId : undefined);
+    const describedBy = (error ? errorId : undefined) ?? (hint ? hintId : undefined);
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -26,7 +25,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative flex items-center">
           {leftElement && (
-            <div className="absolute left-3 flex items-center text-text-muted" aria-hidden="true">{leftElement}</div>
+            <div className="absolute left-3 flex items-center text-text-muted" aria-hidden="true">
+              {leftElement}
+            </div>
           )}
           <input
             ref={ref}
@@ -47,7 +48,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightElement && (
-            <div className="absolute right-3 flex items-center text-text-muted" aria-hidden="true">{rightElement}</div>
+            <div className="absolute right-3 flex items-center text-text-muted" aria-hidden="true">
+              {rightElement}
+            </div>
           )}
         </div>
         {error && (
