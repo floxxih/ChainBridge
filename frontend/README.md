@@ -166,6 +166,20 @@ The frontend supports multiple blockchain wallets:
 - Transaction history
 - Multi-chain wallet connection
 
+### Create-Swap Funnel Analytics Events
+
+The create-swap funnel emits the following frontend analytics events:
+
+| Event           | Trigger                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| `swap.start`    | User clicks **Initialize Atomic Swap**                                                            |
+| `swap.validate` | Form-level validation result is evaluated before continuing                                       |
+| `swap.review`   | Review step opens (post risk disclosure gate)                                                     |
+| `swap.submit`   | User confirms swap submission from review modal                                                   |
+| `swap.failure`  | Failure path is hit with category only (`validation`, `quote`, `submission`, `wallet`, `unknown`) |
+
+`swap.failure` intentionally records only a coarse category and does not include raw errors, request payloads, wallet addresses, or secrets.
+
 ## Development Guidelines
 
 ### Component Creation

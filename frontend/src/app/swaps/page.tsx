@@ -12,6 +12,7 @@ import { AlertTriangle, ArrowRight, ExternalLink, History, Link2, RefreshCw } fr
 import { SwapStatus } from "@/types";
 import { useMockSwaps, useSwapHistoryStore } from "@/hooks/useSwapHistory";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type TimelineStepKey = "initiated" | "source_locked" | "destination_locked" | "settled";
 
@@ -54,12 +55,12 @@ function buildTimeline(
     if (index === progress && !endedInFailure) eventStatus = "confirmed";
     if (index === progress && endedInFailure) eventStatus = "failed";
 
-    const description =
-      index === 3 && status === SwapStatus.COMPLETED
-        ? "Assets were redeemed successfully on both chains."
-        : index === 3 && endedInFailure
-          ? "Swap ended without settlement. Funds can be reclaimed per timelock rules."
-          : "Awaiting next lifecycle confirmation.";
+    let description = "Awaiting next lifecycle confirmation.";
+    if (index === 3 && status === SwapStatus.COMPLETED) {
+      description = "Assets were redeemed successfully on both chains.";
+    } else if (index === 3 && endedInFailure) {
+      description = "Swap ended without settlement. Funds can be reclaimed per timelock rules.";
+    }
 
     return {
       id: `${swapId}-${step.key}`,
@@ -76,6 +77,12 @@ function buildTimeline(
 
 function formatStatusLabel(status: SwapStatus): string {
   return status.replaceAll("_", " ");
+}
+
+function getBadgeVariant(status: ActivityTimelineEvent["status"]): "error" | "success" | "info" {
+  if (status === "failed") return "error";
+  if (status === "confirmed") return "success";
+  return "info";
 }
 
 export default function TrackSwapsPage() {
@@ -111,28 +118,20 @@ export default function TrackSwapsPage() {
   }, [selectedSwap]);
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-12 md:py-20 animate-fade-in">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-overlay border border-border font-bold text-text-primary">
-            <History className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary">Track Swaps</h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              Monitor lifecycle status, timeline events, and transaction links for each swap.
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<RefreshCw className="h-4 w-4" />}
-          onClick={seedMockSwaps}
-        >
-          Refresh
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Track Swaps"
+        subtitle="Monitor lifecycle status, timeline events, and transaction links for each swap"
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Swaps" },
+        ]}
+        primaryAction={
+          <Button variant="secondary" size="sm" icon={<RefreshCw className="h-4 w-4" />} onClick={seedMockSwaps}>
+            Refresh
+          </Button>
+        }
+      />
 
       {!isConnected ? (
         <EmptyState
@@ -156,10 +155,14 @@ export default function TrackSwapsPage() {
             <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
               <section className="space-y-6">
                 <Card className="p-5">
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                  <label
+                    htmlFor="swap-select"
+                    className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-text-muted"
+                  >
                     Select swap
                   </label>
                   <select
+                    id="swap-select"
                     value={selectedSwapId}
                     onChange={(event) => setSelectedSwapId(event.target.value)}
                     className="w-full rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary"
@@ -240,15 +243,7 @@ export default function TrackSwapsPage() {
                       >
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold text-text-primary">{event.label}</p>
-                          <Badge
-                            variant={
-                              event.status === "failed"
-                                ? "error"
-                                : event.status === "confirmed"
-                                  ? "success"
-                                  : "info"
-                            }
-                          >
+                          <Badge variant={getBadgeVariant(event.status)}>
                             {event.status}
                           </Badge>
                         </div>

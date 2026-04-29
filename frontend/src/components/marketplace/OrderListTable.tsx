@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button, PaginationControls, StatusBadge } from "@/components/ui";
 import { usePagination } from "@/hooks/usePagination";
@@ -35,6 +35,10 @@ interface OrderListTableProps {
   onClearFilters?: () => void;
   takeButtonDisabled?: (order: Order) => boolean;
 }
+
+const VIRTUALIZATION_THRESHOLD = 200;
+const VIRTUAL_ROW_HEIGHT = 76;
+const VIRTUAL_OVERSCAN = 8;
 
 function parseNumeric(value: string) {
   return Number(value.replace(/,/g, "")) || 0;
@@ -175,6 +179,7 @@ export function OrderListTable({
   onClearFilters,
   takeButtonDisabled,
 }: OrderListTableProps) {
+  const [scrollTop, setScrollTop] = useState(0);
   const resolvedColumns = useMemo(
     () => columns ?? defaultColumns(onViewDetails, onTakeOrder, takeButtonDisabled),
     [columns, onViewDetails, onTakeOrder, takeButtonDisabled]
@@ -186,14 +191,44 @@ export function OrderListTable({
   );
 
   const pagination = usePagination(sortedOrders.length, pageSize);
-  const visibleOrders = sortedOrders.slice(pagination.offset, pagination.limit);
+  const paginatedOrders = sortedOrders.slice(pagination.offset, pagination.limit);
+  const shouldVirtualizeDesktop = !loading && sortedOrders.length >= VIRTUALIZATION_THRESHOLD;
+  const virtualViewportHeight = 560;
+  const virtualStartIndex = shouldVirtualizeDesktop
+    ? Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_OVERSCAN)
+    : 0;
+  const virtualEndIndex = shouldVirtualizeDesktop
+    ? Math.min(
+        sortedOrders.length,
+        Math.ceil((scrollTop + virtualViewportHeight) / VIRTUAL_ROW_HEIGHT) + VIRTUAL_OVERSCAN
+      )
+    : paginatedOrders.length;
+  const desktopVisibleOrders = shouldVirtualizeDesktop
+    ? sortedOrders.slice(virtualStartIndex, virtualEndIndex)
+    : paginatedOrders;
+  const topSpacerHeight = shouldVirtualizeDesktop ? virtualStartIndex * VIRTUAL_ROW_HEIGHT : 0;
+  const bottomSpacerHeight = shouldVirtualizeDesktop
+    ? Math.max(0, (sortedOrders.length - virtualEndIndex) * VIRTUAL_ROW_HEIGHT)
+    : 0;
   const loadingRows = useMemo(() => Array.from({ length: Math.min(pageSize, 5) }), [pageSize]);
 
   return (
     <div className="space-y-4">
       {/* Desktop View (Table) */}
       <div className="hidden md:block overflow-hidden rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-xl">
-        <div className="overflow-x-auto">
+        <div
+          className="overflow-x-auto"
+          style={
+            shouldVirtualizeDesktop
+              ? { maxHeight: `${virtualViewportHeight}px`, overflowY: "auto" }
+              : undefined
+          }
+          onScroll={
+            shouldVirtualizeDesktop
+              ? (event) => setScrollTop(event.currentTarget.scrollTop)
+              : undefined
+          }
+        >
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-overlay/50 border-b border-border">
@@ -233,19 +268,40 @@ export function OrderListTable({
                     ))}
                   </tr>
                 ))
-              ) : visibleOrders.length > 0 ? (
-                visibleOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="group hover:bg-surface-overlay/30 transition-colors"
-                  >
-                    {resolvedColumns.map((column) => (
-                      <td key={`${order.id}-${column.key}`} className={column.className}>
-                        {column.render(order)}
-                      </td>
-                    ))}
-                  </tr>
-                ))
+              ) : desktopVisibleOrders.length > 0 ? (
+                <>
+                  {shouldVirtualizeDesktop && topSpacerHeight > 0 && (
+                    <tr aria-hidden="true">
+                      <td
+                        colSpan={resolvedColumns.length}
+                        style={{ height: `${topSpacerHeight}px` }}
+                      />
+                    </tr>
+                  )}
+                  {desktopVisibleOrders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="group hover:bg-surface-overlay/30 transition-colors"
+                      style={
+                        shouldVirtualizeDesktop ? { height: `${VIRTUAL_ROW_HEIGHT}px` } : undefined
+                      }
+                    >
+                      {resolvedColumns.map((column) => (
+                        <td key={`${order.id}-${column.key}`} className={column.className}>
+                          {column.render(order)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {shouldVirtualizeDesktop && bottomSpacerHeight > 0 && (
+                    <tr aria-hidden="true">
+                      <td
+                        colSpan={resolvedColumns.length}
+                        style={{ height: `${bottomSpacerHeight}px` }}
+                      />
+                    </tr>
+                  )}
+                </>
               ) : (
                 <tr>
                   <td colSpan={resolvedColumns.length} className="px-6 py-16 text-center">
@@ -275,8 +331,8 @@ export function OrderListTable({
               className="h-48 w-full animate-pulse rounded-2xl bg-surface-overlay/80 border border-border"
             />
           ))
-        ) : visibleOrders.length > 0 ? (
-          visibleOrders.map((order) => (
+        ) : paginatedOrders.length > 0 ? (
+          paginatedOrders.map((order) => (
             <OrderCard
               key={order.id}
               order={order}
@@ -298,7 +354,7 @@ export function OrderListTable({
         )}
       </div>
 
-      {!loading && sortedOrders.length > 0 && (
+      {!loading && sortedOrders.length > 0 && !shouldVirtualizeDesktop && (
         <PaginationControls
           page={pagination.page}
           totalPages={pagination.totalPages}
