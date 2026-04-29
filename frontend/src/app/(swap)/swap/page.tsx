@@ -136,23 +136,18 @@ export default function SwapPage() {
 
   useEffect(() => {
     const sourceTokens = sourceInfo?.tokens ?? [];
-    if (!sourceTokens.includes(fromAsset)) {
-      setFromAsset(sourceTokens[0] ?? "");
-    }
+    if (!sourceTokens.includes(fromAsset)) setFromAsset(sourceTokens[0] ?? "");
   }, [fromAsset, sourceInfo]);
 
   useEffect(() => {
     const destTokens = destInfo?.tokens ?? [];
-    if (!destTokens.includes(toAsset)) {
-      setToAsset(destTokens[0] ?? "");
-    }
+    if (!destTokens.includes(toAsset)) setToAsset(destTokens[0] ?? "");
   }, [destInfo, toAsset]);
 
   const requestQuote = async () => {
     const parsedAmount = Number(amount);
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !fromAsset || !toAsset) {
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       setQuote(null);
-      setQuoteUpdatedAt(null);
       return;
     }
 
@@ -170,8 +165,7 @@ export default function SwapPage() {
       setQuoteUpdatedAt(Date.now());
     } catch (error: any) {
       setQuote(null);
-      setQuoteUpdatedAt(null);
-      setQuoteError(error?.response?.data?.detail ?? "Failed to fetch quote preview.");
+      setQuoteError("Failed to fetch quote preview.");
     } finally {
       setQuoteLoading(false);
     }
