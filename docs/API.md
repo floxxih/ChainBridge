@@ -790,6 +790,15 @@ Connect to `wss://api.chainbridge.io/ws` for real-time updates.
 | PROOF_INVALID | Proof verification failed |
 | INTERNAL_ERROR | Internal server error |
 
+## Official SDKs
+
+For typed client libraries with retries, error handling, WebSocket
+subscriptions, and HTLC crypto helpers, see [SDK.md](./SDK.md):
+
+- **TypeScript/JavaScript**: `npm install @chainbridge/sdk`
+- **Python**: `pip install chainbridge`
+- **Rust**: `cargo add chainbridge-sdk`
+
 ## SDK Examples
 
 ### Python

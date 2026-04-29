@@ -2,19 +2,11 @@
  * Public i18n API: locale detection, localized paths, and typed message catalog access.
  */
 
-import {
-  DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
-  type SupportedLocale,
-} from "./constants";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale } from "./constants";
 import { MESSAGE_CATALOG } from "./messages";
 import type { I18nMessages } from "./messages/types";
 
-export {
-  DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
-  type SupportedLocale,
-} from "./constants";
+export { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale } from "./constants";
 
 export type { I18nMessages } from "./messages/types";
 

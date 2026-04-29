@@ -1,12 +1,15 @@
 # Order Filtering Feature
 
 ## Overview
+
 This document describes the order filtering implementation for the ChainBridge marketplace, addressing issue #209.
 
 ## Features Implemented
 
 ### 1. Combined Filters
+
 Users can apply multiple filters simultaneously to refine the order book:
+
 - **Search**: Text search across pair names, token symbols, and maker addresses
 - **Side Filter**: Filter by order side (All, Buys, Sells)
 - **Chain Filter**: Filter by source and destination chain pairs (e.g., "Ethereum → Stellar")
@@ -15,19 +18,23 @@ Users can apply multiple filters simultaneously to refine the order book:
 All filters work together - applying multiple filters shows only orders that match ALL criteria.
 
 ### 2. URL Query Parameters
+
 All filter states are synchronized with URL query parameters:
+
 - `search` - Search query string
 - `side` - Order side filter (buy/sell/all)
 - `chain` - Chain pair filter
 - `asset` - Asset filter
 
 **Benefits:**
+
 - Shareable URLs with pre-applied filters
 - Browser back/forward navigation works correctly
 - Bookmarkable filter combinations
 - Deep linking support
 
 **Example URLs:**
+
 ```
 /marketplace?search=BTC&side=buy
 /marketplace?chain=Ethereum%20%E2%86%92%20Stellar&asset=USDC
@@ -35,7 +42,9 @@ All filter states are synchronized with URL query parameters:
 ```
 
 ### 3. Reset Filters
+
 A "Reset" button appears when any filters are active:
+
 - Clears all filter states
 - Returns to showing the full order list
 - Updates URL to remove all query parameters
@@ -46,11 +55,13 @@ The reset button is conditionally rendered - it only appears when at least one f
 ## Technical Implementation
 
 ### State Management
+
 - Filter states are managed with React `useState` hooks
 - Initial state is derived from URL query parameters
 - Two-way synchronization between state and URL
 
 ### URL Synchronization
+
 ```typescript
 // Sync filters to URL
 useEffect(() => {
@@ -68,7 +79,9 @@ useEffect(() => {
 ```
 
 ### Filter Logic
+
 Orders are filtered using a `useMemo` hook for performance:
+
 ```typescript
 const filteredOrders = useMemo(() => {
   return orders.filter((order) => {
@@ -84,17 +97,21 @@ const filteredOrders = useMemo(() => {
 ## User Experience
 
 ### Filter Controls Layout
+
 ```
 [Search Input] [All] [Buys] [Sells] [Chain Dropdown] [Asset Dropdown] [Reset]
 ```
 
 ### Empty State
+
 When no orders match the current filters:
+
 - Clear message: "No active orders matching filters."
 - "Clear Filters" button to reset
 - Helpful icon for visual clarity
 
 ### Visual Feedback
+
 - Active filter buttons have distinct styling
 - Reset button only appears when needed
 - Dropdown menus show current selection
@@ -103,6 +120,7 @@ When no orders match the current filters:
 ## Testing
 
 Comprehensive test suite in `frontend/src/__tests__/orderFiltering.test.tsx`:
+
 - ✅ Renders all orders by default
 - ✅ Filters by search query
 - ✅ Filters by side (buy/sell)
@@ -137,6 +155,7 @@ Comprehensive test suite in `frontend/src/__tests__/orderFiltering.test.tsx`:
 ## Future Enhancements
 
 Potential improvements for future iterations:
+
 - Save filter presets (similar to orders page)
 - Advanced filter drawer for mobile
 - Filter by price range

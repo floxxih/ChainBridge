@@ -18,7 +18,12 @@ export interface RequestOptions extends RetryOptions {
   silent?: boolean;
 }
 
-function calculateBackoff(delay: number, multiplier: number, jitter: number, maxDelay: number): number {
+function calculateBackoff(
+  delay: number,
+  multiplier: number,
+  jitter: number,
+  maxDelay: number
+): number {
   const next = Math.min(delay * multiplier, maxDelay);
   return Math.round(next + jitter * next);
 }
@@ -31,10 +36,7 @@ export function useRequestRetry() {
   }, []);
 
   const requestWithRetry = useCallback(
-    async <T>(
-      config: AxiosRequestConfig,
-      options: RequestOptions = {}
-    ): Promise<T> => {
+    async <T>(config: AxiosRequestConfig, options: RequestOptions = {}): Promise<T> => {
       const {
         maxRetries = 3,
         initialDelayMs = 1000,
@@ -74,7 +76,10 @@ export function useRequestRetry() {
 
           if (!isServerError && !isNetworkError && !isTimeout) {
             if (!silent) {
-              console.warn(`[RequestRetry] Non-retryable error (${error.response?.status}):`, error.message);
+              console.warn(
+                `[RequestRetry] Non-retryable error (${error.response?.status}):`,
+                error.message
+              );
             }
             throw error;
           }

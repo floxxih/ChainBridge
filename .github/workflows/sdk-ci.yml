@@ -1,0 +1,66 @@
+name: SDK CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "sdks/**"
+      - ".github/workflows/sdk-ci.yml"
+  pull_request:
+    paths:
+      - "sdks/**"
+      - ".github/workflows/sdk-ci.yml"
+
+jobs:
+  typescript:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdks/typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: sdks/typescript/package-lock.json
+      - run: npm install --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npm test --if-present
+      - run: npm run build --if-present
+
+  python:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdks/python
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -v
+      - run: ruff check .
+      - run: python -m build --wheel --sdist
+
+  rust:
+    name: Rust SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdks/rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: sdks/rust
+      - run: cargo fmt --check
+      - run: cargo clippy --all-features -- -D warnings
+      - run: cargo test --all-features

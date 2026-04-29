@@ -103,11 +103,26 @@ export interface SwapExpiredPayload {
   stage: "locked" | "partial" | "unstarted";
 }
 
-export interface SwapErrorPayload {
+export interface SwapValidatePayload {
   fromChain: ChainId;
   toChain: ChainId;
-  stage: string;
-  errorCode: string;
+  status: "pass" | "fail";
+}
+
+export interface SwapReviewPayload {
+  fromChain: ChainId;
+  toChain: ChainId;
+  orderType: "market" | "limit" | "twap";
+}
+
+export interface SwapSubmitPayload {
+  fromChain: ChainId;
+  toChain: ChainId;
+  orderType: "market" | "limit" | "twap";
+}
+
+export interface SwapFailurePayload {
+  category: "validation" | "quote" | "submission" | "wallet" | "unknown";
 }
 
 // ─── Event registry ──────────────────────────────────────────────────────────
@@ -127,7 +142,10 @@ export interface AnalyticsEventMap {
   "swap.claim": SwapClaimPayload;
   "swap.completed": SwapCompletedPayload;
   "swap.expired": SwapExpiredPayload;
-  "swap.error": SwapErrorPayload;
+  "swap.validate": SwapValidatePayload;
+  "swap.review": SwapReviewPayload;
+  "swap.submit": SwapSubmitPayload;
+  "swap.failure": SwapFailurePayload;
 }
 
 export type AnalyticsEventName = keyof AnalyticsEventMap;
@@ -142,10 +160,7 @@ export interface AnalyticsEvent<K extends AnalyticsEventName = AnalyticsEventNam
 
 const ENABLED = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "false";
 
-export function track<K extends AnalyticsEventName>(
-  name: K,
-  payload: AnalyticsEventMap[K]
-): void {
+export function track<K extends AnalyticsEventName>(name: K, payload: AnalyticsEventMap[K]): void {
   if (!ENABLED) return;
 
   const event: AnalyticsEvent<K> = {

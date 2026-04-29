@@ -50,8 +50,7 @@ export default function MarketplacePage() {
     setIsModalOpen(true);
   };
 
-  const workflowTx =
-    transactions.find((transaction) => transaction.id === workflowTxId) ?? null;
+  const workflowTx = transactions.find((transaction) => transaction.id === workflowTxId) ?? null;
 
   const confirmTakeOrder = async (order: Order) => {
     const chain = fundingChainForOrder(order);

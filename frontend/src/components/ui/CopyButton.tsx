@@ -46,7 +46,7 @@ export function CopyButton({ value, label, className, size = "sm" }: CopyButtonP
         "hover:text-text-primary hover:bg-surface-overlay",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         padding,
-        className,
+        className
       )}
       aria-label={copied ? "Copied to clipboard" : `Copy ${label ?? "value"} to clipboard`}
     >
@@ -55,9 +55,7 @@ export function CopyButton({ value, label, className, size = "sm" }: CopyButtonP
       ) : (
         <Copy className={iconSize} aria-hidden="true" />
       )}
-      {label && (
-        <span className="text-xs">{copied ? "Copied!" : label}</span>
-      )}
+      {label && <span className="text-xs">{copied ? "Copied!" : label}</span>}
     </button>
   );
 }

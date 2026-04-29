@@ -1,12 +1,12 @@
 // Generated API types
-export * from './generated';
+export * from "./generated";
 
 // Re-export commonly used types
-export type { 
-  HTLCCreate, 
-  HTLCResponse, 
+export type {
+  HTLCCreate,
+  HTLCResponse,
   HTLCStatusResponse,
-  OrderCreate, 
+  OrderCreate,
   OrderResponse,
   SwapResponse,
   FeeEstimateRequest,
@@ -15,5 +15,5 @@ export type {
   APIKeyResponse,
   ApiResponse,
   PaginatedResponse,
-  ChainBridgeApiClient
-} from './generated';
+  ChainBridgeApiClient,
+} from "./generated";

@@ -5,7 +5,13 @@ import { Loader2 } from "lucide-react";
 /**
  * Button variant options
  */
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive" | "outline";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "destructive"
+  | "outline"
+  | "danger";
 
 /**
  * Button size options
@@ -28,12 +34,14 @@ const variantStyles: Record<ButtonVariant, string> = {
     "bg-brand-500 text-white hover:bg-brand-600 shadow-glow-sm hover:shadow-glow-md active:bg-brand-700 focus-visible:ring-brand-500",
   secondary:
     "bg-surface-raised border border-border text-text-primary hover:bg-surface-overlay hover:border-brand-500/50 active:bg-surface-overlay focus-visible:ring-text-secondary",
-  ghost: 
+  ghost:
     "text-text-primary hover:text-text-primary hover:bg-surface-raised active:bg-surface-overlay focus-visible:ring-text-muted",
   destructive:
     "bg-status-error/15 text-status-error border border-status-error/25 hover:bg-status-error/25 hover:border-status-error/40 active:bg-status-error/35 focus-visible:ring-status-error",
-  outline: 
+  outline:
     "border border-brand-500/50 text-brand-500 hover:bg-brand-500/10 active:bg-brand-500/20 focus-visible:ring-brand-500",
+  danger:
+    "bg-status-error/15 text-status-error border border-status-error/25 hover:bg-status-error/25 hover:border-status-error/40 active:bg-status-error/35 focus-visible:ring-status-error",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

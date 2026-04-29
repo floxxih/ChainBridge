@@ -87,7 +87,9 @@ const SIZE_STYLES = {
 /**
  * Maps OrderStatus to StatusBadge configuration
  */
-const getOrderConfig = (status: OrderStatus | string): { variant: StatusVariant; label: string; icon?: any } => {
+const getOrderConfig = (
+  status: OrderStatus | string
+): { variant: StatusVariant; label: string; icon?: any } => {
   switch (status) {
     case OrderStatus.OPEN:
       return { variant: "success", label: "Open" };
@@ -98,14 +100,16 @@ const getOrderConfig = (status: OrderStatus | string): { variant: StatusVariant;
     case OrderStatus.EXPIRED:
       return { variant: "idle", label: "Expired", icon: History };
     default:
-      return { variant: "idle", label: typeof status === 'string' ? status : "Unknown" };
+      return { variant: "idle", label: typeof status === "string" ? status : "Unknown" };
   }
 };
 
 /**
  * Maps SwapStatus to StatusBadge configuration
  */
-const getSwapConfig = (status: SwapStatus | string): { variant: StatusVariant; label: string; icon?: any } => {
+const getSwapConfig = (
+  status: SwapStatus | string
+): { variant: StatusVariant; label: string; icon?: any } => {
   switch (status) {
     case SwapStatus.PENDING:
       return { variant: "pending", label: "Pending" };
@@ -120,7 +124,7 @@ const getSwapConfig = (status: SwapStatus | string): { variant: StatusVariant; l
     case SwapStatus.EXPIRED:
       return { variant: "idle", label: "Expired", icon: History };
     default:
-      return { variant: "idle", label: typeof status === 'string' ? status : "Unknown" };
+      return { variant: "idle", label: typeof status === "string" ? status : "Unknown" };
   }
 };
 
@@ -165,7 +169,9 @@ export function StatusBadge({
       {...props}
     >
       {showIcon && (
-        <Icon className={cn(SIZE_STYLES[size].icon, config.variant === "processing" && "animate-spin")} />
+        <Icon
+          className={cn(SIZE_STYLES[size].icon, config.variant === "processing" && "animate-spin")}
+        />
       )}
       {config.label && <span>{config.label}</span>}
     </span>

@@ -55,9 +55,12 @@ export function CountdownTimer({
   useEffect(() => {
     setRemainingSeconds(getRemainingSeconds(targetTimestamp));
 
-    const interval = window.setInterval(() => {
-      setRemainingSeconds(getRemainingSeconds(targetTimestamp));
-    }, remainingSeconds > 3600 ? 30_000 : 1_000);
+    const interval = window.setInterval(
+      () => {
+        setRemainingSeconds(getRemainingSeconds(targetTimestamp));
+      },
+      remainingSeconds > 3600 ? 30_000 : 1_000
+    );
 
     return () => window.clearInterval(interval);
   }, [targetTimestamp, remainingSeconds]);

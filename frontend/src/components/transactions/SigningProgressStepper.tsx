@@ -59,7 +59,10 @@ export function SigningProgressStepper({
 
       <div className="mt-4 space-y-3">
         {lifecycle.steps.map((step) => (
-          <div key={step.key} className="flex gap-3 rounded-xl border border-border/60 bg-background/40 p-3">
+          <div
+            key={step.key}
+            className="flex gap-3 rounded-xl border border-border/60 bg-background/40 p-3"
+          >
             <div className="mt-0.5">{stepIcon(step)}</div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
@@ -77,7 +80,9 @@ export function SigningProgressStepper({
                 </span>
               </div>
               <p className="mt-1 text-xs text-text-secondary">{step.description}</p>
-              {step.errorMessage && <p className="mt-2 text-xs text-red-300">{step.errorMessage}</p>}
+              {step.errorMessage && (
+                <p className="mt-2 text-xs text-red-300">{step.errorMessage}</p>
+              )}
             </div>
           </div>
         ))}

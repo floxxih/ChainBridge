@@ -1,5 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { CardSkeleton, ListItemSkeleton, FormSkeleton, TimelineItemSkeleton, StatCardSkeleton, TableRowSkeleton, AvatarSkeleton, BadgeSkeleton, Skeleton } from "@/components/ui/spinner";
+import {
+  CardSkeleton,
+  ListItemSkeleton,
+  FormSkeleton,
+  TimelineItemSkeleton,
+  StatCardSkeleton,
+  TableRowSkeleton,
+  AvatarSkeleton,
+  BadgeSkeleton,
+  Skeleton,
+} from "@/components/ui/spinner";
 
 const meta = {
   title: "UI/Skeletons",
@@ -75,29 +85,39 @@ export const AllSkeletons: StoryObj = {
   render: () => (
     <div className="space-y-8 p-8 max-w-2xl">
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Cards</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Cards
+        </h3>
         <CardSkeleton />
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">List Items</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          List Items
+        </h3>
         <div className="space-y-2">
           <ListItemSkeleton />
           <ListItemSkeleton />
         </div>
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Form Fields</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Form Fields
+        </h3>
         <FormSkeleton rows={3} />
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Timeline</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Timeline
+        </h3>
         <div className="space-y-0">
           <TimelineItemSkeleton />
           <TimelineItemSkeleton />
         </div>
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Stat Cards</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Stat Cards
+        </h3>
         <div className="grid grid-cols-3 gap-4">
           <StatCardSkeleton />
           <StatCardSkeleton />
@@ -105,7 +125,9 @@ export const AllSkeletons: StoryObj = {
         </div>
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Table Rows</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Table Rows
+        </h3>
         <table className="w-full">
           <tbody>
             <TableRowSkeleton cols={4} />
@@ -114,7 +136,9 @@ export const AllSkeletons: StoryObj = {
         </table>
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Avatars</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Avatars
+        </h3>
         <div className="flex items-center gap-4">
           <AvatarSkeleton size="sm" />
           <AvatarSkeleton size="md" />
@@ -122,7 +146,9 @@ export const AllSkeletons: StoryObj = {
         </div>
       </section>
       <section>
-        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">Badges</h3>
+        <h3 className="text-sm font-semibold mb-2 text-text-muted uppercase tracking-wide">
+          Badges
+        </h3>
         <div className="flex flex-wrap gap-2">
           <BadgeSkeleton />
           <BadgeSkeleton />

@@ -31,11 +31,7 @@ export function SwapReviewModal({
   swapDetails,
 }: SwapReviewModalProps) {
   return (
-    <Modal
-      open={open}
-      onClose={isConfirming ? () => {} : onClose}
-      size="md"
-    >
+    <Modal open={open} onClose={isConfirming ? () => {} : onClose} size="md">
       <div className="flex flex-col gap-4">
         <SwapReviewSummary
           onConfirm={onConfirm}

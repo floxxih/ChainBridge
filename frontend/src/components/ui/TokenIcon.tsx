@@ -18,10 +18,5 @@ export function TokenIcon({ token, size = "md", className }: TokenIconProps) {
     lg: "h-8 w-8",
   }[size];
 
-  return (
-    <Icon
-      className={cn(sizeClass, className)}
-      aria-label={`${token} token icon`}
-    />
-  );
+  return <Icon className={cn(sizeClass, className)} aria-label={`${token} token icon`} />;
 }
