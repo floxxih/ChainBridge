@@ -1,0 +1,45 @@
+[package]
+name = "chainbridge-sdk"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Official Rust SDK for the ChainBridge cross-chain atomic swap API"
+authors = ["ChainBridge Contributors"]
+license = "MIT"
+repository = "https://github.com/floxxih/ChainBridge"
+homepage = "https://github.com/floxxih/ChainBridge/tree/master/sdks/rust"
+documentation = "https://docs.rs/chainbridge-sdk"
+readme = "README.md"
+keywords = ["chainbridge", "atomic-swap", "htlc", "stellar", "cross-chain"]
+categories = ["api-bindings", "cryptography", "web-programming"]
+
+[lib]
+name = "chainbridge_sdk"
+path = "src/lib.rs"
+
+[features]
+default = ["rustls-tls"]
+rustls-tls = ["reqwest/rustls-tls"]
+native-tls = ["reqwest/native-tls"]
+ws = ["dep:tokio-tungstenite", "dep:futures-util"]
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+url = "2"
+tracing = "0.1"
+async-trait = "0.1"
+
+tokio-tungstenite = { version = "0.21", default-features = false, features = ["rustls-tls-webpki-roots"], optional = true }
+futures-util = { version = "0.3", optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+wiremock = "0.6"

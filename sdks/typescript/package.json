@@ -1,0 +1,72 @@
+{
+  "name": "@chainbridge/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript/JavaScript SDK for ChainBridge cross-chain atomic swaps",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./wallets": {
+      "types": "./dist/wallets/index.d.ts",
+      "import": "./dist/wallets/index.mjs",
+      "require": "./dist/wallets/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/wallets/index.ts --format esm,cjs --dts --clean",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "chainbridge",
+    "atomic-swap",
+    "htlc",
+    "stellar",
+    "bitcoin",
+    "ethereum",
+    "cross-chain"
+  ],
+  "author": "ChainBridge Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/floxxih/ChainBridge.git",
+    "directory": "sdks/typescript"
+  },
+  "homepage": "https://github.com/floxxih/ChainBridge/tree/master/sdks/typescript#readme",
+  "bugs": "https://github.com/floxxih/ChainBridge/issues",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cross-fetch": "^4.0.0",
+    "isomorphic-ws": "^5.0.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.10.0",
+    "@types/ws": "^8.5.10",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "peerDependenciesMeta": {
+    "@stellar/stellar-sdk": { "optional": true },
+    "ethers": { "optional": true },
+    "bitcoinjs-lib": { "optional": true }
+  }
+}
