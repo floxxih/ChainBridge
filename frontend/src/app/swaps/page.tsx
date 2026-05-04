@@ -13,6 +13,7 @@ import { SwapStatus } from "@/types";
 import { useMockSwaps, useSwapHistoryStore } from "@/hooks/useSwapHistory";
 import { useUnifiedWallet } from "@/components/wallet/UnifiedWalletProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 type TimelineStepKey = "initiated" | "source_locked" | "destination_locked" | "settled";
 
@@ -89,6 +90,7 @@ export default function TrackSwapsPage() {
   const { isConnected, activeAddress: address } = useUnifiedWallet();
   const swaps = useSwapHistoryStore((state) => state.swaps);
   const { seedMockSwaps } = useMockSwaps();
+  const breadcrumbs = useBreadcrumbs();
 
   const [selectedSwapId, setSelectedSwapId] = useState<string>("");
 
@@ -122,10 +124,7 @@ export default function TrackSwapsPage() {
       <PageHeader
         title="Track Swaps"
         subtitle="Monitor lifecycle status, timeline events, and transaction links for each swap"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Swaps" },
-        ]}
+        breadcrumbs={breadcrumbs}
         primaryAction={
           <Button variant="secondary" size="sm" icon={<RefreshCw className="h-4 w-4" />} onClick={seedMockSwaps}>
             Refresh

@@ -4,17 +4,17 @@ import { Button, Input, Select, CopyButton } from "@/components/ui";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RefreshCw } from "lucide-react";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 export default function DashboardPage() {
+  const breadcrumbs = useBreadcrumbs();
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="User Dashboard"
         subtitle="Manage your profile, preferences, and view your swap history"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Dashboard" },
-        ]}
+        breadcrumbs={breadcrumbs}
         primaryAction={
           <Button variant="primary">Save Changes</Button>
         }

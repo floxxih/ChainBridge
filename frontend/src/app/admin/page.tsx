@@ -13,7 +13,7 @@ import {
   RefreshCw,
   LogOut,
 } from "lucide-react";
-import { Badge, Button, Card, Skeleton, StatCardSkeleton } from "@/components/ui";
+import { Badge, Breadcrumb, Button, Card, Skeleton, StatCardSkeleton } from "@/components/ui";
 import { StatCard } from "@/components/admin/StatCard";
 import { AdminLoginGate } from "@/components/admin/AdminLoginGate";
 import {
@@ -26,6 +26,7 @@ import {
   useDisputes,
 } from "@/hooks/useAdminStats";
 import { getAdminApiKey, clearAdminApiKey } from "@/lib/adminApi";
+import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 const BarChart = dynamic(() => import("@/components/admin/BarChart").then((m) => m.BarChart), {
   loading: () => <Skeleton className="h-[220px] w-full rounded-xl" />,
@@ -97,6 +98,7 @@ function Dashboard({
   const stats = useAdminStats();
   const volume = useAdminVolume(volumePeriod);
   const htlcs = useActiveHTLCs();
+  const breadcrumbs = useBreadcrumbs();
   const chains = useChainHealth();
   const userMetrics = useUserMetrics();
   const alerts = useAlerts();
@@ -104,6 +106,11 @@ function Dashboard({
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10 animate-fade-in">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6">
+        <Breadcrumb items={breadcrumbs} />
+      </div>
+      
       {/* Header */}
       <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>

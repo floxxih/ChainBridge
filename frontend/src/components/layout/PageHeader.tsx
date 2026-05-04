@@ -1,14 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
-import { ChevronRight, Home } from "lucide-react";
-import Link from "next/link";
+import { Breadcrumb, type BreadcrumbItem } from "@/components/ui";
 import { cn } from "@/lib/utils";
-
-interface BreadcrumbItem {
-  label: string;
-  href?: string;
-}
 
 interface PageHeaderProps {
   title: string;
@@ -39,38 +33,9 @@ export function PageHeader({
         <div className="py-6 sm:py-8">
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && (
-            <nav
-              className="flex items-center gap-2 text-sm text-text-muted mb-4"
-              aria-label="Breadcrumb"
-            >
-              <Link
-                href="/"
-                className="flex items-center gap-1 hover:text-text-primary transition-colors"
-                aria-label="Home"
-              >
-                <Home className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              {breadcrumbs.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <ChevronRight
-                    className="h-4 w-4 text-text-muted"
-                    aria-hidden="true"
-                  />
-                  {item.href ? (
-                    <Link
-                      href={item.href}
-                      className="hover:text-text-primary transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <span className="text-text-secondary font-medium">
-                      {item.label}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </nav>
+            <div className="mb-4">
+              <Breadcrumb items={breadcrumbs} />
+            </div>
           )}
 
           {/* Title and Subtitle */}

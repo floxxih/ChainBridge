@@ -52,4 +52,8 @@ export { StatusBadge, StatusPill, StatusDot } from "./StatusBadge";
 export type { StatusVariant, StatusSize } from "./StatusBadge";
 export { ChainAssetSelector } from "./ChainAssetSelector";
 export type { Asset, Chain } from "./ChainAssetSelector";
+export { FormField } from "./form-field";
+export type { FormFieldProps, FormFieldChildProps } from "./form-field";
+export { Breadcrumb } from "./breadcrumb";
+export type { BreadcrumbItem, BreadcrumbProps } from "./breadcrumb";
 export { TruncatedHash } from "./TruncatedHash";
