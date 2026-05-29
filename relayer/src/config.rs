@@ -11,6 +11,7 @@ pub struct RelayerConfig {
     pub ethereum_rpc_url: String,
     pub poll_interval_secs: u64,
     pub max_retries: u32,
+    pub cursor_path: Option<String>,
 }
 
 impl RelayerConfig {
@@ -38,6 +39,7 @@ impl RelayerConfig {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(3),
+            cursor_path: std::env::var("STELLAR_CURSOR_PATH").ok(),
         }
     }
 }

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
 
+    # Price Oracle
+    price_oracle_timeout_secs: float = 10.0
+
     # Email
     email_enabled: bool = False
     email_provider: str = "sendgrid"  # sendgrid or ses

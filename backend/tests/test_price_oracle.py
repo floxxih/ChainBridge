@@ -1,7 +1,8 @@
 """Tests for price oracle service (#68)."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from app.services.price_oracle import (
@@ -132,3 +133,42 @@ class TestAlerts:
         service.check_price_deviation("BTC", 50000, 70000)
         xlm_alerts = service.get_alerts(asset="XLM")
         assert all(a["asset"] == "XLM" for a in xlm_alerts)
+
+
+class TestConfigurableTimeout:
+    @pytest.mark.anyio
+    async def test_configured_timeout_reaches_http_client(self):
+        """Verify that the configured timeout is passed to the httpx client."""
+        custom_timeout = 3.0
+        service = PriceOracleService(timeout_secs=custom_timeout)
+
+        captured: list[float] = []
+
+        original_init = httpx.AsyncClient.__init__
+
+        def mock_init(self, *args, **kwargs):
+            captured.append(kwargs.get("timeout", None))
+            original_init(self, *args, **kwargs)
+
+        with patch.object(httpx.AsyncClient, "__init__", mock_init):
+            # _fetch_coingecko opens the client; trigger it via get_price
+            with patch.object(
+                httpx.AsyncClient,
+                "get",
+                new_callable=AsyncMock,
+                return_value=MagicMock(status_code=200, json=lambda: {}),
+            ):
+                await service._fetch_coingecko("XLM")
+
+        assert captured, "httpx.AsyncClient was not instantiated"
+        assert captured[0] == custom_timeout, (
+            f"Expected timeout {custom_timeout}, got {captured[0]}"
+        )
+
+    def test_default_timeout_is_ten_seconds(self):
+        service = PriceOracleService()
+        assert service._timeout_secs == 10.0
+
+    def test_custom_timeout_stored(self):
+        service = PriceOracleService(timeout_secs=5.0)
+        assert service._timeout_secs == 5.0

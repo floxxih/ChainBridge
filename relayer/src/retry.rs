@@ -135,3 +135,94 @@ impl RetryProcessor {
         &self.queue
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ready_tx(id: &str) -> RetryableTransaction {
+        RetryableTransaction {
+            id: id.to_string(),
+            chain: "bitcoin".to_string(),
+            tx_data: vec![],
+            attempt: 0,
+            max_attempts: 3,
+            next_retry_at: std::time::SystemTime::now()
+                - std::time::Duration::from_secs(1),
+        }
+    }
+
+    fn future_tx(id: &str) -> RetryableTransaction {
+        RetryableTransaction {
+            id: id.to_string(),
+            chain: "ethereum".to_string(),
+            tx_data: vec![],
+            attempt: 0,
+            max_attempts: 3,
+            next_retry_at: std::time::SystemTime::now()
+                + std::time::Duration::from_secs(60),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_ready_transaction_dequeues() {
+        let queue = RetryQueue::new();
+        queue.enqueue(ready_tx("tx-ready")).await;
+        let result = queue.dequeue_ready().await;
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().id, "tx-ready");
+    }
+
+    #[tokio::test]
+    async fn test_future_transaction_does_not_dequeue_early() {
+        let queue = RetryQueue::new();
+        queue.enqueue(future_tx("tx-future")).await;
+        let result = queue.dequeue_ready().await;
+        assert!(result.is_none(), "future transaction must not dequeue before its time");
+    }
+
+    #[tokio::test]
+    async fn test_ready_dequeues_while_future_stays() {
+        let queue = RetryQueue::new();
+        queue.enqueue(ready_tx("tx-now")).await;
+        queue.enqueue(future_tx("tx-later")).await;
+        let dequeued = queue.dequeue_ready().await;
+        assert!(dequeued.is_some());
+        assert_eq!(dequeued.unwrap().id, "tx-now");
+        // future tx still in queue
+        let status = queue.status().await;
+        assert!(status.contains_key("tx-later"));
+    }
+
+    #[tokio::test]
+    async fn test_retry_failed_schedules_backoff_in_future() {
+        let queue = RetryQueue::new();
+        let mut tx = ready_tx("tx-retry");
+        // re-enqueue as if it came back after a failed attempt
+        tx.attempt = 0;
+        queue.enqueue(tx).await;
+        queue.retry_failed("tx-retry", 3).await;
+        // after backoff rescheduling it should not be immediately ready
+        let result = queue.dequeue_ready().await;
+        assert!(result.is_none(), "retried tx should have a future next_retry_at");
+    }
+
+    #[tokio::test]
+    async fn test_retry_failed_removes_when_max_attempts_reached() {
+        let queue = RetryQueue::new();
+        queue.enqueue(ready_tx("tx-exhaust")).await;
+        // simulate exhausting all attempts
+        queue.retry_failed("tx-exhaust", 1).await;
+        let status = queue.status().await;
+        assert!(!status.contains_key("tx-exhaust"), "exhausted tx must be removed");
+    }
+
+    #[tokio::test]
+    async fn test_mark_success_removes_transaction() {
+        let queue = RetryQueue::new();
+        queue.enqueue(ready_tx("tx-ok")).await;
+        queue.mark_success("tx-ok").await;
+        let status = queue.status().await;
+        assert!(!status.contains_key("tx-ok"));
+    }
+}

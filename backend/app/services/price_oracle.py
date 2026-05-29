@@ -75,7 +75,8 @@ class PriceHistoryEntry:
 class PriceOracleService:
     """Aggregates prices from multiple sources with caching and alerts."""
 
-    def __init__(self) -> None:
+    def __init__(self, timeout_secs: float = 10.0) -> None:
+        self._timeout_secs = timeout_secs
         self._cache: dict[str, tuple[PriceData, float]] = {}
         self._history: list[PriceHistoryEntry] = []
         self._alerts: list[PriceAlert] = []
@@ -236,7 +237,7 @@ class PriceOracleService:
             return None
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=self._timeout_secs) as client:
                 resp = await client.get(
                     "https://api.coingecko.com/api/v3/simple/price",
                     params={"ids": coin_id, "vs_currencies": "usd"},
