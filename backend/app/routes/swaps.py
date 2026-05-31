@@ -1,5 +1,6 @@
 """Swap status, history, and proof verification endpoints (#26, #59, #71)."""
 
+import logging
 import os
 from datetime import datetime, timezone
 
@@ -22,6 +23,8 @@ from app.schemas.swap import (
 from app.middleware.auth import require_api_key
 from app.utils.solana import SolanaVerificationError, verify_solana_proof
 from app.ws.events import emit_swap_event, EventType
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -102,7 +105,7 @@ async def verify_proof(
 
     redis = get_redis()
     cache = CacheService(redis)
-    await cache.delete(f"swap:{swap_id}")
+    await cache.invalidate_swap(swap_id)
 
     response = SwapResponse.model_validate(swap)
     await emit_swap_event(redis, EventType.SWAP_PROOF_VERIFIED, response.model_dump())
@@ -158,14 +161,15 @@ async def batch_verify_proofs(
                 observe_swap_completion(proof.chain.lower(), swap.state, completion_seconds)
 
             await db.commit()
-            await cache.delete(f"swap:{swap_id}")
+            await cache.invalidate_swap(swap_id)
 
             response = SwapResponse.model_validate(swap)
             await emit_swap_event(redis, EventType.SWAP_PROOF_VERIFIED, response.model_dump())
             results.append(BatchProofItemResult(swap_id=swap_id, success=True, state=swap.state))
         except Exception as exc:
             await db.rollback()
-            results.append(BatchProofItemResult(swap_id=swap_id, success=False, error=str(exc)))
+            logger.exception("Swap %s batch-verify failed unexpectedly", swap_id)
+            results.append(BatchProofItemResult(swap_id=swap_id, success=False, error="Verification failed unexpectedly"))
 
     succeeded = sum(1 for r in results if r.success)
     return BatchProofResponse(

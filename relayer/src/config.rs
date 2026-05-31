@@ -1,5 +1,3 @@
-use serde::Deserialize;
-
 #[derive(Clone, Debug)]
 pub struct RelayerConfig {
     pub relayer_name: String,
@@ -19,6 +17,10 @@ pub struct RelayerConfig {
     pub max_retry_backoff_secs: u64,
     /// Optional file path for persisting the Stellar event cursor across restarts.
     pub cursor_path: Option<String>,
+    /// When true, transaction submission functions deliberately inject
+    /// transient failures so that the retry machinery can be exercised
+    /// during development or in CI.  **Must be false in production.**
+    pub simulate_submission_failures: bool,
 }
 
 impl RelayerConfig {
@@ -55,6 +57,10 @@ impl RelayerConfig {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(300),
             cursor_path: std::env::var("CURSOR_PATH").ok(),
+            simulate_submission_failures: std::env::var("SIMULATE_SUBMISSION_FAILURES")
+                .ok()
+                .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                .unwrap_or(false),
         }
     }
 }

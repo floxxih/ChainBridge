@@ -48,6 +48,7 @@ pub fn classify_error(err: &(dyn std::error::Error + Send + Sync)) -> Option<Bit
 
     if err_str.contains("connect")
         || err_str.contains("refused")
+        || err_str.contains("timed")
         || err_str.contains("timeout")
         || err_str.contains("dns")
         || err_str.contains("resolve")
@@ -257,7 +258,7 @@ mod tests {
 
     #[test]
     fn test_classify_parse_error() {
-        let err = serde_json::Error::custom("expected value at line 1 column 2");
+        let err = <serde_json::Error as serde::de::Error>::custom("expected value at line 1 column 2");
         let result = classify_error(&err);
         assert_eq!(
             result,
