@@ -6,7 +6,21 @@ from chainbridge import ChainBridgeClient
 from chainbridge.crypto import derive_hash_lock
 from chainbridge.http import HttpClient
 
+def test_client_initialization():   
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, json={"success": True, "data": {}, "error": None}))
+    http = HttpClient(
+        base_url="https://api.test",
+        api_key="cb_test",
+        max_retries=3,
+        backoff=1,
+        transport=transport,
+    )
+    client = ChainBridgeClient(api_key="cb_test", http=http)
 
+    assert client.http.base_url == "https://api.test"
+    assert client.http.api_key == "cb_test"
+    assert client.http.max_retries == 3
+    assert client.http.backoff == 1
 def test_create_swap_order_generates_secret_and_calls_orders():
     captured = {}
 
