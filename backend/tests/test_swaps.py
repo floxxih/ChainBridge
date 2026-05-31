@@ -5,7 +5,7 @@ import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.schemas.swap import SwapResponse, SwapProof
+from app.schemas.swap import BatchProofItemResult, BatchProofResponse, SwapResponse, SwapProof
 
 
 class TestListSwaps:
@@ -165,3 +165,140 @@ class TestSwapSchemas:
 
         with pytest.raises(ValidationError):
             SwapProof(chain="bitcoin")  # missing required fields
+
+
+class TestBatchVerifyErrors:
+    """Safe structured errors from batch proof verification (#437)."""
+
+    @pytest.mark.anyio
+    async def test_known_validation_errors_remain_useful(self):
+        from app.routes.swaps import batch_verify_proofs
+        from app.schemas.swap import BatchProofRequest, SwapProofItem, SwapProof
+
+        mock_db = AsyncMock()
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = None
+        mock_db.execute = AsyncMock(return_value=result_mock)
+
+        proof = SwapProof(chain="bitcoin", tx_hash="tx1", block_height=100, proof_data="abc")
+        req = BatchProofRequest(items=[SwapProofItem(swap_id="missing-id", proof=proof)])
+
+        with (
+            patch("app.routes.swaps.get_redis", return_value=MagicMock()),
+            patch("app.routes.swaps.CacheService", return_value=AsyncMock()),
+        ):
+            result = await batch_verify_proofs(req, db=mock_db)
+
+        assert result.failed == 1
+        assert result.items[0].error == "Swap not found"
+
+    @pytest.mark.anyio
+    async def test_unexpected_errors_return_generic_message(self):
+        from app.routes.swaps import batch_verify_proofs
+        from app.schemas.swap import BatchProofRequest, SwapProofItem, SwapProof
+
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock(side_effect=ValueError("something broke"))
+
+        proof = SwapProof(chain="bitcoin", tx_hash="tx1", block_height=100, proof_data="abc")
+        req = BatchProofRequest(items=[SwapProofItem(swap_id="swap-1", proof=proof)])
+
+        with (
+            patch("app.routes.swaps.get_redis", return_value=MagicMock()),
+            patch("app.routes.swaps.CacheService", return_value=AsyncMock()),
+            patch("app.routes.swaps.logger") as mock_logger,
+        ):
+            result = await batch_verify_proofs(req, db=mock_db)
+
+        assert result.failed == 1
+        assert result.items[0].error == "Verification failed unexpectedly"
+        mock_logger.exception.assert_called_once()
+
+
+class TestCacheInvalidation:
+    """Cache invalidation helper tests (#436)."""
+
+    @pytest.mark.anyio
+    async def test_invalidate_swap_deletes_swap_key(self):
+        from app.config.redis import CacheService
+
+        mock_redis = MagicMock()
+        mock_redis.delete = AsyncMock()
+        cache = CacheService(mock_redis, prefix="cb")
+
+        await cache.invalidate_swap("swap-001")
+
+        mock_redis.delete.assert_awaited_once_with("cb:swap:swap-001")
+
+    @pytest.mark.anyio
+    async def test_cache_invalidate_swap_called_on_verify_proof(self):
+        from app.routes.swaps import verify_proof
+        from app.schemas.swap import SwapProof
+
+        swap = MagicMock()
+        swap.id = "swap-1"
+        swap.onchain_id = None
+        swap.stellar_htlc_id = None
+        swap.other_chain = "bitcoin"
+        swap.other_chain_tx = None
+        swap.stellar_party = "GABC123"
+        swap.other_party = "bc1qtest"
+        swap.state = "initiated"
+        swap.created_at = None
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = swap
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock(return_value=result_mock)
+
+        mock_cache = AsyncMock()
+        mock_cache.invalidate_swap = AsyncMock()
+
+        proof = SwapProof(chain="bitcoin", tx_hash="tx1", block_height=100, proof_data="abc")
+
+        with (
+            patch("app.routes.swaps.get_redis", return_value=MagicMock()),
+            patch("app.routes.swaps.CacheService", return_value=mock_cache),
+            patch("app.routes.swaps.emit_swap_event", return_value=None),
+            patch("app.routes.swaps.observe_swap_completion", return_value=None),
+        ):
+            await verify_proof("swap-1", proof, db=mock_db)
+
+        mock_cache.invalidate_swap.assert_awaited_once_with("swap-1")
+
+    @pytest.mark.anyio
+    async def test_cache_invalidate_swap_called_on_batch_verify(self):
+        from app.routes.swaps import batch_verify_proofs
+        from app.schemas.swap import BatchProofRequest, SwapProofItem, SwapProof
+
+        swap = MagicMock()
+        swap.id = "swap-1"
+        swap.onchain_id = None
+        swap.stellar_htlc_id = None
+        swap.other_chain = "bitcoin"
+        swap.other_chain_tx = None
+        swap.stellar_party = "GABC123"
+        swap.other_party = "bc1qtest"
+        swap.state = "initiated"
+        swap.created_at = None
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = swap
+        mock_db = AsyncMock()
+        mock_db.execute = AsyncMock(return_value=result_mock)
+
+        mock_cache = AsyncMock()
+        mock_cache.invalidate_swap = AsyncMock()
+
+        proof = SwapProof(chain="bitcoin", tx_hash="tx1", block_height=100, proof_data="abc")
+        req = BatchProofRequest(items=[SwapProofItem(swap_id="swap-1", proof=proof)])
+
+        with (
+            patch("app.routes.swaps.get_redis", return_value=MagicMock()),
+            patch("app.routes.swaps.CacheService", return_value=mock_cache),
+            patch("app.routes.swaps.emit_swap_event", return_value=None),
+            patch("app.routes.swaps.observe_swap_completion", return_value=None),
+        ):
+            result = await batch_verify_proofs(req, db=mock_db)
+
+        mock_cache.invalidate_swap.assert_awaited_once_with("swap-1")
+        assert result.succeeded == 1
+        assert result.failed == 0

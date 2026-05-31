@@ -69,3 +69,12 @@ class CacheService:
     async def invalidate_pattern(self, pattern: str):
         async for k in self.r.scan_iter(match=self._key(pattern)):
             await self.r.delete(k)
+
+    async def invalidate_swap(self, swap_id: str):
+        """Remove all cache entries for a single swap.
+
+        Currently invalidates ``swap:<swap_id>``.  Call this instead of
+        calling ``delete`` directly so that any future swap-related cache
+        keys are invalidated consistently from a single call site.
+        """
+        await self.delete(f"swap:{swap_id}")
