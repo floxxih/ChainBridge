@@ -2,11 +2,10 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
     paths:
       - 'frontend/**'
   pull_request:
-    branches: [ main ]
     paths:
       - 'frontend/**'
 
@@ -34,11 +33,38 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npm test
+      - name: Run tests with coverage
+        run: npm test -- --coverage
 
-      - name: Build
+      - name: Build production bundle
         run: npm run build
+
+      - name: Upload Next.js build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: next-build
+          path: frontend/.next/
+          retention-days: 7
 
       - name: Build Storybook
         run: npm run build-storybook
+
+      - name: Upload Storybook build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storybook-static
+          path: frontend/storybook-static/
+          retention-days: 7
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            frontend/coverage/
+            frontend/junit.xml
+          retention-days: 7
+          if-no-files-found: ignore

@@ -338,7 +338,7 @@ export default function SwapPage() {
               selectedChain={sourceChain}
               selectedAsset={fromAsset}
               onSelect={handleSourceSelect}
-              label="From"
+              label="Source Chain & Asset"
               showBalance={!!walletBalance}
             />
             <ChainAssetSelector
@@ -346,7 +346,7 @@ export default function SwapPage() {
               selectedChain={destChain}
               selectedAsset={toAsset}
               onSelect={handleDestSelect}
-              label="To"
+              label="Destination Chain & Asset"
               showBalance={false}
             />
           </div>
@@ -360,26 +360,22 @@ export default function SwapPage() {
 
           <div className="space-y-2">
             <Input
+              label="Swap Amount"
               placeholder="0.00"
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              aria-invalid={!!amountError}
-              aria-describedby={amountError ? "amount-error" : undefined}
+              error={amountError ?? undefined}
+              hint="Enter the amount of tokens you want to swap"
             />
-            {amountError && (
-              <p id="amount-error" className="flex items-center gap-1.5 text-xs text-status-error">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                {amountError}
-              </p>
-            )}
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5" role="group" aria-label="Quick amount selectors">
               {(["25%", "50%", "75%", "Max"] as const).map((label) => (
                 <button
                   key={label}
                   type="button"
                   disabled={!walletBalance}
                   onClick={() => applyQuickAmount(label)}
+                  aria-label={`Set amount to ${label}`}
                   className={cn(
                     "flex-1 rounded-md py-1 text-xs font-medium transition-colors",
                     walletBalance

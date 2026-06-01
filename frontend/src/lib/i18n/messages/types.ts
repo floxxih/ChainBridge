@@ -6,6 +6,7 @@ export type I18nMessages = {
   nav: {
     dashboard: string;
     swap: string;
+    swaps: string;
     market: string;
     orders: string;
     htlcs: string;

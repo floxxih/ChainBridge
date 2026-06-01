@@ -5,6 +5,41 @@ use crate::types::{
 };
 use soroban_sdk::{contracttype, Address, Env, String, Vec};
 
+// =============================================================================
+// TTL (Time-To-Live) Policy
+//
+// Soroban persistent and instance entries have a finite TTL measured in ledgers.
+// When the remaining TTL falls below the threshold, the entry must be bumped to
+// avoid data loss.  We adopt the following TTL tiers:
+//
+//   Active entries  (HTLCs, Orders,  etc.)  — bump to max (~2 years)
+//   Archived entries (Claimed/Refunded)      — bump to medium (~1 year)
+//   Instance entries (singletons, counters)  — bump to max (~2 years)
+//
+// All values are documented alongside the corresponding storage functions.
+// =============================================================================
+
+/// Threshold (ledgers) for actively used persistent entries.
+/// If remaining TTL dips below this, it gets bumped to `TTL_EXTEND_ACTIVE`.
+/// ~230 days at 5 seconds per ledger.
+pub const TTL_THRESHOLD_ACTIVE: u32 = 500_000;
+
+/// Extended TTL for active entries: the Soroban maximum.
+pub const TTL_EXTEND_ACTIVE: u32 = 6_312_000;
+
+/// Threshold for archived (claimed / refunded) entries.
+pub const TTL_THRESHOLD_ARCHIVE: u32 = 200_000;
+
+/// Extended TTL for archived entries — long enough for audit / recovery but
+/// shorter than active entries to allow natural garbage collection.
+pub const TTL_EXTEND_ARCHIVE: u32 = 1_000_000;
+
+/// Threshold for instance storage (singletons, counters).
+pub const TTL_THRESHOLD_INSTANCE: u32 = 500_000;
+
+/// Extended TTL for instance storage.
+pub const TTL_EXTEND_INSTANCE: u32 = 6_312_000;
+
 /// Encodes a chain-pair as a single u64 for use as a storage key.
 /// Combines from_chain and to_chain discriminants into the high and low 32 bits.
 fn chain_pair_key(from: &Chain, to: &Chain) -> u64 {
@@ -68,19 +103,33 @@ const CLEANUP_BATCH_SIZE: u64 = 10;
 /// Maximum fee rate in basis points (10% = 1000 bps).
 pub const MAX_FEE_RATE: u32 = 1000;
 
+/// Bump TTL for instance storage entries.
+///
+/// Instance entries (admin, config, counters) are long-lived; we keep them at
+/// the Soroban maximum so they survive indefinitely under normal operation.
+pub fn bump_instance(env: &Env) {
+    env.storage()
+        .instance()
+        .extend_ttl(TTL_THRESHOLD_INSTANCE, TTL_EXTEND_INSTANCE);
+}
+
 pub fn has_admin(env: &Env) -> bool {
+    bump_instance(env);
     env.storage().instance().has(&DataKey::Admin)
 }
 
 pub fn read_admin(env: &Env) -> Address {
+    bump_instance(env);
     env.storage().instance().get(&DataKey::Admin).unwrap()
 }
 
 pub fn write_admin(env: &Env, admin: &Address) {
+    bump_instance(env);
     env.storage().instance().set(&DataKey::Admin, admin);
 }
 
 pub fn is_paused(env: &Env) -> bool {
+    bump_instance(env);
     env.storage()
         .instance()
         .get(&DataKey::Paused)
@@ -88,10 +137,12 @@ pub fn is_paused(env: &Env) -> bool {
 }
 
 pub fn set_paused(env: &Env, paused: bool) {
+    bump_instance(env);
     env.storage().instance().set(&DataKey::Paused, &paused);
 }
 
 pub fn get_fee_rate(env: &Env) -> u32 {
+    bump_instance(env);
     env.storage()
         .instance()
         .get(&DataKey::FeeRate)
@@ -359,6 +410,7 @@ pub fn write_referral_record(env: &Env, record: &ReferralRecord) {
 }
 
 pub fn get_htlc_counter(env: &Env) -> u64 {
+    bump_instance(env);
     env.storage()
         .instance()
         .get(&DataKey::HTLCCounter)
@@ -366,6 +418,7 @@ pub fn get_htlc_counter(env: &Env) -> u64 {
 }
 
 pub fn increment_htlc_counter(env: &Env) -> u64 {
+    bump_instance(env);
     let counter = get_htlc_counter(env) + 1;
     env.storage()
         .instance()
@@ -374,13 +427,42 @@ pub fn increment_htlc_counter(env: &Env) -> u64 {
 }
 
 pub fn read_htlc(env: &Env, htlc_id: u64) -> Option<HTLC> {
-    env.storage().persistent().get(&DataKey::HTLC(htlc_id))
+    let key = DataKey::HTLC(htlc_id);
+    let htlc: Option<HTLC> = env.storage().persistent().get(&key);
+    if let Some(ref htlc) = htlc {
+        match htlc.status {
+            HTLCStatus::Active => {
+                env.storage()
+                    .persistent()
+                    .extend_ttl(&key, TTL_THRESHOLD_ACTIVE, TTL_EXTEND_ACTIVE);
+            }
+            HTLCStatus::Claimed | HTLCStatus::Refunded => {
+                env.storage()
+                    .persistent()
+                    .extend_ttl(&key, TTL_THRESHOLD_ARCHIVE, TTL_EXTEND_ARCHIVE);
+            }
+            HTLCStatus::Expired => {}
+        }
+    }
+    htlc
 }
 
 pub fn write_htlc(env: &Env, htlc_id: u64, htlc: &HTLC) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::HTLC(htlc_id), htlc);
+    let key = DataKey::HTLC(htlc_id);
+    env.storage().persistent().set(&key, htlc);
+    match htlc.status {
+        HTLCStatus::Active => {
+            env.storage()
+                .persistent()
+                .extend_ttl(&key, TTL_THRESHOLD_ACTIVE, TTL_EXTEND_ACTIVE);
+        }
+        HTLCStatus::Claimed | HTLCStatus::Refunded => {
+            env.storage()
+                .persistent()
+                .extend_ttl(&key, TTL_THRESHOLD_ARCHIVE, TTL_EXTEND_ARCHIVE);
+        }
+        HTLCStatus::Expired => {}
+    }
 }
 
 pub fn remove_htlc(env: &Env, htlc_id: u64) {

@@ -3,7 +3,8 @@ import type { I18nMessages } from "../types";
 export const messagesZh: I18nMessages = {
   nav: {
     dashboard: "仪表盘",
-    swap: "兑换",
+    swap: "新建兑换",
+    swaps: "兑换历史",
     market: "市场",
     orders: "订单",
     htlcs: "HTLC",

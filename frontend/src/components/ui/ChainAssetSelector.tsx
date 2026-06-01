@@ -83,6 +83,9 @@ export function ChainAssetSelector({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label={label ? `${label} — select chain and asset` : "Select chain and asset"}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-xl border bg-surface px-4 py-3",
           "transition-all duration-200",
@@ -133,7 +136,11 @@ export function ChainAssetSelector({
               setActiveChain(null);
             }}
           />
-          <div className="absolute z-50 mt-2 w-full rounded-xl border border-border bg-surface-raised shadow-card dark:shadow-card-dark">
+          <div
+            className="absolute z-50 mt-2 w-full rounded-xl border border-border bg-surface-raised shadow-card dark:shadow-card-dark"
+            role="listbox"
+            aria-label={label ? `${label} — available options` : "Available chains and assets"}
+          >
             {/* Search */}
             <div className="border-b border-border p-3">
               <div className="relative">
@@ -143,6 +150,7 @@ export function ChainAssetSelector({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search chains or assets..."
+                  aria-label="Search chains or assets"
                   className="w-full rounded-lg border border-border bg-surface py-2 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                   autoFocus
                 />
@@ -150,11 +158,13 @@ export function ChainAssetSelector({
             </div>
 
             {/* Chain Tabs */}
-            <div className="flex gap-1 border-b border-border p-2">
+            <div className="flex gap-1 border-b border-border p-2" role="tablist" aria-label="Filter by chain">
               {filteredChains.map((chain) => (
                 <button
                   key={chain.id}
                   onClick={() => setActiveChain(activeChain === chain.id ? null : chain.id)}
+                  role="tab"
+                  aria-selected={activeChain === chain.id}
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     activeChain === chain.id
@@ -188,6 +198,9 @@ export function ChainAssetSelector({
                         <button
                           key={`${chain.id}-${asset.symbol}`}
                           onClick={() => handleAssetSelect(chain.id, asset.symbol)}
+                          role="option"
+                          aria-selected={isSelected}
+                          aria-label={`${asset.symbol} — ${asset.name} on ${chain.name}`}
                           className={cn(
                             "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
                             isSelected
