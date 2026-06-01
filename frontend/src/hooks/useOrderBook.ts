@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { AdvancedOrderType, Order, OrderBookStore, OrderSide, OrderStatus } from "@/types";
+import {
+  AdvancedOrderType,
+  Order,
+  OrderAmendmentEntry,
+  OrderBookStore,
+  OrderSide,
+  OrderStatus,
+} from "@/types";
 import { useCallback } from "react";
 
 export const DEMO_ORDER_OWNER = "cb-local-trader";
@@ -62,6 +69,16 @@ export const useMockOrders = () => {
           orderType: AdvancedOrderType.LIMIT,
           allowPartialFills: true,
           amendmentCount: 1,
+          amendmentLog: [
+            {
+              sequence: 1,
+              amended_at: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+              changes: {
+                from_amount: { before: 8000, after: 10000 },
+              },
+              note: "Increased order size",
+            },
+          ] as OrderAmendmentEntry[],
           minFillAmount: "2,500",
           takerFeeEstimate: "~0.0004 ETH",
         },
@@ -103,6 +120,24 @@ export const useMockOrders = () => {
           orderType: AdvancedOrderType.TWAP,
           allowPartialFills: true,
           amendmentCount: 2,
+          amendmentLog: [
+            {
+              sequence: 1,
+              amended_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+              changes: {
+                to_amount: { before: 400000, after: 450000 },
+              },
+            },
+            {
+              sequence: 2,
+              amended_at: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+              changes: {
+                min_fill_amount: { before: null, after: 1000 },
+                expiry: { before: 1800000, after: 2400000 },
+              },
+              note: "Set min fill and extended expiry",
+            },
+          ] as OrderAmendmentEntry[],
           minFillAmount: "0.01",
           takerFeeEstimate: "~35 XLM",
         },
@@ -144,6 +179,16 @@ export const useMockOrders = () => {
           orderType: AdvancedOrderType.LIMIT,
           allowPartialFills: true,
           amendmentCount: 1,
+          amendmentLog: [
+            {
+              sequence: 1,
+              amended_at: new Date(Date.now() - 1000 * 60 * 7).toISOString(),
+              changes: {
+                to_amount: { before: 170000, after: 184000 },
+              },
+              note: "Adjusted rate",
+            },
+          ] as OrderAmendmentEntry[],
           minFillAmount: "1,000",
           makerFeeEstimate: "~3 XLM",
         },
@@ -165,6 +210,24 @@ export const useMockOrders = () => {
           orderType: AdvancedOrderType.STOP_LOSS,
           allowPartialFills: false,
           amendmentCount: 3,
+          amendmentLog: [
+            {
+              sequence: 1,
+              amended_at: new Date(Date.now() - 1000 * 60 * 80).toISOString(),
+              changes: { from_amount: { before: 1000, after: 2000 } },
+            },
+            {
+              sequence: 2,
+              amended_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+              changes: { to_amount: { before: 400000, after: 468000 } },
+              note: "Updated target price",
+            },
+            {
+              sequence: 3,
+              amended_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+              changes: { expiry: { before: 3600, after: 5400 } },
+            },
+          ] as OrderAmendmentEntry[],
           makerFeeEstimate: "~0.00003 BTC",
         },
       ];

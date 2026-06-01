@@ -6,6 +6,18 @@ import { z } from "zod";
 
 // ── Order Schemas ──────────────────────────────────────────────────────────────
 
+export const ApiOrderAmendmentChangeSchema = z.object({
+  before: z.number().nullable(),
+  after: z.number(),
+});
+
+export const ApiOrderAmendmentEntrySchema = z.object({
+  sequence: z.number(),
+  amended_at: z.string(),
+  changes: z.record(z.string(), ApiOrderAmendmentChangeSchema),
+  note: z.string().optional(),
+});
+
 export const ApiOrderRecordSchema = z.object({
   id: z.string(),
   onchain_id: z.number().nullable(),
@@ -22,6 +34,8 @@ export const ApiOrderRecordSchema = z.object({
   status: z.string(),
   counterparty: z.string().nullable(),
   created_at: z.string().nullable(),
+  amendment_count: z.number().default(0),
+  amendment_log: z.array(ApiOrderAmendmentEntrySchema).default([]),
 });
 
 export const ApiOrderListSchema = z.array(ApiOrderRecordSchema);
