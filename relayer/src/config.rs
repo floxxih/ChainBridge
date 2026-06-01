@@ -25,7 +25,7 @@ pub struct RelayerConfig {
 
 impl RelayerConfig {
     pub fn from_env() -> Self {
-        Self {
+        let config = Self {
             relayer_name: std::env::var("RELAYER_NAME").unwrap_or_else(|_| "default".into()),
             relayer_fee_bps: std::env::var("RELAYER_FEE_BPS")
                 .ok()
@@ -61,6 +61,20 @@ impl RelayerConfig {
                 .ok()
                 .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
                 .unwrap_or(false),
+        };
+        config.validate();
+        config
+    }
+
+    fn validate(&self) {
+        if self.contract_id.is_empty() {
+            eprintln!("Error: CHAINBRIDGE_CONTRACT_ID is required but not set. Set the environment variable and try again.");
+            std::process::exit(1);
+        }
+
+        if let Err(e) = self.metrics_bind_addr.parse::<std::net::SocketAddr>() {
+            eprintln!("Error: RELAYER_METRICS_BIND '{}' is not a valid socket address: {}. Set a valid address like '0.0.0.0:9108'.", self.metrics_bind_addr, e);
+            std::process::exit(1);
         }
     }
 }
