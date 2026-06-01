@@ -49,6 +49,10 @@ pub fn create_htlc_with_algorithm(
         return Err(Error::InvalidAmount);
     }
 
+    if sender == receiver {
+        return Err(Error::Unauthorized);
+    }
+
     let current_time = env.ledger().timestamp();
     if time_lock <= current_time {
         return Err(Error::InvalidTimelock);

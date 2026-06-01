@@ -1,10 +1,10 @@
 use crate::error::Error;
 use crate::storage;
 use crate::types::{
-    DelegationRecord, GovernanceConfig, GovernanceProposal, OptProposalStatus, ProposalLifecycleEvent,
-    ProposalStatus, VoteChoice,
+    DelegationRecord, GovernanceConfig, GovernanceProposal, OptProposalStatus,
+    ProposalLifecycleEvent, ProposalStatus, VoteChoice,
 };
-use soroban_sdk::{Address, Env, String, Vec};
+use soroban_sdk::{symbol_short, Address, Env, String, Vec};
 
 pub fn init_governance(env: &Env, config: GovernanceConfig) -> Result<(), Error> {
     if config.quorum_bps == 0 || config.quorum_bps > 10_000 {
@@ -25,11 +25,7 @@ pub fn set_voting_stake(env: &Env, holder: &Address, balance: i128) -> Result<()
     Ok(())
 }
 
-pub fn resolve_voting_power(
-    env: &Env,
-    voter: &Address,
-    proposal_id: u64,
-) -> Result<i128, Error> {
+pub fn resolve_voting_power(env: &Env, voter: &Address, proposal_id: u64) -> Result<i128, Error> {
     let self_power = if has_active_outbound_delegation(env, voter) {
         0
     } else {
@@ -110,6 +106,10 @@ pub fn create_proposal(
         now,
         String::from_str(env, "proposal_created"),
     );
+    env.events().publish(
+        (symbol_short!("gov"), symbol_short!("created")),
+        (proposal_id, proposer.clone(), now),
+    );
     Ok(proposal_id)
 }
 
@@ -145,6 +145,10 @@ pub fn cast_vote(
     }
     storage::write_proposal_vote(env, proposal_id, voter, true);
     storage::write_proposal(env, proposal_id, &proposal);
+    env.events().publish(
+        (symbol_short!("gov"), symbol_short!("voted")),
+        (proposal_id, voter.clone(), voting_power),
+    );
     Ok(voting_power)
 }
 
@@ -167,6 +171,10 @@ pub fn finalize_proposal(env: &Env, proposal: &mut GovernanceProposal) -> Result
             next_status.clone(),
             env.ledger().timestamp(),
             String::from_str(env, "voting_finalized"),
+        );
+        env.events().publish(
+            (symbol_short!("gov"), symbol_short!("finalized")),
+            (proposal.id, next_status.clone()),
         );
         proposal.status = next_status;
     }
@@ -200,6 +208,10 @@ pub fn execute_proposal(env: &Env, proposal_id: u64) -> Result<(), Error> {
     );
     proposal.status = ProposalStatus::Executed;
     storage::write_proposal(env, proposal_id, &proposal);
+    env.events().publish(
+        (symbol_short!("gov"), symbol_short!("executed")),
+        (proposal_id, env.ledger().timestamp()),
+    );
     Ok(())
 }
 

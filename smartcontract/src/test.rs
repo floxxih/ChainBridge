@@ -2214,11 +2214,18 @@ fn test_create_order_emits_event() {
     );
 
     let events = env.events().all();
-    assert!(!events.is_empty(), "create_order must emit at least one event");
+    assert!(
+        !events.is_empty(),
+        "create_order must emit at least one event"
+    );
 
     let (emitted_contract, topics, _data) = events.last().unwrap();
     assert_eq!(emitted_contract, contract_id);
-    assert_eq!(topics.len(), 2, "create event must carry exactly two topics");
+    assert_eq!(
+        topics.len(),
+        2,
+        "create event must carry exactly two topics"
+    );
 }
 
 #[test]
@@ -2246,11 +2253,18 @@ fn test_cancel_order_emits_event() {
     client.cancel_order(&creator, &order_id);
 
     let events = env.events().all();
-    assert!(!events.is_empty(), "cancel_order must emit at least one event");
+    assert!(
+        !events.is_empty(),
+        "cancel_order must emit at least one event"
+    );
 
     let (emitted_contract, topics, _data) = events.last().unwrap();
     assert_eq!(emitted_contract, contract_id);
-    assert_eq!(topics.len(), 2, "cancel event must carry exactly two topics");
+    assert_eq!(
+        topics.len(),
+        2,
+        "cancel event must carry exactly two topics"
+    );
 }
 
 #[test]
@@ -2279,7 +2293,10 @@ fn test_match_order_emits_event() {
     client.match_order(&counterparty, &order_id);
 
     let events = env.events().all();
-    assert!(!events.is_empty(), "match_order must emit at least one event");
+    assert!(
+        !events.is_empty(),
+        "match_order must emit at least one event"
+    );
 
     let (emitted_contract, topics, _data) = events.last().unwrap();
     assert_eq!(emitted_contract, contract_id);
@@ -2312,11 +2329,18 @@ fn test_expire_order_emits_event() {
     client.expire_order(&order_id);
 
     let events = env.events().all();
-    assert!(!events.is_empty(), "expire_order must emit at least one event");
+    assert!(
+        !events.is_empty(),
+        "expire_order must emit at least one event"
+    );
 
     let (emitted_contract, topics, _data) = events.last().unwrap();
     assert_eq!(emitted_contract, contract_id);
-    assert_eq!(topics.len(), 2, "expire event must carry exactly two topics");
+    assert_eq!(
+        topics.len(),
+        2,
+        "expire event must carry exactly two topics"
+    );
 }
 
 // =============================================================================
@@ -2366,4 +2390,245 @@ fn test_transfer_admin_unauthorized_non_admin_cannot_transfer() {
 
     // Non-admin tries to transfer admin
     client.transfer_admin(&non_admin, &new_admin);
+}
+
+// =============================================================================
+// ISSUE #465: REJECT SELF-DIRECTED HTLCs
+// =============================================================================
+
+#[test]
+#[should_panic(expected = "Error(Contract, #3)")]
+fn test_htlc_rejects_self_directed() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let alice = Address::generate(&env);
+
+    client.init(&admin);
+
+    let secret = Bytes::from_slice(&env, &[42u8; 32]);
+    let hash_lock: BytesN<32> = env.crypto().sha256(&secret).into();
+    let time_lock = env.ledger().timestamp() + 86400;
+
+    // sender == receiver must be rejected
+    client.create_htlc(
+        &alice,
+        &alice,
+        &1000,
+        &hash_lock,
+        &time_lock,
+        &OptMultiSig::None,
+    );
+}
+
+#[test]
+fn test_htlc_distinct_sender_receiver_succeeds() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+
+    client.init(&admin);
+
+    let htlc_id = create_test_htlc(&env, &client, &sender, &receiver, 500, &[7u8; 32], 3600);
+    assert!(htlc_id > 0);
+}
+
+// =============================================================================
+// ISSUE #505: LP WITHDRAWAL AND REWARD-CLAIM FLOWS
+// =============================================================================
+
+fn setup_pool(env: &Env, client: &ChainBridgeClient) -> (u64, Address) {
+    let pool_id = client.create_pool(
+        &String::from_str(env, "XLM"),
+        &String::from_str(env, "USDC"),
+        &30,
+        &100,
+    );
+    let provider = Address::generate(env);
+    client.add_liquidity(&provider, &pool_id, &1_000_000, &1_000_000);
+    (pool_id, provider)
+}
+
+#[test]
+fn test_remove_liquidity_updates_position() {
+    let (env, _, client) = setup_contract();
+    let (pool_id, provider) = setup_pool(&env, &client);
+
+    let position_before = client.get_position(&pool_id, &provider);
+    let lp_before = position_before.lp_tokens;
+
+    let (a, b) = client.remove_liquidity(&provider, &pool_id, &lp_before);
+    assert!(a > 0);
+    assert!(b > 0);
+
+    let position_after = client.get_position(&pool_id, &provider);
+    assert_eq!(position_after.lp_tokens, 0);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #4)")]
+fn test_remove_liquidity_exceeds_balance() {
+    let (env, _, client) = setup_contract();
+    let (pool_id, provider) = setup_pool(&env, &client);
+
+    let position = client.get_position(&pool_id, &provider);
+    // Try to withdraw more than owned
+    client.remove_liquidity(&provider, &pool_id, &(position.lp_tokens + 1));
+}
+
+#[test]
+fn test_claim_rewards_zeroes_earned() {
+    let (env, _, client) = setup_contract();
+    let (pool_id, provider) = setup_pool(&env, &client);
+
+    let position = client.get_position(&pool_id, &provider);
+    assert!(position.rewards_earned > 0);
+
+    let claimed = client.claim_rewards(&provider, &pool_id);
+    assert_eq!(claimed, position.rewards_earned);
+
+    let position_after = client.get_position(&pool_id, &provider);
+    assert_eq!(position_after.rewards_earned, 0);
+}
+
+// =============================================================================
+// ISSUE #506: SLIPPAGE CONTROLS AND QUOTE PREVIEWS
+// =============================================================================
+
+fn setup_pool_with_liquidity(env: &Env, client: &ChainBridgeClient) -> u64 {
+    let pool_id = client.create_pool(
+        &String::from_str(env, "XLM"),
+        &String::from_str(env, "BTC"),
+        &30,
+        &0,
+    );
+    let provider = Address::generate(env);
+    client.add_liquidity(&provider, &pool_id, &10_000_000, &1_000_000);
+    pool_id
+}
+
+#[test]
+fn test_quote_preview_returns_positive() {
+    let (env, _, client) = setup_contract();
+    setup_pool_with_liquidity(&env, &client);
+
+    let quote = client.get_pool_quote(
+        &String::from_str(&env, "XLM"),
+        &String::from_str(&env, "BTC"),
+        &100_000,
+    );
+    assert!(quote > 0);
+}
+
+#[test]
+fn test_swap_within_slippage_succeeds() {
+    let (env, _, client) = setup_contract();
+    setup_pool_with_liquidity(&env, &client);
+
+    let quote = client.get_pool_quote(
+        &String::from_str(&env, "XLM"),
+        &String::from_str(&env, "BTC"),
+        &100_000,
+    );
+    // min_amount_out == quote (exact tolerance)
+    let out = client.swap_with_slippage(
+        &String::from_str(&env, "XLM"),
+        &String::from_str(&env, "BTC"),
+        &100_000,
+        &quote,
+    );
+    assert_eq!(out, quote);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #19)")]
+fn test_swap_exceeds_slippage_rejected() {
+    let (env, _, client) = setup_contract();
+    setup_pool_with_liquidity(&env, &client);
+
+    let quote = client.get_pool_quote(
+        &String::from_str(&env, "XLM"),
+        &String::from_str(&env, "BTC"),
+        &100_000,
+    );
+    // Demand more than the pool can give
+    client.swap_with_slippage(
+        &String::from_str(&env, "XLM"),
+        &String::from_str(&env, "BTC"),
+        &100_000,
+        &(quote + 1),
+    );
+}
+
+// =============================================================================
+// ISSUE #513: GOVERNANCE PROPOSAL LIFECYCLE EVENTS
+// =============================================================================
+
+fn setup_governance(env: &Env, client: &ChainBridgeClient) -> (Address, Address) {
+    let admin = Address::generate(env);
+    let voter = Address::generate(env);
+    client.init(&admin);
+    client.init_governance(
+        &admin,
+        &GovernanceConfig {
+            token_symbol: String::from_str(env, "GOV"),
+            quorum_bps: 1,
+            proposal_threshold: 1,
+            total_voting_supply: 1_000_000,
+            voting_period_secs: 3600,
+            timelock_secs: 0,
+        },
+    );
+    client.set_voting_stake(&voter, &100_000);
+    (admin, voter)
+}
+
+#[test]
+fn test_governance_create_proposal_emits_event() {
+    let (env, _, client) = setup_contract();
+    let (_, voter) = setup_governance(&env, &client);
+
+    let mut actions = soroban_sdk::Vec::new(&env);
+    actions.push_back(String::from_str(&env, "action1"));
+
+    let proposal_id = client.create_proposal(
+        &voter,
+        &String::from_str(&env, "Test"),
+        &String::from_str(&env, "desc"),
+        &actions,
+    );
+    assert!(proposal_id > 0);
+    // Lifecycle event recorded
+    let lifecycle = client.get_proposal_lifecycle(&proposal_id);
+    assert!(!lifecycle.is_empty());
+}
+
+#[test]
+fn test_governance_vote_and_execute_lifecycle() {
+    let (env, _, client) = setup_contract();
+    let (_, voter) = setup_governance(&env, &client);
+
+    let mut actions = soroban_sdk::Vec::new(&env);
+    actions.push_back(String::from_str(&env, "action1"));
+
+    let proposal_id = client.create_proposal(
+        &voter,
+        &String::from_str(&env, "Prop"),
+        &String::from_str(&env, "desc"),
+        &actions,
+    );
+
+    client.cast_vote(&voter, &proposal_id, &VoteChoice::For);
+
+    // Advance past voting period
+    env.ledger().set_timestamp(env.ledger().timestamp() + 7200);
+
+    client.execute_proposal(&proposal_id);
+
+    let proposal = client.get_proposal(&proposal_id);
+    assert_eq!(proposal.status, ProposalStatus::Executed);
+
+    let lifecycle = client.get_proposal_lifecycle(&proposal_id);
+    // created + finalized + executed = at least 3 events
+    assert!(lifecycle.len() >= 3);
 }
