@@ -47,6 +47,8 @@ async def create_order(
         to_amount=data.to_amount,
         min_fill_amount=data.min_fill_amount,
         expiry=data.expiry,
+        trigger_price=data.trigger_price,
+        valid_from=data.valid_from,
         status="open",
     )
     db.add(order)
@@ -179,6 +181,23 @@ async def amend_order(
     if data.expiry is not None and data.expiry != order.expiry:
         changes["expiry"] = {"before": int(order.expiry), "after": data.expiry}
         order.expiry = data.expiry
+    if data.trigger_price is not None and data.trigger_price != order.trigger_price:
+        changes["trigger_price"] = {
+            "before": float(order.trigger_price) if order.trigger_price is not None else None,
+            "after": float(data.trigger_price),
+        }
+        order.trigger_price = data.trigger_price
+    if data.valid_from is not None and data.valid_from != order.valid_from:
+        new_expiry = data.expiry if data.expiry is not None else int(order.expiry)
+        if data.valid_from >= new_expiry:
+            raise HTTPException(
+                status_code=400, detail="valid_from must be earlier than expiry"
+            )
+        changes["valid_from"] = {
+            "before": int(order.valid_from) if order.valid_from is not None else None,
+            "after": data.valid_from,
+        }
+        order.valid_from = data.valid_from
 
     if not changes:
         raise HTTPException(status_code=400, detail="No fields changed")

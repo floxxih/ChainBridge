@@ -1,3 +1,4 @@
+from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Any, Optional
 from datetime import datetime
@@ -19,6 +20,8 @@ class OrderCreate(BaseModel):
     to_amount: int = Field(gt=0)
     min_fill_amount: Optional[int] = None
     expiry: int = Field(gt=0)
+    trigger_price: Optional[Decimal] = Field(default=None, gt=0)
+    valid_from: Optional[int] = Field(default=None, gt=0)
 
     @field_validator("from_chain", "to_chain")
     @classmethod
@@ -39,19 +42,34 @@ class OrderCreate(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def validate_time_window(self):
+        if self.valid_from is not None and self.valid_from >= self.expiry:
+            raise ValueError("valid_from must be earlier than expiry")
+        return self
+
 
 class OrderAmend(BaseModel):
     from_amount: Optional[int] = Field(default=None, gt=0)
     to_amount: Optional[int] = Field(default=None, gt=0)
     min_fill_amount: Optional[int] = Field(default=None, gt=0)
     expiry: Optional[int] = Field(default=None, gt=0)
+    trigger_price: Optional[Decimal] = Field(default=None, gt=0)
+    valid_from: Optional[int] = Field(default=None, gt=0)
     note: Optional[str] = None
 
     @model_validator(mode="after")
     def at_least_one_field(self):
         if all(
             v is None
-            for v in (self.from_amount, self.to_amount, self.min_fill_amount, self.expiry)
+            for v in (
+                self.from_amount,
+                self.to_amount,
+                self.min_fill_amount,
+                self.expiry,
+                self.trigger_price,
+                self.valid_from,
+            )
         ):
             raise ValueError("At least one amendable field must be provided")
         return self
@@ -95,6 +113,8 @@ class OrderResponse(BaseModel):
     created_at: Optional[datetime] = None
     amendment_count: int = 0
     amendment_log: list[dict[str, Any]] = []
+    trigger_price: Optional[Decimal] = None
+    valid_from: Optional[int] = None
 
     class Config:
         from_attributes = True
