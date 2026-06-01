@@ -1,6 +1,6 @@
 {
   "generators": {
-    "address": 4,
+    "address": 3,
     "nonce": 0
   },
   "auth": [
@@ -26,7 +26,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 100
+                          "lo": 1
                         }
                       }
                     },
@@ -35,7 +35,7 @@
                         "symbol": "quorum_bps"
                       },
                       "val": {
-                        "u32": 2000
+                        "u32": 1
                       }
                     },
                     {
@@ -43,7 +43,7 @@
                         "symbol": "timelock_secs"
                       },
                       "val": {
-                        "u64": 10
+                        "u64": 0
                       }
                     },
                     {
@@ -51,7 +51,7 @@
                         "symbol": "token_symbol"
                       },
                       "val": {
-                        "string": "CBG"
+                        "string": "GOV"
                       }
                     },
                     {
@@ -61,7 +61,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 10000
+                          "lo": 1000000
                         }
                       }
                     },
@@ -70,7 +70,7 @@
                         "symbol": "voting_period_secs"
                       },
                       "val": {
-                        "u64": 100
+                        "u64": 3600
                       }
                     }
                   ]
@@ -97,32 +97,7 @@
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 500
-                  }
-                }
-              ]
-            }
-          },
-          "sub_invocations": []
-        }
-      ]
-    ],
-    [
-      [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
-        {
-          "function": {
-            "contract_fn": {
-              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-              "function_name": "set_voting_stake",
-              "args": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                },
-                {
-                  "i128": {
-                    "hi": 0,
-                    "lo": 2000
+                    "lo": 100000
                   }
                 }
               ]
@@ -145,15 +120,15 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "Lower protocol fee"
+                  "string": "Prop"
                 },
                 {
-                  "string": "Reduce taker fees via governance"
+                  "string": "desc"
                 },
                 {
                   "vec": [
                     {
-                      "string": "set_fee_rate:25"
+                      "string": "action1"
                     }
                   ]
                 }
@@ -166,7 +141,7 @@
     ],
     [
       [
-        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
         {
           "function": {
             "contract_fn": {
@@ -174,7 +149,7 @@
               "function_name": "cast_vote",
               "args": [
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
                   "u64": 1
@@ -200,7 +175,7 @@
   "ledger": {
     "protocol_version": 21,
     "sequence_number": 0,
-    "timestamp": 1000120,
+    "timestamp": 1007200,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -262,7 +237,7 @@
                       "val": {
                         "vec": [
                           {
-                            "string": "set_fee_rate:25"
+                            "string": "action1"
                           }
                         ]
                       }
@@ -291,7 +266,7 @@
                         "symbol": "description"
                       },
                       "val": {
-                        "string": "Reduce taker fees via governance"
+                        "string": "desc"
                       }
                     },
                     {
@@ -299,7 +274,7 @@
                         "symbol": "executable_after"
                       },
                       "val": {
-                        "u64": 1000110
+                        "u64": 1003600
                       }
                     },
                     {
@@ -309,7 +284,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 2000
+                          "lo": 100000
                         }
                       }
                     },
@@ -346,7 +321,7 @@
                         "symbol": "title"
                       },
                       "val": {
-                        "string": "Lower protocol fee"
+                        "string": "Prop"
                       }
                     },
                     {
@@ -354,7 +329,7 @@
                         "symbol": "voting_ends_at"
                       },
                       "val": {
-                        "u64": 1000100
+                        "u64": 1003600
                       }
                     }
                   ]
@@ -541,7 +516,7 @@
                         "symbol": "occurred_at"
                       },
                       "val": {
-                        "u64": 1000120
+                        "u64": 1007200
                       }
                     },
                     {
@@ -648,7 +623,7 @@
                         "symbol": "occurred_at"
                       },
                       "val": {
-                        "u64": 1000120
+                        "u64": 1007200
                       }
                     },
                     {
@@ -738,7 +713,7 @@
                   "u64": 1
                 },
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 }
               ]
             },
@@ -761,7 +736,7 @@
                       "u64": 1
                     },
                     {
-                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                     }
                   ]
                 },
@@ -814,55 +789,7 @@
                 "val": {
                   "i128": {
                     "hi": 0,
-                    "lo": 500
-                  }
-                }
-              }
-            },
-            "ext": "v0"
-          },
-          4095
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-            "key": {
-              "vec": [
-                {
-                  "symbol": "VotingStake"
-                },
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                }
-              ]
-            },
-            "durability": "persistent"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
-                "key": {
-                  "vec": [
-                    {
-                      "symbol": "VotingStake"
-                    },
-                    {
-                      "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                    }
-                  ]
-                },
-                "durability": "persistent",
-                "val": {
-                  "i128": {
-                    "hi": 0,
-                    "lo": 2000
+                    "lo": 100000
                   }
                 }
               }
@@ -924,7 +851,7 @@
                               "val": {
                                 "i128": {
                                   "hi": 0,
-                                  "lo": 100
+                                  "lo": 1
                                 }
                               }
                             },
@@ -933,7 +860,7 @@
                                 "symbol": "quorum_bps"
                               },
                               "val": {
-                                "u32": 2000
+                                "u32": 1
                               }
                             },
                             {
@@ -941,7 +868,7 @@
                                 "symbol": "timelock_secs"
                               },
                               "val": {
-                                "u64": 10
+                                "u64": 0
                               }
                             },
                             {
@@ -949,7 +876,7 @@
                                 "symbol": "token_symbol"
                               },
                               "val": {
-                                "string": "CBG"
+                                "string": "GOV"
                               }
                             },
                             {
@@ -959,7 +886,7 @@
                               "val": {
                                 "i128": {
                                   "hi": 0,
-                                  "lo": 10000
+                                  "lo": 1000000
                                 }
                               }
                             },
@@ -968,7 +895,7 @@
                                 "symbol": "voting_period_secs"
                               },
                               "val": {
-                                "u64": 100
+                                "u64": 3600
                               }
                             }
                           ]
@@ -993,7 +920,7 @@
             },
             "ext": "v0"
           },
-          6311999
+          4095
         ]
       ],
       [
@@ -1018,6 +945,39 @@
                 "key": {
                   "ledger_key_nonce": {
                     "nonce": 801925984706572462
+                  }
+                },
+                "durability": "temporary",
+                "val": "void"
+              }
+            },
+            "ext": "v0"
+          },
+          6311999
+        ]
+      ],
+      [
+        {
+          "contract_data": {
+            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
+            "key": {
+              "ledger_key_nonce": {
+                "nonce": 1033654523790656264
+              }
+            },
+            "durability": "temporary"
+          }
+        },
+        [
+          {
+            "last_modified_ledger_seq": 0,
+            "data": {
+              "contract_data": {
+                "ext": "v0",
+                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M",
+                "key": {
+                  "ledger_key_nonce": {
+                    "nonce": 1033654523790656264
                   }
                 },
                 "durability": "temporary",
@@ -1097,72 +1057,6 @@
       ],
       [
         {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
-            "key": {
-              "ledger_key_nonce": {
-                "nonce": 1033654523790656264
-              }
-            },
-            "durability": "temporary"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
-                "key": {
-                  "ledger_key_nonce": {
-                    "nonce": 1033654523790656264
-                  }
-                },
-                "durability": "temporary",
-                "val": "void"
-              }
-            },
-            "ext": "v0"
-          },
-          6311999
-        ]
-      ],
-      [
-        {
-          "contract_data": {
-            "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
-            "key": {
-              "ledger_key_nonce": {
-                "nonce": 2032731177588607455
-              }
-            },
-            "durability": "temporary"
-          }
-        },
-        [
-          {
-            "last_modified_ledger_seq": 0,
-            "data": {
-              "contract_data": {
-                "ext": "v0",
-                "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4",
-                "key": {
-                  "ledger_key_nonce": {
-                    "nonce": 2032731177588607455
-                  }
-                },
-                "durability": "temporary",
-                "val": "void"
-              }
-            },
-            "ext": "v0"
-          },
-          6311999
-        ]
-      ],
-      [
-        {
           "contract_code": {
             "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
           }
@@ -1179,7 +1073,7 @@
             },
             "ext": "v0"
           },
-          6311999
+          4095
         ]
       ]
     ]
@@ -1264,7 +1158,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 100
+                          "lo": 1
                         }
                       }
                     },
@@ -1273,7 +1167,7 @@
                         "symbol": "quorum_bps"
                       },
                       "val": {
-                        "u32": 2000
+                        "u32": 1
                       }
                     },
                     {
@@ -1281,7 +1175,7 @@
                         "symbol": "timelock_secs"
                       },
                       "val": {
-                        "u64": 10
+                        "u64": 0
                       }
                     },
                     {
@@ -1289,7 +1183,7 @@
                         "symbol": "token_symbol"
                       },
                       "val": {
-                        "string": "CBG"
+                        "string": "GOV"
                       }
                     },
                     {
@@ -1299,7 +1193,7 @@
                       "val": {
                         "i128": {
                           "hi": 0,
-                          "lo": 10000
+                          "lo": 1000000
                         }
                       }
                     },
@@ -1308,7 +1202,7 @@
                         "symbol": "voting_period_secs"
                       },
                       "val": {
-                        "u64": 100
+                        "u64": 3600
                       }
                     }
                   ]
@@ -1367,64 +1261,7 @@
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 500
-                  }
-                }
-              ]
-            }
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": "0000000000000000000000000000000000000000000000000000000000000001",
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_return"
-              },
-              {
-                "symbol": "set_voting_stake"
-              }
-            ],
-            "data": "void"
-          }
-        }
-      },
-      "failed_call": false
-    },
-    {
-      "event": {
-        "ext": "v0",
-        "contract_id": null,
-        "type_": "diagnostic",
-        "body": {
-          "v0": {
-            "topics": [
-              {
-                "symbol": "fn_call"
-              },
-              {
-                "bytes": "0000000000000000000000000000000000000000000000000000000000000001"
-              },
-              {
-                "symbol": "set_voting_stake"
-              }
-            ],
-            "data": {
-              "vec": [
-                {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
-                },
-                {
-                  "i128": {
-                    "hi": 0,
-                    "lo": 2000
+                    "lo": 100000
                   }
                 }
               ]
@@ -1479,15 +1316,15 @@
                   "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
-                  "string": "Lower protocol fee"
+                  "string": "Prop"
                 },
                 {
-                  "string": "Reduce taker fees via governance"
+                  "string": "desc"
                 },
                 {
                   "vec": [
                     {
-                      "string": "set_fee_rate:25"
+                      "string": "action1"
                     }
                   ]
                 }
@@ -1575,7 +1412,7 @@
             "data": {
               "vec": [
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
                   "u64": 1
@@ -1615,12 +1452,12 @@
                   "u64": 1
                 },
                 {
-                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAITA4"
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
                 },
                 {
                   "i128": {
                     "hi": 0,
-                    "lo": 2000
+                    "lo": 100000
                   }
                 }
               ]
@@ -1648,7 +1485,7 @@
             "data": {
               "i128": {
                 "hi": 0,
-                "lo": 2000
+                "lo": 100000
               }
             }
           }
@@ -1737,7 +1574,7 @@
                   "u64": 1
                 },
                 {
-                  "u64": 1000120
+                  "u64": 1007200
                 }
               ]
             }
@@ -1828,7 +1665,7 @@
                   "val": {
                     "vec": [
                       {
-                        "string": "set_fee_rate:25"
+                        "string": "action1"
                       }
                     ]
                   }
@@ -1857,7 +1694,7 @@
                     "symbol": "description"
                   },
                   "val": {
-                    "string": "Reduce taker fees via governance"
+                    "string": "desc"
                   }
                 },
                 {
@@ -1865,7 +1702,7 @@
                     "symbol": "executable_after"
                   },
                   "val": {
-                    "u64": 1000110
+                    "u64": 1003600
                   }
                 },
                 {
@@ -1875,7 +1712,7 @@
                   "val": {
                     "i128": {
                       "hi": 0,
-                      "lo": 2000
+                      "lo": 100000
                     }
                   }
                 },
@@ -1912,7 +1749,7 @@
                     "symbol": "title"
                   },
                   "val": {
-                    "string": "Lower protocol fee"
+                    "string": "Prop"
                   }
                 },
                 {
@@ -1920,7 +1757,7 @@
                     "symbol": "voting_ends_at"
                   },
                   "val": {
-                    "u64": 1000100
+                    "u64": 1003600
                   }
                 }
               ]
@@ -2059,7 +1896,7 @@
                         "symbol": "occurred_at"
                       },
                       "val": {
-                        "u64": 1000120
+                        "u64": 1007200
                       }
                     },
                     {
@@ -2118,7 +1955,7 @@
                         "symbol": "occurred_at"
                       },
                       "val": {
-                        "u64": 1000120
+                        "u64": 1007200
                       }
                     },
                     {

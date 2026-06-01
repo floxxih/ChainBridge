@@ -246,10 +246,9 @@ pub fn read_delegatee_delegators(env: &Env, delegatee: &Address) -> Vec<Address>
 }
 
 pub fn write_delegatee_delegators(env: &Env, delegatee: &Address, delegators: &Vec<Address>) {
-    env.storage().persistent().set(
-        &DataKey::DelegateeDelegators(delegatee.clone()),
-        delegators,
-    );
+    env.storage()
+        .persistent()
+        .set(&DataKey::DelegateeDelegators(delegatee.clone()), delegators);
 }
 
 pub fn append_delegatee_delegator(env: &Env, delegatee: &Address, delegator: &Address) {
@@ -292,10 +291,9 @@ pub fn append_proposal_lifecycle_event(
     env.storage()
         .persistent()
         .set(&DataKey::ProposalLifecycleCount(proposal_id), &sequence);
-    env.storage().persistent().set(
-        &DataKey::ProposalLifecycle(proposal_id, sequence),
-        event,
-    );
+    env.storage()
+        .persistent()
+        .set(&DataKey::ProposalLifecycle(proposal_id, sequence), event);
     sequence
 }
 

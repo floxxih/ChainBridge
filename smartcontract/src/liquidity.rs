@@ -68,6 +68,53 @@ pub fn add_liquidity(
     Ok(minted)
 }
 
+/// Withdraw `lp_tokens` worth of liquidity from a pool.
+/// Returns `(amount_a, amount_b)` proportional to the pool share.
+pub fn remove_liquidity(
+    env: &Env,
+    provider: &Address,
+    pool_id: u64,
+    lp_tokens: i128,
+) -> Result<(i128, i128), Error> {
+    if lp_tokens <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    let mut pool = storage::read_pool(env, pool_id).ok_or(Error::OrderNotFound)?;
+    let mut position = storage::read_position(env, pool_id, provider).ok_or(Error::Unauthorized)?;
+
+    if position.lp_tokens < lp_tokens {
+        return Err(Error::InvalidAmount);
+    }
+
+    let amount_a = lp_tokens * pool.reserve_a / pool.total_lp_tokens;
+    let amount_b = lp_tokens * pool.reserve_b / pool.total_lp_tokens;
+
+    pool.reserve_a -= amount_a;
+    pool.reserve_b -= amount_b;
+    pool.total_lp_tokens -= lp_tokens;
+    storage::write_pool(env, pool_id, &pool);
+
+    position.lp_tokens -= lp_tokens;
+    storage::write_position(env, &position);
+
+    Ok((amount_a, amount_b))
+}
+
+/// Claim all accrued rewards for a position. Returns the claimed amount.
+pub fn claim_rewards(env: &Env, provider: &Address, pool_id: u64) -> Result<i128, Error> {
+    let mut position = storage::read_position(env, pool_id, provider).ok_or(Error::Unauthorized)?;
+
+    let rewards = position.rewards_earned;
+    if rewards <= 0 {
+        return Err(Error::AmountTooSmall);
+    }
+
+    position.rewards_earned = 0;
+    storage::write_position(env, &position);
+
+    Ok(rewards)
+}
+
 pub fn get_pool_quote(
     env: &Env,
     asset_in: String,
@@ -94,4 +141,36 @@ pub fn get_pool_quote(
     let numerator = amount_in_after_fee * reserve_out;
     let denominator = reserve_in + amount_in_after_fee;
     Ok(numerator / denominator)
+}
+
+/// Execute a pool route swap with slippage protection.
+/// `min_amount_out` is the minimum acceptable output; rejects if quote falls below it.
+pub fn swap_with_slippage(
+    env: &Env,
+    asset_in: String,
+    asset_out: String,
+    amount_in: i128,
+    min_amount_out: i128,
+) -> Result<i128, Error> {
+    let quoted = get_pool_quote(env, asset_in.clone(), asset_out.clone(), amount_in)?;
+    if quoted < min_amount_out {
+        return Err(Error::AmountTooSmall);
+    }
+
+    // Update reserves to reflect the swap.
+    let pool_id =
+        storage::read_pool_route(env, &asset_in, &asset_out).ok_or(Error::OrderNotFound)?;
+    let mut pool = storage::read_pool(env, pool_id).ok_or(Error::OrderNotFound)?;
+
+    let amount_in_after_fee = amount_in * (10_000 - pool.fee_bps as i128) / 10_000;
+    if pool.asset_a == asset_in {
+        pool.reserve_a += amount_in_after_fee;
+        pool.reserve_b -= quoted;
+    } else {
+        pool.reserve_b += amount_in_after_fee;
+        pool.reserve_a -= quoted;
+    }
+    storage::write_pool(env, pool_id, &pool);
+
+    Ok(quoted)
 }

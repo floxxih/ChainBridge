@@ -182,7 +182,11 @@ impl ChainBridge {
     /// The current admin must authorize the transfer. After transfer,
     /// the new admin can call admin-only functions and the old admin
     /// loses all admin privileges.
-    pub fn transfer_admin(env: Env, current_admin: Address, new_admin: Address) -> Result<(), Error> {
+    pub fn transfer_admin(
+        env: Env,
+        current_admin: Address,
+        new_admin: Address,
+    ) -> Result<(), Error> {
         current_admin.require_auth();
         let stored_admin = storage::read_admin(&env);
         if current_admin != stored_admin {
@@ -469,6 +473,35 @@ impl ChainBridge {
         amount_in: i128,
     ) -> Result<i128, Error> {
         liquidity::get_pool_quote(&env, asset_in, asset_out, amount_in)
+    }
+
+    /// Remove liquidity from a pool. Returns (amount_a, amount_b) returned to provider.
+    pub fn remove_liquidity(
+        env: Env,
+        provider: Address,
+        pool_id: u64,
+        lp_tokens: i128,
+    ) -> Result<(i128, i128), Error> {
+        provider.require_auth();
+        liquidity::remove_liquidity(&env, &provider, pool_id, lp_tokens)
+    }
+
+    /// Claim accrued rewards for an LP position. Returns the claimed amount.
+    pub fn claim_rewards(env: Env, provider: Address, pool_id: u64) -> Result<i128, Error> {
+        provider.require_auth();
+        liquidity::claim_rewards(&env, &provider, pool_id)
+    }
+
+    /// Execute a pool swap with slippage protection.
+    /// Rejects if the quoted output is below `min_amount_out`.
+    pub fn swap_with_slippage(
+        env: Env,
+        asset_in: String,
+        asset_out: String,
+        amount_in: i128,
+        min_amount_out: i128,
+    ) -> Result<i128, Error> {
+        liquidity::swap_with_slippage(&env, asset_in, asset_out, amount_in, min_amount_out)
     }
 
     pub fn register_referral_code(env: Env, owner: Address, code: String) -> Result<(), Error> {

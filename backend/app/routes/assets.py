@@ -71,7 +71,7 @@ async def create_asset(
         )
     )
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Asset already exists")
+        raise HTTPException(status_code=409, detail="conflict")
 
     new_asset = Asset(**asset.model_dump())
     db.add(new_asset)
