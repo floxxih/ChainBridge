@@ -3,7 +3,8 @@ import type { I18nMessages } from "../types";
 export const messagesJa: I18nMessages = {
   nav: {
     dashboard: "ダッシュボード",
-    swap: "スワップ",
+    swap: "新規スワップ",
+    swaps: "スワップ履歴",
     market: "マーケット",
     orders: "注文",
     htlcs: "HTLC",

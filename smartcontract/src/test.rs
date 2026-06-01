@@ -2367,3 +2367,130 @@ fn test_transfer_admin_unauthorized_non_admin_cannot_transfer() {
     // Non-admin tries to transfer admin
     client.transfer_admin(&non_admin, &new_admin);
 }
+
+// =============================================================================
+// ISSUE #470: STORAGE TTL POLICY FOR ACTIVE HTLCS
+// =============================================================================
+
+/// Verify that active HTLC operations succeed under TTL extension (reads and
+/// writes both bump TTL, so normal usage should never hit expiry).
+#[test]
+fn test_htlc_active_ttl_extension_on_create_and_read() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+
+    client.init(&admin);
+
+    let htlc_id = create_test_htlc(&env, &client, &sender, &receiver, 1000, &[1u8; 32], 86400);
+
+    // Reading an active HTLC bumps its TTL — verify the entry is accessible
+    let htlc = client.get_htlc(&htlc_id);
+    assert_eq!(htlc.status, HTLCStatus::Active);
+
+    // Claiming transitions the status and applies the archival TTL policy
+    let secret = Bytes::from_slice(&env, &[1u8; 32]);
+    client.claim_htlc(&receiver, &htlc_id, &secret);
+    assert_eq!(client.get_htlc_status(&htlc_id), HTLCStatus::Claimed);
+}
+
+/// Verify that claimed HTLCs are still readable (archival TTL).
+#[test]
+fn test_htlc_claimed_archival_ttl() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+
+    client.init(&admin);
+
+    let secret = Bytes::from_slice(&env, &[0x42u8; 32]);
+    let hash_lock: BytesN<32> = env.crypto().sha256(&secret).into();
+    let time_lock = env.ledger().timestamp() + 86400;
+
+    let htlc_id = client.create_htlc(
+        &sender,
+        &receiver,
+        &1000,
+        &hash_lock,
+        &time_lock,
+        &OptMultiSig::None,
+    );
+
+    client.claim_htlc(&receiver, &htlc_id, &secret);
+
+    // After claim the record is still readable (archival TTL keeps it alive)
+    let revealed = client.get_secret(&htlc_id);
+    assert_eq!(revealed, Some(secret));
+}
+
+/// Verify that refunded HTLCs are still readable (archival TTL).
+#[test]
+fn test_htlc_refunded_archival_ttl() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+
+    client.init(&admin);
+
+    let htlc_id = create_test_htlc(&env, &client, &sender, &receiver, 1000, &[1u8; 32], 100);
+
+    env.ledger().set_timestamp(env.ledger().timestamp() + 101);
+    client.refund_htlc(&sender, &htlc_id);
+
+    // After refund the record is still readable
+    let htlc = client.get_htlc(&htlc_id);
+    assert_eq!(htlc.status, HTLCStatus::Refunded);
+}
+
+/// Verify that counter and admin instance storage remains accessible
+/// (instance TTL bumping keeps the contract operable).
+#[test]
+fn test_instance_storage_ttl_extension() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+
+    client.init(&admin);
+
+    // Create an HTLC to exercise counter and storage metrics
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+    create_test_htlc(&env, &client, &sender, &receiver, 1000, &[1u8; 32], 86400);
+
+    // Instance storage (admin, counters) must remain accessible
+    let metrics = client.get_storage_metrics();
+    assert_eq!(metrics.total_htlcs, 1);
+    assert_eq!(metrics.active_htlcs, 1);
+}
+
+/// Multiple HTLCs with active/claimed mix: all paths exercise TTL bumping
+/// without error.
+#[test]
+fn test_multiple_htlcs_with_ttl_bumping() {
+    let (env, _, client) = setup_contract();
+    let admin = Address::generate(&env);
+    let sender = Address::generate(&env);
+    let receiver = Address::generate(&env);
+
+    client.init(&admin);
+
+    // Create 3 HTLCs
+    let id1 = create_test_htlc(&env, &client, &sender, &receiver, 1000, &[1u8; 32], 86400);
+    let id2 = create_test_htlc(&env, &client, &sender, &receiver, 2000, &[2u8; 32], 86400);
+    let id3 = create_test_htlc(&env, &client, &sender, &receiver, 3000, &[3u8; 32], 100);
+
+    // Claim id1
+    let secret1 = Bytes::from_slice(&env, &[1u8; 32]);
+    client.claim_htlc(&receiver, &id1, &secret1);
+
+    // Refund id3 after expiry
+    env.ledger().set_timestamp(env.ledger().timestamp() + 200);
+    client.refund_htlc(&sender, &id3);
+
+    // Verify all statuses — TTL was bumped on every read/write
+    assert_eq!(client.get_htlc_status(&id1), HTLCStatus::Claimed);
+    assert_eq!(client.get_htlc_status(&id2), HTLCStatus::Active);
+    assert_eq!(client.get_htlc_status(&id3), HTLCStatus::Refunded);
+}

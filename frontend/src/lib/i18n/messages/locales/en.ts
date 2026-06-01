@@ -4,7 +4,8 @@ import type { I18nMessages } from "../types";
 export const messagesEn: I18nMessages = {
   nav: {
     dashboard: "Dashboard",
-    swap: "Swap",
+    swap: "New Swap",
+    swaps: "Swap History",
     market: "Market",
     orders: "Orders",
     htlcs: "HTLCs",

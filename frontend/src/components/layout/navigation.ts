@@ -1,6 +1,7 @@
 export const PRIMARY_NAV_LINKS = [
   { key: "nav.dashboard", href: "/dashboard" },
   { key: "nav.swap", href: "/swap" },
+  { key: "nav.swaps", href: "/swaps" },
   { key: "nav.market", href: "/marketplace" },
   { key: "nav.orders", href: "/orders" },
   { key: "nav.explorer", href: "/transactions" },

@@ -48,12 +48,13 @@ export function SlippageExpirationControls({
       {/* Slippage tolerance */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-text-secondary">Slippage Tolerance</label>
+          <label htmlFor="slippage-input" className="text-xs font-medium text-text-secondary">Slippage Tolerance</label>
           <span className="text-xs text-text-muted">Default: {SLIPPAGE_DEFAULT}%</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1">
             <input
+              id="slippage-input"
               type="number"
               min={SLIPPAGE_MIN}
               max={SLIPPAGE_MAX}
@@ -67,14 +68,15 @@ export function SlippageExpirationControls({
               aria-describedby={slippageInvalid ? "slippage-error" : undefined}
               className="w-20 rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             />
-            <span className="text-sm text-text-muted">%</span>
+            <span className="text-sm text-text-muted" aria-hidden="true">%</span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1" role="group" aria-label="Slippage presets">
             {SLIPPAGE_PRESETS.map((preset) => (
               <button
                 key={preset}
                 type="button"
                 onClick={() => onSlippageChange(preset)}
+                aria-label={`Set slippage to ${preset}%`}
                 className={`rounded-lg border px-2.5 py-1.5 text-xs transition ${
                   slippage === preset
                     ? "border-brand-500 bg-brand-500/10 text-brand-500"
@@ -106,12 +108,13 @@ export function SlippageExpirationControls({
           <label className="text-xs font-medium text-text-secondary">Order Expiration</label>
           <span className="text-xs text-text-muted">Default: 30 min</span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Order expiration options">
           {EXPIRATION_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => onExpirationChange(opt.value)}
+              aria-label={`Set expiration to ${opt.label}`}
               className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                 expirationMinutes === opt.value
                   ? "border-brand-500 bg-brand-500/10 text-brand-500"

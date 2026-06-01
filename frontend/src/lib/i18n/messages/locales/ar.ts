@@ -3,7 +3,8 @@ import type { I18nMessages } from "../types";
 export const messagesAr: I18nMessages = {
   nav: {
     dashboard: "لوحة التحكم",
-    swap: "مبادلة",
+    swap: "مبادلة جديدة",
+    swaps: "سجل المبادلات",
     market: "السوق",
     orders: "الطلبات",
     htlcs: "HTLC",

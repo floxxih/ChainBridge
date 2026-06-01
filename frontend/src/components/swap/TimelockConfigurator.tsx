@@ -122,10 +122,11 @@ export function TimelockConfigurator({
         <Badge variant="info">Safety Presets</Badge>
       </div>
 
-      <div className="grid gap-2 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-3" role="group" aria-label="Timelock strategy presets">
         <button
           type="button"
           onClick={() => applyPreset("fast")}
+          aria-label="Fast timelock, approximately 4 hours"
           className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
             preset === "fast"
               ? "border-brand-500 bg-brand-500/10 text-brand-500"
@@ -138,6 +139,7 @@ export function TimelockConfigurator({
         <button
           type="button"
           onClick={() => applyPreset("standard")}
+          aria-label="Standard timelock, approximately 24 hours (recommended)"
           className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
             preset === "standard"
               ? "border-brand-500 bg-brand-500/10 text-brand-500"
@@ -150,6 +152,7 @@ export function TimelockConfigurator({
         <button
           type="button"
           onClick={() => applyPreset("custom")}
+          aria-label="Custom timelock with advanced control"
           className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
             preset === "custom"
               ? "border-brand-500 bg-brand-500/10 text-brand-500"
@@ -172,6 +175,7 @@ export function TimelockConfigurator({
             max={MAX_TIMELOCK_HOURS}
             value={customHours}
             onChange={(event) => onCustomChange(event.target.value)}
+            aria-label="Custom timelock in hours"
             aria-invalid={!!customError}
             aria-describedby={customError ? "timelock-error" : "timelock-help"}
             className="w-full rounded-xl border border-border bg-surface-raised px-3 py-2 text-sm text-text-primary"
