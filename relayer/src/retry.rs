@@ -37,6 +37,18 @@ impl RetryQueue {
         queue.insert(tx.id.clone(), tx);
     }
 
+    /// Get current queue depth by chain.
+    pub async fn depth_by_chain(&self) -> HashMap<String, usize> {
+        let queue = self.queue.lock().await;
+        let mut depth_map: HashMap<String, usize> = HashMap::new();
+        
+        for tx in queue.values() {
+            *depth_map.entry(tx.chain.clone()).or_insert(0) += 1;
+        }
+        
+        depth_map
+    }
+
     /// Get the next transaction ready for retry.
     pub async fn dequeue_ready(&self) -> Option<RetryableTransaction> {
         let mut queue = self.queue.lock().await;
@@ -105,6 +117,12 @@ impl RetryProcessor {
     /// Start the retry processing loop.
     pub async fn run(&self) {
         loop {
+            // Update queue depth metrics
+            let depth_map = self.queue.depth_by_chain().await;
+            for (chain, depth) in depth_map {
+                self.metrics.update_retry_queue_depth(&chain, depth as i64);
+            }
+
             if let Some(tx) = self.queue.dequeue_ready().await {
                 self.metrics.mark_tx_submission(&tx.chain);
                 let result = crate::submit::submit_transaction(&self.config, tx.clone()).await;

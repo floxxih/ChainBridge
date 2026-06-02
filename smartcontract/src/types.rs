@@ -333,3 +333,12 @@ pub struct ReferralRecord {
     pub rewards_claimed: i128,
     pub last_swap_id: u64,
 }
+
+/// Multi-hop swap route information
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SwapRoute {
+    pub path: soroban_sdk::Vec<String>,
+    pub output_amount: i128,
+    pub total_fee_bps: u32,
+}
