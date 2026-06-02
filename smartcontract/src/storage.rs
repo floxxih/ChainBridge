@@ -721,3 +721,7 @@ pub fn write_storage_metrics(env: &Env, metrics: &StorageMetrics) {
         .instance()
         .set(&DataKey::StorageMetrics, metrics);
 }
+
+pub fn read_pool_counter(env: &Env) -> u64 {
+    get_pool_counter(env)
+}

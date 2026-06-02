@@ -25,6 +25,7 @@ pub struct RelayerMetrics {
     tx_submission_errors_total: IntCounterVec,
     tx_retries_total: IntCounterVec,
     tx_retry_failures_total: IntCounterVec,
+    retry_queue_depth: IntGaugeVec,
     started_at: Instant,
 }
 
@@ -125,6 +126,15 @@ impl RelayerMetrics {
         )
         .expect("tx_retry_failures_total metric");
 
+        let retry_queue_depth = IntGaugeVec::new(
+            opts!(
+                "chainbridge_relayer_retry_queue_depth",
+                "Current number of transactions in the retry queue by chain"
+            ),
+            &["chain"],
+        )
+        .expect("retry_queue_depth metric");
+
         let relayer_build_info = GaugeVec::new(
             opts!(
                 "chainbridge_relayer_build_info",
@@ -168,6 +178,9 @@ impl RelayerMetrics {
             .register(Box::new(tx_retry_failures_total.clone()))
             .expect("register tx_retry_failures_total");
         registry
+            .register(Box::new(retry_queue_depth.clone()))
+            .expect("register retry_queue_depth");
+        registry
             .register(Box::new(relayer_build_info.clone()))
             .expect("register relayer_build_info");
 
@@ -187,6 +200,7 @@ impl RelayerMetrics {
             tx_submission_errors_total,
             tx_retries_total,
             tx_retry_failures_total,
+            retry_queue_depth,
             started_at: Instant::now(),
         }
     }
@@ -234,6 +248,10 @@ impl RelayerMetrics {
 
     pub fn mark_tx_retry_failure(&self, chain: &str) {
         self.tx_retry_failures_total.with_label_values(&[chain]).inc();
+    }
+
+    pub fn update_retry_queue_depth(&self, chain: &str, depth: i64) {
+        self.retry_queue_depth.with_label_values(&[chain]).set(depth);
     }
 
     fn update_uptime(&self) {

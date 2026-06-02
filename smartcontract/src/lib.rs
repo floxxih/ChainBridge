@@ -534,6 +534,29 @@ impl ChainBridge {
     pub fn get_referral_record(env: Env, code: String) -> Result<ReferralRecord, Error> {
         storage::read_referral_record(&env, &code).ok_or(Error::OrderNotFound)
     }
+
+    /// Find the best multi-hop route for a swap.
+    /// Returns the best output amount and the route path.
+    /// Evaluates direct and multi-hop (up to 3 hops) routes.
+    pub fn find_best_route(
+        env: Env,
+        asset_in: String,
+        asset_out: String,
+        amount_in: i128,
+    ) -> Result<(i128, types::SwapRoute), Error> {
+        liquidity::find_best_route(&env, asset_in, asset_out, amount_in)
+    }
+
+    /// Execute a multi-hop swap along a specific route path.
+    /// Path must have at least 2 assets and at most 4 assets.
+    pub fn execute_multi_hop_swap(
+        env: Env,
+        route_path: soroban_sdk::Vec<String>,
+        amount_in: i128,
+        min_amount_out: i128,
+    ) -> Result<i128, Error> {
+        liquidity::execute_multi_hop_swap(&env, route_path, amount_in, min_amount_out)
+    }
 }
 
 #[cfg(test)]
