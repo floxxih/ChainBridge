@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, BigInteger, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, BigInteger, Integer, Numeric, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from .base import Base, TimestampMixin
 
 
@@ -27,3 +27,7 @@ class SwapOrder(Base, TimestampMixin):
     expiry = Column(BigInteger, nullable=False, index=True)
     status = Column(String, nullable=False, default="open", index=True)
     counterparty = Column(String, nullable=True)
+    amendment_count = Column(Integer, nullable=False, default=0)
+    amendment_log = Column(JSONB, nullable=False, default=list)
+    trigger_price = Column(Numeric(36, 18), nullable=True)
+    valid_from = Column(BigInteger, nullable=True, index=True)

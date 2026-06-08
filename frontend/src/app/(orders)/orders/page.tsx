@@ -5,8 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   BookmarkPlus,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   Filter,
+  History,
   LayoutGrid,
   Rows3,
   RefreshCw,
@@ -20,7 +23,7 @@ import {
 import { Button, Card, EmptyState, Input, Spinner, ToastContainer } from "@/components/ui";
 import { WalletConnect } from "@/components/swap/WalletConnect";
 import { DEMO_ORDER_OWNER, useMockOrders, useOrderBookStore } from "@/hooks/useOrderBook";
-import { Order, OrderStatus } from "@/types";
+import { Order, OrderAmendmentEntry, OrderStatus } from "@/types";
 import { cn } from "@/lib/utils";
 import { shortenHash } from "@/lib/format";
 import { AdvancedFilterDrawer } from "@/components/filters/AdvancedFilterDrawer";
@@ -99,6 +102,7 @@ export default function OrdersPage() {
   const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [expandedAmendmentId, setExpandedAmendmentId] = useState<string | null>(null);
 
   useEffect(() => {
     seedMockOrders(ownerAddress);
@@ -459,89 +463,134 @@ export default function OrdersPage() {
             }
           />
         ) : (
-          visibleOrders.map((order) => (
-            <Card
-              key={order.id}
-              variant="glass"
-              className={cn(orderCardPaddingClass)}
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xl font-bold text-text-primary">{order.pair}</span>
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
-                        order.derivedStatus === OrderStatus.OPEN &&
-                          "bg-emerald-500/10 text-emerald-400",
-                        order.derivedStatus === OrderStatus.EXPIRED &&
-                          "bg-amber-500/10 text-amber-400",
-                        order.derivedStatus === OrderStatus.CANCELLED &&
-                          "bg-red-500/10 text-red-300",
-                        order.derivedStatus === OrderStatus.FILLED &&
-                          "bg-brand-500/10 text-brand-400"
-                      )}
-                    >
-                      {order.derivedStatus}
-                    </span>
-                    {pendingCancelId === order.id && (
-                      <div className="flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400">
-                        <Spinner size="sm" />
-                        <span>Cancelling</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-3 grid gap-2 text-sm text-text-secondary sm:grid-cols-2">
-                    <p>Maker: {shortAddress(order.maker)}</p>
-                    <p>
-                      Chain Route: {order.chainIn} to {order.chainOut}
-                    </p>
-                    <p>
-                      Size: {order.amount} {order.tokenIn}
-                    </p>
-                    <p>
-                      Total: {order.total} {order.tokenOut}
-                    </p>
-                    <p>
-                      Expires:{" "}
-                      {order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}
-                    </p>
-                    <p>Created: {new Date(order.timestamp).toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div className="min-w-[220px] space-y-3">
-                  <div className="rounded-2xl border border-border bg-surface-raised p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-                      Order Summary
-                    </p>
-                    <p className="mt-3 text-sm text-text-secondary">
-                      Type: <span className="text-text-primary">{order.orderType ?? "limit"}</span>
-                    </p>
-                    <p className="mt-2 text-sm text-text-secondary">
-                      Partial fills:{" "}
-                      <span className="text-text-primary">
-                        {order.allowPartialFills ? "Enabled" : "Disabled"}
+          visibleOrders.map((order) => {
+            const isAmendmentExpanded = expandedAmendmentId === order.id;
+            const hasAmendments = (order.amendmentCount ?? 0) > 0;
+            return (
+              <Card
+                key={order.id}
+                variant="glass"
+                className={cn(orderCardPaddingClass)}
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xl font-bold text-text-primary">{order.pair}</span>
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
+                          order.derivedStatus === OrderStatus.OPEN &&
+                            "bg-emerald-500/10 text-emerald-400",
+                          order.derivedStatus === OrderStatus.EXPIRED &&
+                            "bg-amber-500/10 text-amber-400",
+                          order.derivedStatus === OrderStatus.CANCELLED &&
+                            "bg-red-500/10 text-red-300",
+                          order.derivedStatus === OrderStatus.FILLED &&
+                            "bg-brand-500/10 text-brand-400"
+                        )}
+                      >
+                        {order.derivedStatus}
                       </span>
-                    </p>
+                      {hasAmendments && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-brand-500/10 px-2.5 py-1 text-xs font-semibold text-brand-400">
+                          <History className="h-3 w-3" />
+                          {order.amendmentCount} {order.amendmentCount === 1 ? "amendment" : "amendments"}
+                        </span>
+                      )}
+                      {pendingCancelId === order.id && (
+                        <div className="flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400">
+                          <Spinner size="sm" />
+                          <span>Cancelling</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 grid gap-2 text-sm text-text-secondary sm:grid-cols-2">
+                      <p>Maker: {shortAddress(order.maker)}</p>
+                      <p>
+                        Chain Route: {order.chainIn} to {order.chainOut}
+                      </p>
+                      <p>
+                        Size: {order.amount} {order.tokenIn}
+                      </p>
+                      <p>
+                        Total: {order.total} {order.tokenOut}
+                      </p>
+                      <p>
+                        Expires:{" "}
+                        {order.expiresAt ? new Date(order.expiresAt).toLocaleString() : "Not set"}
+                      </p>
+                      <p>Created: {new Date(order.timestamp).toLocaleString()}</p>
+                    </div>
                   </div>
 
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    icon={<XCircle className="h-4 w-4" />}
-                    loading={pendingCancelId === order.id}
-                    disabled={order.derivedStatus !== OrderStatus.OPEN}
-                    onClick={() => requestCancel(order)}
-                    aria-haspopup="dialog"
-                    aria-label={`Cancel order ${order.pair} (${order.id})`}
-                  >
-                    Cancel Order
-                  </Button>
+                  <div className="min-w-[220px] space-y-3">
+                    <div className="rounded-2xl border border-border bg-surface-raised p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+                        Order Summary
+                      </p>
+                      <p className="mt-3 text-sm text-text-secondary">
+                        Type: <span className="text-text-primary">{order.orderType ?? "limit"}</span>
+                      </p>
+                      <p className="mt-2 text-sm text-text-secondary">
+                        Partial fills:{" "}
+                        <span className="text-text-primary">
+                          {order.allowPartialFills ? "Enabled" : "Disabled"}
+                        </span>
+                      </p>
+                      {hasAmendments && (
+                        <p className="mt-2 text-sm text-text-secondary">
+                          Last amended:{" "}
+                          <span className="text-text-primary">
+                            {new Date(
+                              order.amendmentLog![order.amendmentLog!.length - 1].amended_at
+                            ).toLocaleString()}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+
+                    {hasAmendments && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedAmendmentId(isAmendmentExpanded ? null : order.id)
+                        }
+                        className="flex w-full items-center justify-between rounded-xl border border-border bg-surface-raised px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-overlay hover:text-text-primary"
+                        aria-expanded={isAmendmentExpanded}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <History className="h-3.5 w-3.5" />
+                          Amendment History
+                        </span>
+                        {isAmendmentExpanded ? (
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    )}
+
+                    <Button
+                      variant="destructive"
+                      className="w-full"
+                      icon={<XCircle className="h-4 w-4" />}
+                      loading={pendingCancelId === order.id}
+                      disabled={order.derivedStatus !== OrderStatus.OPEN}
+                      onClick={() => requestCancel(order)}
+                      aria-haspopup="dialog"
+                      aria-label={`Cancel order ${order.pair} (${order.id})`}
+                    >
+                      Cancel Order
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))
+
+                {isAmendmentExpanded && order.amendmentLog && order.amendmentLog.length > 0 && (
+                  <AmendmentHistory entries={order.amendmentLog} />
+                )}
+              </Card>
+            );
+          })
         )}
       </div>
 
@@ -712,6 +761,76 @@ export default function OrdersPage() {
           </div>
         </div>
       </AdvancedFilterDrawer>
+    </div>
+  );
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  from_amount: "Send amount",
+  to_amount: "Receive amount",
+  min_fill_amount: "Min fill",
+  expiry: "Expiry",
+};
+
+function AmendmentHistory({ entries }: { entries: OrderAmendmentEntry[] }) {
+  const sorted = [...entries].sort((a, b) => b.sequence - a.sequence);
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-surface-overlay/30 p-4">
+      <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+        <History className="h-3.5 w-3.5" />
+        Amendment History
+      </p>
+      <ol className="space-y-3">
+        {sorted.map((entry, index) => (
+          <li key={entry.sequence} className="flex gap-3 text-sm">
+            <div className="flex flex-col items-center">
+              <span
+                className={cn(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                  index === 0
+                    ? "bg-brand-500/20 text-brand-400"
+                    : "bg-surface-raised text-text-muted"
+                )}
+              >
+                {entry.sequence}
+              </span>
+              {index < sorted.length - 1 && (
+                <div className="mt-1 w-px flex-1 bg-border" />
+              )}
+            </div>
+            <div className="pb-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-text-muted">
+                  {new Date(entry.amended_at).toLocaleString()}
+                </span>
+                {index === 0 && (
+                  <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-xs font-semibold text-brand-400">
+                    Latest
+                  </span>
+                )}
+              </div>
+              <ul className="mt-1.5 space-y-1">
+                {Object.entries(entry.changes).map(([field, change]) => (
+                  <li key={field} className="text-xs text-text-secondary">
+                    <span className="font-medium text-text-primary">
+                      {FIELD_LABELS[field] ?? field}
+                    </span>
+                    {": "}
+                    <span className="line-through text-text-muted">
+                      {change.before ?? "—"}
+                    </span>{" "}
+                    →{" "}
+                    <span className="font-medium text-text-primary">{change.after}</span>
+                  </li>
+                ))}
+              </ul>
+              {entry.note && (
+                <p className="mt-1 text-xs italic text-text-muted">&ldquo;{entry.note}&rdquo;</p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

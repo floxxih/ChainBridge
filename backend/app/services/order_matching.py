@@ -20,6 +20,18 @@ def _is_expired(order: SwapOrder) -> bool:
     return int(order.expiry) <= int(datetime.now(timezone.utc).timestamp())
 
 
+def _is_not_yet_active(order: SwapOrder) -> bool:
+    if order.valid_from is None:
+        return False
+    return int(datetime.now(timezone.utc).timestamp()) < int(order.valid_from)
+
+
+def _meets_trigger_price(order: SwapOrder, execution_price: Fraction) -> bool:
+    if order.trigger_price is None:
+        return True
+    return execution_price >= Fraction(order.trigger_price)
+
+
 def _counterparty_label(existing: str | None, new_value: str) -> str:
     if not existing or existing == new_value:
         return new_value
@@ -72,7 +84,7 @@ class OrderMatchingService:
     """Price-time-priority matcher for reciprocal open orders."""
 
     async def match_order(self, db: AsyncSession, order: SwapOrder) -> MatchingSummary:
-        if order.status not in {"open", "matched"} or _is_expired(order):
+        if order.status not in {"open", "matched"} or _is_expired(order) or _is_not_yet_active(order):
             return MatchingSummary(
                 total_matches=0,
                 filled_amount=int(order.filled_amount or 0),
@@ -111,7 +123,7 @@ class OrderMatchingService:
         ):
             if _remaining(order) <= 0:
                 break
-            if _remaining(candidate) <= 0 or _is_expired(candidate):
+            if _remaining(candidate) <= 0 or _is_expired(candidate) or _is_not_yet_active(candidate):
                 continue
             if not self._is_price_compatible(order, candidate):
                 continue
@@ -131,6 +143,13 @@ class OrderMatchingService:
             if candidate.min_fill_amount and counterparty_fill < int(
                 candidate.min_fill_amount
             ):
+                continue
+
+            taker_execution_price = Fraction(counterparty_fill, max_fill)
+            if not _meets_trigger_price(order, taker_execution_price):
+                continue
+            maker_execution_price = Fraction(max_fill, counterparty_fill)
+            if not _meets_trigger_price(candidate, maker_execution_price):
                 continue
 
             order.filled_amount = int(order.filled_amount or 0) + max_fill

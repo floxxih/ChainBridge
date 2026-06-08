@@ -12,6 +12,7 @@ from .users import router as users_router
 from .assets import router as assets_router
 from .chains import router as chains_router
 from .protocol import router as protocol_router
+from .liquidity import router as liquidity_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(htlc_router, prefix="/htlcs", tags=["HTLCs"])
@@ -27,3 +28,4 @@ api_router.include_router(users_router, tags=["Users"])
 api_router.include_router(assets_router, prefix="/assets", tags=["Assets"])
 api_router.include_router(chains_router, prefix="/chains", tags=["Chains"])
 api_router.include_router(protocol_router, prefix="/protocol", tags=["Protocol"])
+api_router.include_router(liquidity_router, prefix="/liquidity", tags=["Liquidity"])

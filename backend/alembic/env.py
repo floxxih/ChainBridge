@@ -8,6 +8,7 @@ from app.models import Base
 
 # Import model modules so metadata is fully populated.
 from app.models import api_key, dispute, htlc, order, swap, transaction, user  # noqa: F401
+from app.models import pool as pool_models  # noqa: F401
 
 config = context.config
 
