@@ -58,7 +58,7 @@ jobs:
         echo "wasm-path=target/wasm32-unknown-unknown/release/chainbridge.wasm" >> $GITHUB_OUTPUT
         
     - name: Upload WASM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: chainbridge-wasm
         path: smartcontract/target/wasm32-unknown-unknown/release/chainbridge.wasm

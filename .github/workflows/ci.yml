@@ -58,7 +58,7 @@ jobs:
       working-directory: smartcontract
       
     - name: Upload WASM artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: chainbridge-wasm
         path: smartcontract/target/wasm32-unknown-unknown/release/*.wasm
@@ -124,7 +124,7 @@ jobs:
         DATABASE_URL: postgresql+asyncpg://chainbridge:chainbridge@localhost:5432/chainbridge
       
     - name: Upload coverage report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: backend-coverage
         path: htmlcov/
@@ -167,7 +167,7 @@ jobs:
       working-directory: frontend
       
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: frontend-build
         path: frontend/.next/
