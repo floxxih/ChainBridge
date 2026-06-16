@@ -46,6 +46,7 @@ class EventType(str, Enum):
     ORDER_MATCHED = "order.matched"
     ORDER_CANCELLED = "order.cancelled"
     ORDER_FILLED = "order.filled"
+    ORDER_UPDATED = "order.updated"
 
 
 def _build_event(event_type: EventType, channel: str, data: Any) -> str:

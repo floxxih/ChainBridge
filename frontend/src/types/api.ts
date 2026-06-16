@@ -5,6 +5,18 @@ export interface ApiErrorShape {
   details?: unknown;
 }
 
+export interface ApiOrderAmendmentChange {
+  before: number | null;
+  after: number;
+}
+
+export interface ApiOrderAmendmentEntry {
+  sequence: number;
+  amended_at: string;
+  changes: Record<string, ApiOrderAmendmentChange>;
+  note?: string;
+}
+
 export interface ApiOrderRecord {
   id: string;
   onchain_id: number | null;
@@ -21,6 +33,16 @@ export interface ApiOrderRecord {
   status: string;
   counterparty: string | null;
   created_at: string | null;
+  amendment_count: number;
+  amendment_log: ApiOrderAmendmentEntry[];
+}
+
+export interface AmendOrderPayload {
+  from_amount?: number;
+  to_amount?: number;
+  min_fill_amount?: number;
+  expiry?: number;
+  note?: string;
 }
 
 export interface CreateOrderPayload {

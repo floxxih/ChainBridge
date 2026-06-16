@@ -102,6 +102,18 @@ export enum OrderStatus {
   EXPIRED = "expired",
 }
 
+export interface OrderAmendmentChange {
+  before: number | null;
+  after: number;
+}
+
+export interface OrderAmendmentEntry {
+  sequence: number;
+  amended_at: string;
+  changes: Record<string, OrderAmendmentChange>;
+  note?: string;
+}
+
 export interface Order {
   id: string;
   maker: string;
@@ -121,6 +133,7 @@ export interface Order {
   expiresAt?: string;
   allowPartialFills?: boolean;
   amendmentCount?: number;
+  amendmentLog?: OrderAmendmentEntry[];
   minFillAmount?: string;
   makerFeeEstimate?: string;
   takerFeeEstimate?: string;
@@ -283,9 +296,11 @@ export interface ProtocolStats {
 }
 
 export type {
+  AmendOrderPayload,
   ApiErrorShape,
   ApiHTLCBaseRecord,
   ApiHTLCRecord,
+  ApiOrderAmendmentEntry,
   ApiOrderRecord,
   ApiSwapRecord,
   ClaimHTLCPayload,
