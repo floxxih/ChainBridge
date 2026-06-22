@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Optional
+from typing import Any, Optional
 from datetime import datetime
 
 from app.utils.address_validation import (
@@ -40,6 +40,30 @@ class OrderCreate(BaseModel):
         return self
 
 
+class OrderAmend(BaseModel):
+    from_amount: Optional[int] = Field(default=None, gt=0)
+    to_amount: Optional[int] = Field(default=None, gt=0)
+    min_fill_amount: Optional[int] = Field(default=None, gt=0)
+    expiry: Optional[int] = Field(default=None, gt=0)
+    note: Optional[str] = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self):
+        if all(
+            v is None
+            for v in (self.from_amount, self.to_amount, self.min_fill_amount, self.expiry)
+        ):
+            raise ValueError("At least one amendable field must be provided")
+        return self
+
+
+class OrderAmendmentEntry(BaseModel):
+    sequence: int
+    amended_at: str
+    changes: dict[str, Any]
+    note: Optional[str] = None
+
+
 class OrderMatch(BaseModel):
     counterparty: str
     fill_amount: Optional[int] = None
@@ -69,6 +93,8 @@ class OrderResponse(BaseModel):
     status: str
     counterparty: Optional[str] = None
     created_at: Optional[datetime] = None
+    amendment_count: int = 0
+    amendment_log: list[dict[str, Any]] = []
 
     class Config:
         from_attributes = True

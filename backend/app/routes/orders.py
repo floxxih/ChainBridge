@@ -1,5 +1,6 @@
-"""Order book endpoints: create, list, match, cancel (#26, #59)."""
+"""Order book endpoints: create, list, match, cancel, amend (#26, #59, #512)."""
 
+from datetime import datetime, timezone
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -8,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.database import get_db
 from app.config.redis import get_redis, CacheService
 from app.models.order import SwapOrder
-from app.schemas.order import OrderCreate, OrderResponse, OrderMatch
+from app.schemas.order import OrderAmend, OrderCreate, OrderResponse, OrderMatch
 from app.middleware.auth import require_api_key
 from app.services.order_matching import OrderMatchingService
 from app.ws.events import emit_order_event, EventType
@@ -145,6 +146,63 @@ async def match_order(
 
     response = OrderResponse.model_validate(order)
     await emit_order_event(redis, EventType.ORDER_MATCHED, response.model_dump())
+    return response
+
+
+@router.patch("/{order_id}/amend", response_model=OrderResponse)
+async def amend_order(
+    order_id: str,
+    data: OrderAmend,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(require_api_key),
+):
+    result = await db.execute(select(SwapOrder).where(SwapOrder.id == order_id))
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.status != "open":
+        raise HTTPException(status_code=400, detail="Only open orders can be amended")
+
+    changes: dict = {}
+    if data.from_amount is not None and data.from_amount != order.from_amount:
+        changes["from_amount"] = {"before": int(order.from_amount), "after": data.from_amount}
+        order.from_amount = data.from_amount
+    if data.to_amount is not None and data.to_amount != order.to_amount:
+        changes["to_amount"] = {"before": int(order.to_amount), "after": data.to_amount}
+        order.to_amount = data.to_amount
+    if data.min_fill_amount is not None and data.min_fill_amount != order.min_fill_amount:
+        changes["min_fill_amount"] = {
+            "before": int(order.min_fill_amount) if order.min_fill_amount is not None else None,
+            "after": data.min_fill_amount,
+        }
+        order.min_fill_amount = data.min_fill_amount
+    if data.expiry is not None and data.expiry != order.expiry:
+        changes["expiry"] = {"before": int(order.expiry), "after": data.expiry}
+        order.expiry = data.expiry
+
+    if not changes:
+        raise HTTPException(status_code=400, detail="No fields changed")
+
+    entry = {
+        "sequence": int(order.amendment_count or 0) + 1,
+        "amended_at": datetime.now(timezone.utc).isoformat(),
+        "changes": changes,
+    }
+    if data.note:
+        entry["note"] = data.note
+
+    order.amendment_count = int(order.amendment_count or 0) + 1
+    order.amendment_log = list(order.amendment_log or []) + [entry]
+
+    await db.commit()
+    await db.refresh(order)
+
+    redis = get_redis()
+    cache = CacheService(redis)
+    await cache.invalidate_pattern("orders:*")
+
+    response = OrderResponse.model_validate(order)
+    await emit_order_event(redis, EventType.ORDER_UPDATED, response.model_dump())
     return response
 
 

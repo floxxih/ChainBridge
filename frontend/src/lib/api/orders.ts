@@ -1,6 +1,7 @@
 import { createApiClient, getUserApiHeaders } from "@/lib/api/client";
 import { ApiOrderRecordSchema, ApiOrderListSchema } from "@/lib/api/schemas";
 import type {
+  AmendOrderPayload,
   ApiOrderRecord,
   CreateOrderPayload,
   ListOrdersParams,
@@ -37,6 +38,15 @@ export function cancelOrder(orderId: string) {
   return ordersClient.post<ApiOrderRecord>(
     `/${orderId}/cancel`,
     undefined,
+    undefined,
+    ApiOrderRecordSchema
+  );
+}
+
+export function amendOrder(orderId: string, payload: AmendOrderPayload) {
+  return ordersClient.patch<ApiOrderRecord>(
+    `/${orderId}/amend`,
+    payload,
     undefined,
     ApiOrderRecordSchema
   );
