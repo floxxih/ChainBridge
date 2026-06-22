@@ -1,0 +1,22 @@
+[package]
+name = "chainbridge-integration-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+stellar-sdk = { version = "9.0.0" }
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+sha2 = "0.10"
+rand = "0.8"
+criterion = { version = "0.5", features = ["async_tokio"] }
+
+[[bench]]
+name = "swap_benchmark"
+harness = false
+
+[lib]
+path = "tests/lib.rs"
