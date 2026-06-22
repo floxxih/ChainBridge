@@ -9,7 +9,7 @@ axum = "0.7"
 bitcoin = "0.31"
 ethers = "2.0"
 stellar_sdk = "0.1"
-sha2 = "0.10"
+sha2 = "0.11"
 hex = "0.4"
 prometheus = "0.13"
 serde = { version = "1.0", features = ["derive"] }
